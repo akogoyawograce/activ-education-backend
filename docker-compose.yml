@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  # 1. Base de données PostgreSQL avec l'extension pgvector
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: activeducation-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: activ_education
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: abalakata
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d activ_education" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # 2. Serveur de fichiers MinIO
+  minio:
+    image: minio/minio:latest
+    container_name: activeducation-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: abalakata
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000" # Port API S3
+      - "9001:9001" # Port Interface Web
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 3. L'Application Spring Boot
+  app:
+    build: .
+    container_name: activeducation-app
+    restart: on-failure
+    environment:
+      # Activation du profil docker
+      SPRING_PROFILES_ACTIVE: docker
+      # Variables pour la Base de données
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: activ_education
+      DB_USER: postgres
+      DB_PASSWORD: abalakata
+      JPA_DDL_AUTO: update
+      SERVER_PORT: 8080
+      # Variables pour MinIO
+      MINIO_URL: http://minio:9000
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: abalakata
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+volumes:
+  db_data:
+  minio_data:
