@@ -1,4 +1,4 @@
-package tg.edtch.activEducation.profil.domain.entite;
+package tg.edtch.activEducation.profil.domain.enums;
 
 /**
  * Enumération des rôles disponibles dans la plateforme Activ EDUCATION.

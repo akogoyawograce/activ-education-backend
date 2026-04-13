@@ -7,13 +7,16 @@ import tg.edtch.activEducation.shared.util.BaseEntity;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Entité représentant un quiz d'évaluation (orientation, personnalité,
  * compétences).
  */
 @Entity
-@Table(name = "quiz")
+@Table(name = "quiz", indexes = {
+        @Index(name = "idx_quiz_tracking_id", columnList = "tracking_id", unique = true)
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,6 +28,13 @@ public class Quiz extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
+
+    /**
+     * Identifiant public — seul identifiant exposé à l'extérieur.
+     */
+    @Column(name = "tracking_id", nullable = false, unique = true, updatable = false)
+    @Builder.Default
+    private UUID trackingId = UUID.randomUUID();
 
     @Column(name = "titre", nullable = false, length = 200)
     private String titre;
@@ -39,4 +49,12 @@ public class Quiz extends BaseEntity {
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<Question> questions = new HashSet<>();
+
+    @PrePersist
+    protected void onPrePersist() {
+        if (this.trackingId == null)
+            this.trackingId = UUID.randomUUID();
+        if (this.estActif == null)
+            this.estActif = true;
+    }
 }

@@ -3,6 +3,7 @@ package tg.edtch.activEducation.profil.domain.entite;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import tg.edtch.activEducation.profil.domain.enums.RoleNom;
 import tg.edtch.activEducation.shared.util.BaseEntity;
 
 import java.util.HashSet;

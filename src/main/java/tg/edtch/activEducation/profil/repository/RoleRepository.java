@@ -3,7 +3,7 @@ package tg.edtch.activEducation.profil.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import tg.edtch.activEducation.profil.domain.entite.Role;
-import tg.edtch.activEducation.profil.domain.entite.RoleNom;
+import tg.edtch.activEducation.profil.domain.enums.RoleNom;
 
 import java.util.Optional;
 

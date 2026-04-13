@@ -7,11 +7,18 @@ import org.springframework.stereotype.Repository;
 import tg.edtch.activEducation.diagnostic.domain.entite.ResultatDiagnostic;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface ResultatDiagnosticRepository extends JpaRepository<ResultatDiagnostic, Long> {
 
-    Page<ResultatDiagnostic> findByEleveIdOrderByDatePassageDesc(Long eleveId, Pageable pageable);
+    /** Recherche par identifiant public. */
+    Optional<ResultatDiagnostic> findByTrackingId(UUID trackingId);
 
-    Optional<ResultatDiagnostic> findFirstByEleveIdAndQuizIdOrderByDatePassageDesc(Long eleveId, Long quizId);
+    /** Résultats paginés d'un élève, triés par date décroissante. */
+    Page<ResultatDiagnostic> findByEleveTrackingIdOrderByDatePassageDesc(UUID eleveTrackingId, Pageable pageable);
+
+    /** Dernier résultat d'un élève pour un quiz spécifique. */
+    Optional<ResultatDiagnostic> findFirstByEleveTrackingIdAndQuizTrackingIdOrderByDatePassageDesc(
+            UUID eleveTrackingId, UUID quizTrackingId);
 }

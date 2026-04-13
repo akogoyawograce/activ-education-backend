@@ -5,17 +5,40 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import tg.edtch.activEducation.accompagnement.domain.entite.RendezVous;
+import tg.edtch.activEducation.accompagnement.domain.entite.RendezVous.StatutRendezVous;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
 
-    List<RendezVous> findByEleveIdOrderByDateHeurePrevueDesc(Long eleveId);
+    /** Recherche par identifiant public du rendez-vous. */
+    Optional<RendezVous> findByTrackingId(UUID trackingId);
 
-    List<RendezVous> findByConseillerIdOrderByDateHeurePrevueDesc(Long conseillerId);
+    /**
+     * Tous les RDV d'un élève (via son trackingId), triés par date décroissante.
+     */
+    List<RendezVous> findByEleveTrackingIdOrderByDateHeurePrevueDesc(UUID eleveTrackingId);
 
-    Page<RendezVous> findByEleveId(Long eleveId, Pageable pageable);
+    /**
+     * Tous les RDV d'un conseiller (via son trackingId), triés par date
+     * décroissante.
+     */
+    List<RendezVous> findByConseillerTrackingIdOrderByDateHeurePrevueDesc(UUID conseillerTrackingId);
 
-    Page<RendezVous> findByConseillerId(Long conseillerId, Pageable pageable);
+    /** RDV d'un élève paginés. */
+    Page<RendezVous> findByEleveTrackingId(UUID eleveTrackingId, Pageable pageable);
+
+    /** RDV d'un conseiller paginés. */
+    Page<RendezVous> findByConseillerTrackingId(UUID conseillerTrackingId, Pageable pageable);
+
+    /** RDV d'un élève filtrés par statut. */
+    List<RendezVous> findByEleveTrackingIdAndStatutOrderByDateHeurePrevueDesc(UUID eleveTrackingId,
+            StatutRendezVous statut);
+
+    /** RDV d'un conseiller filtrés par statut. */
+    List<RendezVous> findByConseillerTrackingIdAndStatutOrderByDateHeurePrevueDesc(UUID conseillerTrackingId,
+            StatutRendezVous statut);
 }

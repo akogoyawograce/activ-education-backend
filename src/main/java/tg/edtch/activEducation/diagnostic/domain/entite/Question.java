@@ -7,12 +7,16 @@ import tg.edtch.activEducation.shared.util.BaseEntity;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Entité représentant une question dans un quiz.
  */
 @Entity
-@Table(name = "questions")
+@Table(name = "questions", indexes = {
+        @Index(name = "idx_question_tracking_id", columnList = "tracking_id", unique = true),
+        @Index(name = "idx_question_quiz_id", columnList = "quiz_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,9 +29,17 @@ public class Question extends BaseEntity {
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
 
+    /**
+     * Identifiant public — seul identifiant exposé à l'extérieur.
+     */
+    @Column(name = "tracking_id", nullable = false, unique = true, updatable = false)
+    @Builder.Default
+    private UUID trackingId = UUID.randomUUID();
+
     @Column(name = "texte_question", nullable = false, columnDefinition = "TEXT")
     private String texteQuestion;
 
+    /** Ordre d'affichage de la question dans le quiz. */
     @Column(name = "ordre")
     private Integer ordre;
 
@@ -38,4 +50,10 @@ public class Question extends BaseEntity {
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private Set<Reponse> reponses = new HashSet<>();
+
+    @PrePersist
+    protected void onPrePersist() {
+        if (this.trackingId == null)
+            this.trackingId = UUID.randomUUID();
+    }
 }

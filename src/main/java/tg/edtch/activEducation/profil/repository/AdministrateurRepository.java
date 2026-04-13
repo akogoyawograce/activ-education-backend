@@ -1,5 +1,7 @@
 package tg.edtch.activEducation.profil.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import tg.edtch.activEducation.profil.domain.entite.Administrateur;
@@ -12,6 +14,9 @@ public interface AdministrateurRepository extends JpaRepository<Administrateur, 
 
     Optional<Administrateur> findByEmail(String email);
 
-    /** trackingId reste UUID (identifiant public, pas la PK). */
+    /** Recherche par identifiant public — jamais la PK interne. */
     Optional<Administrateur> findByTrackingId(UUID trackingId);
+
+    /** Liste paginée des administrateurs actifs. */
+    Page<Administrateur> findAllByEstActifTrue(Pageable pageable);
 }

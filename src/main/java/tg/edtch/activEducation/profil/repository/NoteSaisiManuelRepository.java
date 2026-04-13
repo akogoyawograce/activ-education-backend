@@ -7,11 +7,27 @@ import org.springframework.stereotype.Repository;
 import tg.edtch.activEducation.profil.domain.entite.NoteSaisiManuel;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface NoteSaisiManuelRepository extends JpaRepository<NoteSaisiManuel, Long> {
 
-    List<NoteSaisiManuel> findByEleveIdOrderByAnneeScolaireDesc(Long eleveId);
+    /** Recherche par identifiant public — jamais la PK interne. */
+    Optional<NoteSaisiManuel> findByTrackingId(UUID trackingId);
 
-    Page<NoteSaisiManuel> findByEleveId(Long eleveId, Pageable pageable);
+    /**
+     * Notes d'un élève via son trackingId public, triées par année scolaire
+     * décroissante.
+     */
+    List<NoteSaisiManuel> findByEleveTrackingIdOrderByAnneeScolaireDesc(UUID eleveTrackingId);
+
+    /** Notes d'un élève paginées via son trackingId public. */
+    Page<NoteSaisiManuel> findByEleveTrackingId(UUID eleveTrackingId, Pageable pageable);
+
+    /**
+     * Méthode interne (usage administratif uniquement) — préférer
+     * findByEleveTrackingId.
+     */
+    List<NoteSaisiManuel> findByEleveIdOrderByAnneeScolaireDesc(Long eleveId);
 }

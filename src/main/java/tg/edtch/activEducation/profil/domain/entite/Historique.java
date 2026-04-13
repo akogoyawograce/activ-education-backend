@@ -5,12 +5,18 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import tg.edtch.activEducation.shared.util.BaseEntity;
 
+import java.util.UUID;
+
 /**
- * Entité représentant une entrée dans l'historique personnel d'un utilisateur
- * (ex: passage de test completé, document uploadé, connexion, etc.).
+ * Entité représentant une entrée dans l'historique d'activité d'un utilisateur
+ * (ex: connexion, test complété, document uploadé...).
+ * L'historique est en lecture seule — une entrée n'est jamais modifiée.
  */
 @Entity
-@Table(name = "historique_utilisateur")
+@Table(name = "historique_utilisateur", indexes = {
+        @Index(name = "idx_historique_tracking_id", columnList = "tracking_id", unique = true),
+        @Index(name = "idx_historique_utilisateur_id", columnList = "utilisateur_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,8 +30,15 @@ public class Historique extends BaseEntity {
     private Long id;
 
     /**
-     * L'action effectuée par l'utilisateur.
-     * Ex: "Connexion", "TestRiasec", "UploadDocument".
+     * Identifiant public — seul identifiant exposé à l'extérieur.
+     */
+    @Column(name = "tracking_id", nullable = false, unique = true, updatable = false)
+    @Builder.Default
+    private UUID trackingId = UUID.randomUUID();
+
+    /**
+     * Type d'action effectuée.
+     * Ex: "CONNEXION", "TEST_RIASEC", "UPLOAD_DOCUMENT", "SAISIE_NOTE".
      */
     @Column(name = "action", nullable = false, length = 100)
     private String action;
@@ -39,4 +52,11 @@ public class Historique extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "utilisateur_id", nullable = false)
     private Utilisateur utilisateur;
+
+    @PrePersist
+    protected void onPrePersist() {
+        if (this.trackingId == null) {
+            this.trackingId = UUID.randomUUID();
+        }
+    }
 }

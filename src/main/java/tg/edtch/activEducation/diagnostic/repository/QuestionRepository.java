@@ -5,9 +5,17 @@ import org.springframework.stereotype.Repository;
 import tg.edtch.activEducation.diagnostic.domain.entite.Question;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Long> {
 
-    List<Question> findByQuizIdOrderByOrdreAsc(Long quizId);
+    /** Recherche par identifiant public. */
+    Optional<Question> findByTrackingId(UUID trackingId);
+
+    /**
+     * Toutes les questions d'un quiz (via son trackingId public), triées par ordre.
+     */
+    List<Question> findByQuizTrackingIdOrderByOrdreAsc(UUID quizTrackingId);
 }

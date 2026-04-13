@@ -7,11 +7,28 @@ import org.springframework.stereotype.Repository;
 import tg.edtch.activEducation.profil.domain.entite.Historique;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface HistoriqueRepository extends JpaRepository<Historique, Long> {
 
-    List<Historique> findByUtilisateurIdOrderByCreatedAtDesc(Long utilisateurId);
+    /** Recherche par identifiant public de l'entrée d'historique. */
+    Optional<Historique> findByTrackingId(UUID trackingId);
 
-    Page<Historique> findByUtilisateurIdOrderByCreatedAtDesc(Long utilisateurId, Pageable pageable);
+    /**
+     * Historique d'un utilisateur via son trackingId public, trié par date
+     * décroissante.
+     */
+    List<Historique> findByUtilisateurTrackingIdOrderByCreatedAtDesc(UUID utilisateurTrackingId);
+
+    /** Historique paginé d'un utilisateur via son trackingId public. */
+    Page<Historique> findByUtilisateurTrackingIdOrderByCreatedAtDesc(UUID utilisateurTrackingId, Pageable pageable);
+
+    /** Historique filtré par action pour un utilisateur donné (via trackingId). */
+    List<Historique> findByUtilisateurTrackingIdAndActionOrderByCreatedAtDesc(UUID utilisateurTrackingId,
+            String action);
+
+    /** Méthode interne conservée pour compatibilité ascendante. */
+    List<Historique> findByUtilisateurIdOrderByCreatedAtDesc(Long utilisateurId);
 }

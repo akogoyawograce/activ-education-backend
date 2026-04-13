@@ -7,12 +7,17 @@ import tg.edtch.activEducation.profil.domain.entite.Utilisateur;
 import tg.edtch.activEducation.shared.util.BaseEntity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
- * Entité représentant un message dans la messagerie/chat de la plateforme.
+ * Entité représentant un message dans la messagerie de la plateforme.
  */
 @Entity
-@Table(name = "messages")
+@Table(name = "messages", indexes = {
+        @Index(name = "idx_message_tracking_id", columnList = "tracking_id", unique = true),
+        @Index(name = "idx_message_expediteur", columnList = "expediteur_id"),
+        @Index(name = "idx_message_destinataire", columnList = "destinataire_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,6 +29,13 @@ public class Message extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
+
+    /**
+     * Identifiant public — seul identifiant exposé à l'extérieur.
+     */
+    @Column(name = "tracking_id", nullable = false, unique = true, updatable = false)
+    @Builder.Default
+    private UUID trackingId = UUID.randomUUID();
 
     @Column(name = "contenu", nullable = false, columnDefinition = "TEXT")
     private String contenu;
@@ -45,8 +57,11 @@ public class Message extends BaseEntity {
 
     @PrePersist
     protected void onPrePersistMessage() {
-        if (this.dateEnvoi == null) {
+        if (this.trackingId == null)
+            this.trackingId = UUID.randomUUID();
+        if (this.dateEnvoi == null)
             this.dateEnvoi = LocalDateTime.now();
-        }
+        if (this.lu == null)
+            this.lu = false;
     }
 }
