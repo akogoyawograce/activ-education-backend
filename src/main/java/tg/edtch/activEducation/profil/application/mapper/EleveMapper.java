@@ -32,6 +32,7 @@ public class EleveMapper {
                 .niveau(request.getNiveauEtude())
                 .etablissement(request.getEtablissementActuel())
                 .filiere(request.getFiliere())
+                .typeApprenant(request.getTypeApprenant())
                 .estActif(true)
                 .build();
     }
@@ -52,7 +53,7 @@ public class EleveMapper {
                 .niveauEtude(eleve.getNiveau())
                 .etablissementActuel(eleve.getEtablissement())
                 .filiere(eleve.getFiliere())
-                .anneeObtentionPrevue(eleve.getAnneeObtentionPrevue())
+                .typeApprenant(eleve.getTypeApprenant())
                 .actif(eleve.getEstActif())
                 .createdAt(eleve.getCreatedAt())
                 .build();
@@ -76,5 +77,7 @@ public class EleveMapper {
             eleve.setEtablissement(request.getEtablissementActuel());
         if (request.getFiliere() != null)
             eleve.setFiliere(request.getFiliere());
+        if (request.getTypeApprenant() != null)
+            eleve.setTypeApprenant(request.getTypeApprenant());
     }
 }

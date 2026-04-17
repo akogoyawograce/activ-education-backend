@@ -3,8 +3,8 @@ package tg.edtch.activEducation.profil.domain.entite;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import tg.edtch.activEducation.profil.domain.enums.TypeApprenant;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,10 +23,19 @@ import java.util.List;
 public class Eleve extends Utilisateur {
 
     /**
-     * Niveau scolaire courant : ex. "Terminale C", "Licence 2", "BEPC", etc.
+     * Niveau scolaire courant.
+     * ATTENTION : Doit être alimenté par une liste déroulante côté Front pour
+     * l'algorithme.
      */
     @Column(name = "niveau", length = 100)
     private String niveau;
+
+    /**
+     * Type d'apprenant (Ecolier, Collégien, Lycéen, etc.)
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type_apprenant", length = 50)
+    private TypeApprenant typeApprenant;
 
     /**
      * Nom de l'établissement de l'élève.
@@ -35,16 +44,10 @@ public class Eleve extends Utilisateur {
     private String etablissement;
 
     /**
-     * Filière actuelle : ex. "Scientifique", "Littéraire", "Technique".
+     * Filière ou Série actuelle (ex: "Série D", "Génie Logiciel").
      */
     @Column(name = "filiere", length = 150)
     private String filiere;
-
-    /**
-     * Année de fin de cycle prévue.
-     */
-    @Column(name = "annee_obtention_prevue")
-    private LocalDate anneeObtentionPrevue;
 
     /**
      * Relation avec les documents (bulletins) de l'élève.

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tg.edtch.activEducation.profil.application.dto.request.AdministrateurRequest;
@@ -35,7 +35,6 @@ public class AdministrateurServiceImpl implements AdministrateurService {
     private final AdministrateurRepository adminRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
     private final AdministrateurMapper adminMapper;
 
     @Override
@@ -46,7 +45,8 @@ public class AdministrateurServiceImpl implements AdministrateurService {
         }
 
         Administrateur admin = adminMapper.toEntity(request);
-        admin.setMotDePasseHash(passwordEncoder.encode(request.getMotDePasse()));
+        // TODO: activer le hachage (PasswordEncoder) avant la mise en production
+        admin.setMotDePasseHash(request.getMotDePasse());
 
         // Association du rôle ROLE_ADMIN
         Role roleAdmin = roleRepository.findByNom(RoleNom.ROLE_ADMIN)
@@ -79,7 +79,8 @@ public class AdministrateurServiceImpl implements AdministrateurService {
         adminMapper.updateFromRequest(request, admin);
 
         if (request.getMotDePasse() != null && !request.getMotDePasse().isBlank()) {
-            admin.setMotDePasseHash(passwordEncoder.encode(request.getMotDePasse()));
+            // TODO: activer le hachage (PasswordEncoder) avant la mise en production
+            admin.setMotDePasseHash(request.getMotDePasse());
         }
 
         Administrateur saved = adminRepository.save(admin);

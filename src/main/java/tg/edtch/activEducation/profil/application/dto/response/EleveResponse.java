@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tg.edtch.activEducation.profil.domain.enums.TypeApprenant;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -37,8 +37,8 @@ public class EleveResponse {
     /** Filière actuelle. */
     private String filiere;
 
-    /** Année de fin de cycle prévisionnelle. */
-    private LocalDate anneeObtentionPrevue;
+    /** Type d'apprenant. */
+    private TypeApprenant typeApprenant;
 
     /** Indique si le compte est actif. */
     private Boolean actif;

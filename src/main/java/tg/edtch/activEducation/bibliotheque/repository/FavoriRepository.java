@@ -9,9 +9,12 @@ import org.springframework.stereotype.Repository;
 import tg.edtch.activEducation.bibliotheque.domain.entite.Favori;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface FavoriRepository extends JpaRepository<Favori, Long> {
+
+    Optional<Favori> findByTrackingId(UUID trackingId);
 
     Page<Favori> findByUtilisateurId(Long utilisateurId, Pageable pageable);
 

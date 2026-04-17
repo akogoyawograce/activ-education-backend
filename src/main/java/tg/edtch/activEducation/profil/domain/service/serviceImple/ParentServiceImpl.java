@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tg.edtch.activEducation.profil.application.dto.request.ParentRequest;
@@ -39,7 +39,6 @@ public class ParentServiceImpl implements ParentService {
     private final EleveRepository eleveRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
     private final ParentMapper parentMapper;
 
     @Override
@@ -50,7 +49,8 @@ public class ParentServiceImpl implements ParentService {
         }
 
         Parent parent = parentMapper.toEntity(request);
-        parent.setMotDePasseHash(passwordEncoder.encode(request.getMotDePasse()));
+        // TODO: activer le hachage (PasswordEncoder) avant la mise en production
+        parent.setMotDePasseHash(request.getMotDePasse());
 
         // Rôle ROLE_PARENT
         Role roleParent = roleRepository.findByNom(RoleNom.ROLE_PARENT)
@@ -101,7 +101,8 @@ public class ParentServiceImpl implements ParentService {
         parentMapper.updateFromRequest(request, parent);
 
         if (request.getMotDePasse() != null && !request.getMotDePasse().isBlank()) {
-            parent.setMotDePasseHash(passwordEncoder.encode(request.getMotDePasse()));
+            // TODO: activer le hachage (PasswordEncoder) avant la mise en production
+            parent.setMotDePasseHash(request.getMotDePasse());
         }
 
         Parent saved = parentRepository.save(parent);

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tg.edtch.activEducation.profil.application.dto.request.ConseillerRequest;
@@ -37,7 +37,6 @@ public class ConseillerServiceImpl implements ConseillerService {
     private final ConseillerRepository conseillerRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
     private final ConseillerMapper conseillerMapper;
 
     @Override
@@ -51,8 +50,8 @@ public class ConseillerServiceImpl implements ConseillerService {
         // Construction de l'entité via le Mapper (trackingId généré automatiquement)
         Conseiller conseiller = conseillerMapper.toEntity(request);
 
-        // Encodage sécurisé du mot de passe
-        conseiller.setMotDePasseHash(passwordEncoder.encode(request.getMotDePasse()));
+        // TODO: activer le hachage (PasswordEncoder) avant la mise en production
+        conseiller.setMotDePasseHash(request.getMotDePasse());
 
         // Association du rôle ROLE_CONSEILLER
         Role roleConseiller = roleRepository.findByNom(RoleNom.ROLE_CONSEILLER)
@@ -96,7 +95,8 @@ public class ConseillerServiceImpl implements ConseillerService {
 
         // Mise à jour du mot de passe uniquement si fourni
         if (request.getMotDePasse() != null && !request.getMotDePasse().isBlank()) {
-            conseiller.setMotDePasseHash(passwordEncoder.encode(request.getMotDePasse()));
+            // TODO: activer le hachage (PasswordEncoder) avant la mise en production
+            conseiller.setMotDePasseHash(request.getMotDePasse());
         }
 
         Conseiller saved = conseillerRepository.save(conseiller);

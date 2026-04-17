@@ -6,13 +6,16 @@ import lombok.experimental.SuperBuilder;
 import tg.edtch.activEducation.profil.domain.entite.Utilisateur;
 import tg.edtch.activEducation.shared.util.BaseEntity;
 
+import java.util.UUID;
+
 /**
  * Représente une fiche ajoutée aux favoris par un utilisateur.
- * Table de liaison enrichie (contient la date et des notes personnelles).
  */
 @Entity
-@Table(name = "favoris", uniqueConstraints = {
-        @UniqueConstraint(name = "uk_favori_utilisateur_fiche", columnNames = { "utilisateur_id", "fiche_id" })
+@Table(name = "favoris", indexes = {
+        @Index(name = "idx_favori_tracking_id", columnList = "tracking_id", unique = true),
+        @Index(name = "idx_favori_utilisateur_id", columnList = "utilisateur_id"),
+        @Index(name = "idx_favori_fiche_id", columnList = "fiche_id")
 })
 @Getter
 @Setter
@@ -26,6 +29,10 @@ public class Favori extends BaseEntity {
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
 
+    @Column(name = "tracking_id", nullable = false, unique = true, updatable = false)
+    @Builder.Default
+    private UUID trackingId = UUID.randomUUID();
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "utilisateur_id", nullable = false)
     private Utilisateur utilisateur;
@@ -34,9 +41,13 @@ public class Favori extends BaseEntity {
     @JoinColumn(name = "fiche_id", nullable = false)
     private Fiche fiche;
 
-    /**
-     * Note personnelle optionnelle de l'utilisateur sur cette fiche.
-     */
-    @Column(name = "note_personnelle", length = 500)
+    @Column(name = "note_personnelle")
     private String notePersonnelle;
+
+    @PrePersist
+    protected void onPrePersist() {
+        if (this.trackingId == null) {
+            this.trackingId = UUID.randomUUID();
+        }
+    }
 }

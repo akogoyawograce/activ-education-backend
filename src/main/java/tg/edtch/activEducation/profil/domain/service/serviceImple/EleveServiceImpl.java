@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tg.edtch.activEducation.profil.application.EleveService;
@@ -35,7 +35,6 @@ public class EleveServiceImpl implements EleveService {
     private final EleveRepository eleveRepository;
     private final UtilisateurRepository utilisateurRepository;
     private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
     private final EleveMapper eleveMapper;
 
     @Override
@@ -49,8 +48,8 @@ public class EleveServiceImpl implements EleveService {
         // Construction de l'entité via le Mapper (génère le trackingId automatiquement)
         Eleve eleve = eleveMapper.toEntity(request);
 
-        // Encodage sécurisé du mot de passe (délégué au Service, jamais au Mapper)
-        eleve.setMotDePasseHash(passwordEncoder.encode(request.getMotDePasse()));
+        // TODO: activer le hachage (PasswordEncoder) avant la mise en production
+        eleve.setMotDePasseHash(request.getMotDePasse());
 
         // Association du rôle ROLE_ELEVE
         Role roleEleve = roleRepository.findByNom(RoleNom.ROLE_ELEVE)
@@ -85,7 +84,8 @@ public class EleveServiceImpl implements EleveService {
 
         // Mise à jour du mot de passe uniquement s'il est fourni et non vide
         if (request.getMotDePasse() != null && !request.getMotDePasse().isBlank()) {
-            eleve.setMotDePasseHash(passwordEncoder.encode(request.getMotDePasse()));
+            // TODO: activer le hachage (PasswordEncoder) avant la mise en production
+            eleve.setMotDePasseHash(request.getMotDePasse());
         }
 
         Eleve saved = eleveRepository.save(eleve);
