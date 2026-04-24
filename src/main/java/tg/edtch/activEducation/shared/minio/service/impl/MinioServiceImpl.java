@@ -177,7 +177,8 @@ public class MinioServiceImpl implements MinioService {
                     .etag(stat.etag());
 
             // Extract additional metadata for PDF files
-            if (fileType == FileType.PDF && "application/pdf".equals(stat.contentType())) {
+            if ((fileType == FileType.PDF || fileType == FileType.DOCUMENT)
+                    && "application/pdf".equals(stat.contentType())) {
                 try (InputStream inputStream = minioClient.getObject(
                         GetObjectArgs.builder().bucket(bucketName).object(fileName).build())) {
                     FileMetadata pdfMetadata = pdfProcessingService.extractPdfMetadata(inputStream, fileName);

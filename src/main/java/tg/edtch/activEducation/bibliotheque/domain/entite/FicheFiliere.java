@@ -80,17 +80,17 @@ public class FicheFiliere extends Fiche {
      * Relation inverse : la table de jointure est gérée par
      * {@link FicheSerie#filieresAssociees}.
      */
-    @ManyToMany(mappedBy = "filieresAssociees", fetch = FetchType.LAZY)
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.LAZY)
+    @JoinTable(name = "serie_filiere", joinColumns = @JoinColumn(name = "filiere_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "serie_id", referencedColumnName = "id"))
     @Builder.Default
-    private Set<FicheSerie> seriesAssoiees = new HashSet<>();
+    private Set<FicheSerie> seriesAssociees = new HashSet<>();
 
     /**
      * Métiers auxquels cette filière prépare concrètement les diplômés.
      * Relation propriétaire : la table de jointure {@code filiere_metier} est
      * définie ici.
      */
-    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.LAZY)
-    @JoinTable(name = "filiere_metier", joinColumns = @JoinColumn(name = "filiere_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "metier_id", referencedColumnName = "id"))
+    @ManyToMany(mappedBy = "filieresPreparantes", fetch = FetchType.LAZY)
     @Builder.Default
     private Set<FicheMetier> metiersPrepares = new HashSet<>();
 

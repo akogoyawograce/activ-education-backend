@@ -6,13 +6,16 @@ import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheMetier
 import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheResponse;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheMetier;
 
+import tg.edtch.activEducation.bibliotheque.domain.entite.FicheFiliere;
+
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
 public class FicheMetierMapper {
 
-    public FicheMetier toEntity(FicheMetierRequest request) {
+    public FicheMetier toEntity(FicheMetierRequest request, Set<FicheFiliere> filieres) {
         if (request == null)
             return null;
         return FicheMetier.builder()
@@ -20,8 +23,6 @@ public class FicheMetierMapper {
                 .titre(request.getTitre())
                 .resume(request.getResume())
                 .contenu(request.getContenu())
-                .videoUrl(request.getVideoUrl())
-                .imageUrl(request.getImageUrl())
                 .estPublie(request.getEstPublie() != null ? request.getEstPublie() : false)
                 .secteur(request.getSecteur())
                 .missions(request.getMissions())
@@ -29,6 +30,7 @@ public class FicheMetierMapper {
                 .formationsAcces(request.getFormationsAcces())
                 .debouchesTogo(request.getDebouchesTogo())
                 .fourchetteSalaire(request.getFourchetteSalaire())
+                .filieresPreparantes(filieres)
                 .build();
     }
 
@@ -39,8 +41,12 @@ public class FicheMetierMapper {
                 .trackingId(entity.getTrackingId())
                 .titre(entity.getTitre())
                 .resume(entity.getResume())
-                .imageUrl(entity.getImageUrl())
-                .videoUrl(entity.getVideoUrl())
+                .imageUrls(entity.getImageUrls() != null ? new java.util.HashSet<>(entity.getImageUrls())
+                        : new java.util.HashSet<>())
+                .videoUrls(entity.getVideoUrls() != null ? new java.util.HashSet<>(entity.getVideoUrls())
+                        : new java.util.HashSet<>())
+                .documentUrls(entity.getDocumentUrls() != null ? new java.util.HashSet<>(entity.getDocumentUrls())
+                        : new java.util.HashSet<>())
                 .estPublie(entity.getEstPublie())
                 .nbConsultations(entity.getNbConsultations())
                 .typeFiche("METIER")
@@ -61,7 +67,7 @@ public class FicheMetierMapper {
                 .build();
     }
 
-    public void updateFromRequest(FicheMetierRequest request, FicheMetier entity) {
+    public void updateFromRequest(FicheMetierRequest request, FicheMetier entity, Set<FicheFiliere> filieres) {
         if (request == null)
             return;
         if (request.getTitre() != null)
@@ -70,10 +76,6 @@ public class FicheMetierMapper {
             entity.setResume(request.getResume());
         if (request.getContenu() != null)
             entity.setContenu(request.getContenu());
-        if (request.getVideoUrl() != null)
-            entity.setVideoUrl(request.getVideoUrl());
-        if (request.getImageUrl() != null)
-            entity.setImageUrl(request.getImageUrl());
         if (request.getEstPublie() != null)
             entity.setEstPublie(request.getEstPublie());
         if (request.getSecteur() != null)
@@ -88,5 +90,7 @@ public class FicheMetierMapper {
             entity.setDebouchesTogo(request.getDebouchesTogo());
         if (request.getFourchetteSalaire() != null)
             entity.setFourchetteSalaire(request.getFourchetteSalaire());
+        if (filieres != null)
+            entity.setFilieresPreparantes(filieres);
     }
 }

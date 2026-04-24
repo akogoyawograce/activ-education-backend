@@ -48,13 +48,18 @@ services:
     environment:
       # Activation du profil docker
       SPRING_PROFILES_ACTIVE: docker
+      # Configuration de la taille maximale des fichiers uploadés (ex: 500 MB)
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 500MB
+      # Configuration de la taille maximale de la requête entière (ex: 500 MB)
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 500MB
       # Variables pour la Base de données
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: activ_education
       DB_USER: postgres
       DB_PASSWORD: abalakata
-      JPA_DDL_AUTO: update
+      JPA_DDL_AUTO: create-drop
       SERVER_PORT: 8080
       # Variables pour MinIO
       MINIO_URL: http://minio:9000

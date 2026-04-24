@@ -5,13 +5,16 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import tg.edtch.activEducation.shared.util.BaseEntity;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
  * Classe abstraite mère de toutes les fiches de la bibliothèque d'exploration.
- * Stratégie d'héritage JOINED : chaque sous-fiche a sa propre table liée
+ * Stratégie d'héritage JOINED: chaque sous-fiche a sa propre table liée
  * à la table fiches via la clé primaire.
  */
+
 @Entity
 @Table(name = "fiches", indexes = {
         @Index(name = "idx_fiche_tracking_id", columnList = "tracking_id", unique = true),
@@ -53,16 +56,31 @@ public abstract class Fiche extends BaseEntity {
     private String contenu;
 
     /**
-     * URL vers une vidéo explicative associée (YouTube, Vimeo, etc.).
+     * URLs vers des vidéos explicatives associées (YouTube, Vimeo ou upload MinIO).
      */
+    @ElementCollection
+    @CollectionTable(name = "fiche_videos", joinColumns = @JoinColumn(name = "fiche_id"))
     @Column(name = "video_url", length = 500)
-    private String videoUrl;
+    @Builder.Default
+    private Set<String> videoUrls = new HashSet<>();
 
     /**
-     * URL vers une image miniature / bannière de la fiche.
+     * URLs vers les images miniatures / bannières de la fiche.
      */
+    @ElementCollection
+    @CollectionTable(name = "fiche_images", joinColumns = @JoinColumn(name = "fiche_id"))
     @Column(name = "image_url", length = 500)
-    private String imageUrl;
+    @Builder.Default
+    private Set<String> imageUrls = new HashSet<>();
+
+    /**
+     * URLs vers des documents joints (PDF, DOCX, etc.).
+     */
+    @ElementCollection
+    @CollectionTable(name = "fiche_documents", joinColumns = @JoinColumn(name = "fiche_id"))
+    @Column(name = "document_url", length = 500)
+    @Builder.Default
+    private Set<String> documentUrls = new HashSet<>();
 
     /**
      * Indique si la fiche est visible par le public.

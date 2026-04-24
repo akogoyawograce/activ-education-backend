@@ -5,7 +5,7 @@ import tg.edtch.activEducation.bibliotheque.application.dto.request.FicheFiliere
 import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheFiliereResponse;
 import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheResponse;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheFiliere;
-import tg.edtch.activEducation.bibliotheque.domain.entite.FicheMetier;
+import tg.edtch.activEducation.bibliotheque.domain.entite.FicheSerie;
 
 import java.util.Set;
 import java.util.UUID;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 @Component
 public class FicheFiliereMapper {
 
-    public FicheFiliere toEntity(FicheFiliereRequest request, Set<FicheMetier> metiers) {
+    public FicheFiliere toEntity(FicheFiliereRequest request, Set<FicheSerie> series) {
         if (request == null)
             return null;
         return FicheFiliere.builder()
@@ -22,8 +22,6 @@ public class FicheFiliereMapper {
                 .titre(request.getTitre())
                 .resume(request.getResume())
                 .contenu(request.getContenu())
-                .videoUrl(request.getVideoUrl())
-                .imageUrl(request.getImageUrl())
                 .estPublie(request.getEstPublie() != null ? request.getEstPublie() : false)
                 .duree(request.getDuree())
                 .niveauRequis(request.getNiveauRequis())
@@ -31,7 +29,7 @@ public class FicheFiliereMapper {
                 .programme(request.getProgramme())
                 .debouchesMetiers(request.getDebouchesMetiers())
                 .domaine(request.getDomaine())
-                .metiersPrepares(metiers)
+                .seriesAssociees(series)
                 .build();
     }
 
@@ -42,8 +40,12 @@ public class FicheFiliereMapper {
                 .trackingId(entity.getTrackingId())
                 .titre(entity.getTitre())
                 .resume(entity.getResume())
-                .imageUrl(entity.getImageUrl())
-                .videoUrl(entity.getVideoUrl())
+                .imageUrls(entity.getImageUrls() != null ? new java.util.HashSet<>(entity.getImageUrls())
+                        : new java.util.HashSet<>())
+                .videoUrls(entity.getVideoUrls() != null ? new java.util.HashSet<>(entity.getVideoUrls())
+                        : new java.util.HashSet<>())
+                .documentUrls(entity.getDocumentUrls() != null ? new java.util.HashSet<>(entity.getDocumentUrls())
+                        : new java.util.HashSet<>())
                 .estPublie(entity.getEstPublie())
                 .nbConsultations(entity.getNbConsultations())
                 .typeFiche("FILIERE")
@@ -72,7 +74,7 @@ public class FicheFiliereMapper {
                 .build();
     }
 
-    public void updateFromRequest(FicheFiliereRequest request, FicheFiliere entity, Set<FicheMetier> metiers) {
+    public void updateFromRequest(FicheFiliereRequest request, FicheFiliere entity, Set<FicheSerie> series) {
         if (request == null)
             return;
         if (request.getTitre() != null)
@@ -81,10 +83,6 @@ public class FicheFiliereMapper {
             entity.setResume(request.getResume());
         if (request.getContenu() != null)
             entity.setContenu(request.getContenu());
-        if (request.getVideoUrl() != null)
-            entity.setVideoUrl(request.getVideoUrl());
-        if (request.getImageUrl() != null)
-            entity.setImageUrl(request.getImageUrl());
         if (request.getEstPublie() != null)
             entity.setEstPublie(request.getEstPublie());
         if (request.getDuree() != null)
@@ -99,7 +97,7 @@ public class FicheFiliereMapper {
             entity.setDebouchesMetiers(request.getDebouchesMetiers());
         if (request.getDomaine() != null)
             entity.setDomaine(request.getDomaine());
-        if (metiers != null)
-            entity.setMetiersPrepares(metiers);
+        if (series != null)
+            entity.setSeriesAssociees(series);
     }
 }

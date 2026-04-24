@@ -19,19 +19,16 @@ public interface FicheEtablissementRepository extends JpaRepository<FicheEtablis
 
         Page<FicheEtablissement> findAllByEstPublieTrue(Pageable pageable);
 
-        List<FicheEtablissement> findByVilleIgnoreCaseAndEstPublieTrue(String ville);
+        Page<FicheEtablissement> findByVilleIgnoreCaseAndEstPublieTrue(String ville, Pageable pageable);
 
-        List<FicheEtablissement> findByRegionIgnoreCaseAndEstPublieTrue(String region);
-
-        List<FicheEtablissement> findByTypeEtablissementAndEstPublieTrue(
-                        FicheEtablissement.TypeEtablissement typeEtablissement);
+        Page<FicheEtablissement> findByTypeEtablissementAndEstPublieTrue(
+                        FicheEtablissement.TypeEtablissement typeEtablissement, Pageable pageable);
 
         @Query("SELECT DISTINCT f.ville FROM FicheEtablissement f WHERE f.ville IS NOT NULL AND f.estPublie = true ORDER BY f.ville")
         List<String> findAllVilles();
 
         @Query("SELECT f FROM FicheEtablissement f WHERE f.estPublie = true AND " +
                         "(LOWER(f.titre) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
-                        " LOWER(f.ville) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
-                        " LOWER(f.region) LIKE LOWER(CONCAT('%', :terme, '%')))")
+                        " LOWER(f.ville) LIKE LOWER(CONCAT('%', :terme, '%')))")
         Page<FicheEtablissement> rechercherParTerme(@Param("terme") String terme, Pageable pageable);
 }

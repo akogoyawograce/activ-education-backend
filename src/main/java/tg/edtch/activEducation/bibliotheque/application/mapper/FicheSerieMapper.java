@@ -4,17 +4,15 @@ import org.springframework.stereotype.Component;
 import tg.edtch.activEducation.bibliotheque.application.dto.request.FicheSerieRequest;
 import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheResponse;
 import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheSerieResponse;
-import tg.edtch.activEducation.bibliotheque.domain.entite.FicheFiliere;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheSerie;
 
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
 public class FicheSerieMapper {
 
-    public FicheSerie toEntity(FicheSerieRequest request, Set<FicheFiliere> filieres) {
+    public FicheSerie toEntity(FicheSerieRequest request) {
         if (request == null)
             return null;
         return FicheSerie.builder()
@@ -22,14 +20,11 @@ public class FicheSerieMapper {
                 .titre(request.getTitre())
                 .resume(request.getResume())
                 .contenu(request.getContenu())
-                .videoUrl(request.getVideoUrl())
-                .imageUrl(request.getImageUrl())
                 .estPublie(request.getEstPublie() != null ? request.getEstPublie() : false)
                 .niveau(request.getNiveau())
                 .matieresPrincipales(request.getMatieresPrincipales())
                 .debouches(request.getDebouches())
                 .coefficients(request.getCoefficients())
-                .filieresAssociees(filieres)
                 .build();
     }
 
@@ -40,8 +35,12 @@ public class FicheSerieMapper {
                 .trackingId(entity.getTrackingId())
                 .titre(entity.getTitre())
                 .resume(entity.getResume())
-                .imageUrl(entity.getImageUrl())
-                .videoUrl(entity.getVideoUrl())
+                .imageUrls(entity.getImageUrls() != null ? new java.util.HashSet<>(entity.getImageUrls())
+                        : new java.util.HashSet<>())
+                .videoUrls(entity.getVideoUrls() != null ? new java.util.HashSet<>(entity.getVideoUrls())
+                        : new java.util.HashSet<>())
+                .documentUrls(entity.getDocumentUrls() != null ? new java.util.HashSet<>(entity.getDocumentUrls())
+                        : new java.util.HashSet<>())
                 .estPublie(entity.getEstPublie())
                 .nbConsultations(entity.getNbConsultations())
                 .typeFiche("SERIE")
@@ -60,7 +59,7 @@ public class FicheSerieMapper {
                 .build();
     }
 
-    public void updateFromRequest(FicheSerieRequest request, FicheSerie entity, Set<FicheFiliere> filieres) {
+    public void updateFromRequest(FicheSerieRequest request, FicheSerie entity) {
         if (request == null)
             return;
         if (request.getTitre() != null)
@@ -69,10 +68,6 @@ public class FicheSerieMapper {
             entity.setResume(request.getResume());
         if (request.getContenu() != null)
             entity.setContenu(request.getContenu());
-        if (request.getVideoUrl() != null)
-            entity.setVideoUrl(request.getVideoUrl());
-        if (request.getImageUrl() != null)
-            entity.setImageUrl(request.getImageUrl());
         if (request.getEstPublie() != null)
             entity.setEstPublie(request.getEstPublie());
         if (request.getNiveau() != null)
@@ -83,7 +78,5 @@ public class FicheSerieMapper {
             entity.setDebouches(request.getDebouches());
         if (request.getCoefficients() != null)
             entity.setCoefficients(request.getCoefficients());
-        if (filieres != null)
-            entity.setFilieresAssociees(filieres);
     }
 }

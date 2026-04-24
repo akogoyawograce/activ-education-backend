@@ -17,4 +17,6 @@ public interface FicheSerieService {
     FicheSerieResponse modifierSerie(UUID trackingId, FicheSerieRequest request);
 
     void supprimerSerie(UUID trackingId);
+
+    Page<FicheSerieResponse> rechercher(String motCle, Pageable pageable);
 }

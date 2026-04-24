@@ -28,9 +28,6 @@ public class FicheEtablissementRequest {
     @NotBlank(message = "Le contenu est obligatoire")
     private String contenu;
 
-    private String videoUrl;
-    private String imageUrl;
-
     @NotNull(message = "Le statut de publication est obligatoire")
     private Boolean estPublie;
 
@@ -39,8 +36,6 @@ public class FicheEtablissementRequest {
 
     @NotBlank(message = "La ville est obligatoire")
     private String ville;
-
-    private String region;
 
     @NotBlank(message = "Le type d'établissement est obligatoire")
     private String typeEtablissement;

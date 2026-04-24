@@ -19,7 +19,7 @@ public interface FicheMetierRepository extends JpaRepository<FicheMetier, Long> 
 
     Page<FicheMetier> findAllByEstPublieTrue(Pageable pageable);
 
-    List<FicheMetier> findBySecteurIgnoreCaseAndEstPublieTrue(String secteur);
+    Page<FicheMetier> findBySecteurIgnoreCaseAndEstPublieTrue(String secteur, Pageable pageable);
 
     @Query("SELECT f FROM FicheMetier f WHERE f.estPublie = true AND " +
             "(LOWER(f.titre) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +

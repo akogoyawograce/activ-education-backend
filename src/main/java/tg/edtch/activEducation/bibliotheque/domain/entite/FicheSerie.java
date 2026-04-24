@@ -65,8 +65,7 @@ public class FicheSerie extends Fiche {
      * Relation propriétaire : la table de jointure {@code serie_filiere} est
      * définie ici.
      */
-    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.LAZY)
-    @JoinTable(name = "serie_filiere", joinColumns = @JoinColumn(name = "serie_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "filiere_id", referencedColumnName = "id"))
+    @ManyToMany(mappedBy = "seriesAssociees", fetch = FetchType.LAZY)
     @Builder.Default
     private Set<FicheFiliere> filieresAssociees = new HashSet<>();
 }

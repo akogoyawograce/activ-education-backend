@@ -44,13 +44,6 @@ public class FicheEtablissement extends Fiche {
     private String ville;
 
     /**
-     * Région administrative au Togo.
-     * Valeurs possibles : "Maritime", "Plateaux", "Centrale", "Kara", "Savanes".
-     */
-    @Column(name = "region", length = 100)
-    private String region;
-
-    /**
      * Type institutionnel de l'établissement.
      */
     @Enumerated(EnumType.STRING)

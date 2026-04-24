@@ -28,9 +28,6 @@ public class FicheFiliereRequest {
     @NotBlank(message = "Le contenu est obligatoire")
     private String contenu;
 
-    private String videoUrl;
-    private String imageUrl;
-
     @NotNull(message = "Le statut de publication est obligatoire")
     private Boolean estPublie;
 
@@ -45,5 +42,5 @@ public class FicheFiliereRequest {
     private String debouchesMetiers;
     private String domaine;
 
-    private Set<UUID> metiersTrackingIds;
+    private Set<UUID> seriesTrackingIds;
 }

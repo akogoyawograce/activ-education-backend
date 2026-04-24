@@ -14,6 +14,11 @@ import tg.edtch.activEducation.bibliotheque.domain.entite.FicheFiliere;
 import tg.edtch.activEducation.bibliotheque.domain.service.FicheEtablissementService;
 import tg.edtch.activEducation.bibliotheque.repository.FicheEtablissementRepository;
 import tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository;
+import tg.edtch.activEducation.shared.minio.service.MinioService;
+import tg.edtch.activEducation.shared.minio.enums.FileType;
+import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -29,18 +34,42 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
     private final FicheEtablissementRepository etablissementRepository;
     private final FicheFiliereRepository filiereRepository;
     private final FicheEtablissementMapper etablissementMapper;
+    private final MinioService minioService;
 
     @Override
-    public FicheEtablissementResponse creerEtablissement(FicheEtablissementRequest request) {
+    public FicheEtablissementResponse creerEtablissement(FicheEtablissementRequest request, List<MultipartFile> images,
+            List<MultipartFile> videos, List<MultipartFile> documents) {
         Set<FicheFiliere> filieres = resolveFilieres(request.getFilieresTrackingIds());
         FicheEtablissement etablissement = etablissementMapper.toEntity(request, filieres);
+        handleUpload(etablissement, images, videos, documents);
         FicheEtablissement saved = etablissementRepository.save(etablissement);
         log.info("Fiche établissement créée : trackingId={}", saved.getTrackingId());
         return etablissementMapper.toResponse(saved);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    public FicheEtablissementResponse remplacerMedias(UUID trackingId, List<MultipartFile> images,
+            List<MultipartFile> videos, List<MultipartFile> documents) {
+        FicheEtablissement etablissement = findOrThrow(trackingId);
+        deleteOldMedias(etablissement);
+        handleUpload(etablissement, images, videos, documents);
+        FicheEtablissement saved = etablissementRepository.save(etablissement);
+        log.info("Medias remplacés pour établissement : trackingId={}", trackingId);
+        return etablissementMapper.toResponse(saved);
+    }
+
+    @Override
+    public FicheEtablissementResponse ajouterMedias(UUID trackingId, List<MultipartFile> images,
+            List<MultipartFile> videos, List<MultipartFile> documents) {
+        FicheEtablissement etablissement = findOrThrow(trackingId);
+        handleUpload(etablissement, images, videos, documents);
+        FicheEtablissement saved = etablissementRepository.save(etablissement);
+        log.info("Medias ajoutés pour établissement : trackingId={}", trackingId);
+        return etablissementMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional
     public FicheEtablissementResponse getEtablissement(UUID trackingId) {
         FicheEtablissement etablissement = findOrThrow(trackingId);
         etablissement.setNbConsultations(etablissement.getNbConsultations() + 1);
@@ -67,8 +96,37 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
     @Override
     public void supprimerEtablissement(UUID trackingId) {
         FicheEtablissement etablissement = findOrThrow(trackingId);
+        deleteOldMedias(etablissement);
         etablissementRepository.delete(etablissement);
         log.info("Fiche établissement supprimée : trackingId={}", trackingId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FicheEtablissementResponse> listerParVille(String ville, Pageable pageable) {
+        return etablissementRepository.findByVilleIgnoreCaseAndEstPublieTrue(ville, pageable)
+                .map(etablissementMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FicheEtablissementResponse> listerParType(String type, Pageable pageable) {
+        return etablissementRepository.findByTypeEtablissementAndEstPublieTrue(
+                FicheEtablissement.TypeEtablissement.valueOf(type.toUpperCase()), pageable)
+                .map(etablissementMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> obtenirToutesLesVilles() {
+        return etablissementRepository.findAllVilles();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FicheEtablissementResponse> rechercher(String motCle, Pageable pageable) {
+        return etablissementRepository.rechercherParTerme(motCle, pageable)
+                .map(etablissementMapper::toResponse);
     }
 
     private FicheEtablissement findOrThrow(UUID trackingId) {
@@ -84,5 +142,40 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
                 .map(tid -> filiereRepository.findByTrackingId(tid)
                         .orElseThrow(() -> new NoSuchElementException("Filière introuvable : " + tid)))
                 .collect(Collectors.toSet());
+    }
+
+    private void handleUpload(FicheEtablissement etablissement, List<MultipartFile> images, List<MultipartFile> videos,
+            List<MultipartFile> documents) {
+        if (images != null && !images.isEmpty()) {
+            etablissement.getImageUrls().addAll(minioService.uploadMultipleFiles(images, FileType.IMAGE).stream()
+                    .map(FileUploadResponse::getFileUrl).collect(Collectors.toSet()));
+        }
+        if (videos != null && !videos.isEmpty()) {
+            etablissement.getVideoUrls().addAll(minioService.uploadMultipleFiles(videos, FileType.VIDEO).stream()
+                    .map(FileUploadResponse::getFileUrl).collect(Collectors.toSet()));
+        }
+        if (documents != null && !documents.isEmpty()) {
+            etablissement.getDocumentUrls()
+                    .addAll(minioService.uploadMultipleFiles(documents, FileType.DOCUMENT).stream()
+                            .map(FileUploadResponse::getFileUrl).collect(Collectors.toSet()));
+        }
+    }
+
+    private void deleteOldMedias(FicheEtablissement etablissement) {
+        if (etablissement.getImageUrls() != null) {
+            etablissement.getImageUrls()
+                    .forEach(url -> minioService.deleteFile(minioService.extractFileNameFromUrl(url), FileType.IMAGE));
+            etablissement.getImageUrls().clear();
+        }
+        if (etablissement.getVideoUrls() != null) {
+            etablissement.getVideoUrls()
+                    .forEach(url -> minioService.deleteFile(minioService.extractFileNameFromUrl(url), FileType.VIDEO));
+            etablissement.getVideoUrls().clear();
+        }
+        if (etablissement.getDocumentUrls() != null) {
+            etablissement.getDocumentUrls().forEach(
+                    url -> minioService.deleteFile(minioService.extractFileNameFromUrl(url), FileType.DOCUMENT));
+            etablissement.getDocumentUrls().clear();
+        }
     }
 }

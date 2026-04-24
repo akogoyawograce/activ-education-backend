@@ -52,9 +52,9 @@ public class EntreeFAQ extends BaseEntity {
     @Builder.Default
     private Long nbVues = 0L;
 
-    @Column(name = "embedding", columnDefinition = "vector(1536)")
+    @Column(name = "embedding", columnDefinition = "vector(768)")
     @JdbcTypeCode(SqlTypes.VECTOR)
-    @Array(length = 1536)
+    @Array(length = 768)
     private float[] embedding;
 
     @PrePersist

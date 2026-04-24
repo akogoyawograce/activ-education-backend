@@ -10,10 +10,15 @@ import tg.edtch.activEducation.bibliotheque.application.dto.request.FicheFiliere
 import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheFiliereResponse;
 import tg.edtch.activEducation.bibliotheque.application.mapper.FicheFiliereMapper;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheFiliere;
-import tg.edtch.activEducation.bibliotheque.domain.entite.FicheMetier;
+import tg.edtch.activEducation.bibliotheque.domain.entite.FicheSerie;
 import tg.edtch.activEducation.bibliotheque.domain.service.FicheFiliereService;
 import tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository;
-import tg.edtch.activEducation.bibliotheque.repository.FicheMetierRepository;
+import tg.edtch.activEducation.bibliotheque.repository.FicheSerieRepository;
+import tg.edtch.activEducation.shared.minio.service.MinioService;
+import tg.edtch.activEducation.shared.minio.enums.FileType;
+import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -27,20 +32,44 @@ import java.util.stream.Collectors;
 public class FicheFiliereServiceImpl implements FicheFiliereService {
 
     private final FicheFiliereRepository filiereRepository;
-    private final FicheMetierRepository metierRepository;
+    private final FicheSerieRepository serieRepository;
     private final FicheFiliereMapper filiereMapper;
+    private final MinioService minioService;
 
     @Override
-    public FicheFiliereResponse creerFiliere(FicheFiliereRequest request) {
-        Set<FicheMetier> metiers = resolveMetiers(request.getMetiersTrackingIds());
-        FicheFiliere filiere = filiereMapper.toEntity(request, metiers);
+    public FicheFiliereResponse creerFiliere(FicheFiliereRequest request, List<MultipartFile> images,
+            List<MultipartFile> videos, List<MultipartFile> documents) {
+        Set<FicheSerie> series = resolveSeries(request.getSeriesTrackingIds());
+        FicheFiliere filiere = filiereMapper.toEntity(request, series);
+        handleUpload(filiere, images, videos, documents);
         FicheFiliere saved = filiereRepository.save(filiere);
         log.info("Fiche filière créée : trackingId={}", saved.getTrackingId());
         return filiereMapper.toResponse(saved);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    public FicheFiliereResponse remplacerMedias(UUID trackingId, List<MultipartFile> images, List<MultipartFile> videos,
+            List<MultipartFile> documents) {
+        FicheFiliere filiere = findOrThrow(trackingId);
+        deleteOldMedias(filiere);
+        handleUpload(filiere, images, videos, documents);
+        FicheFiliere saved = filiereRepository.save(filiere);
+        log.info("Medias remplacés pour filière : trackingId={}", trackingId);
+        return filiereMapper.toResponse(saved);
+    }
+
+    @Override
+    public FicheFiliereResponse ajouterMedias(UUID trackingId, List<MultipartFile> images, List<MultipartFile> videos,
+            List<MultipartFile> documents) {
+        FicheFiliere filiere = findOrThrow(trackingId);
+        handleUpload(filiere, images, videos, documents);
+        FicheFiliere saved = filiereRepository.save(filiere);
+        log.info("Medias ajoutés pour filière : trackingId={}", trackingId);
+        return filiereMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional
     public FicheFiliereResponse getFiliere(UUID trackingId) {
         FicheFiliere filiere = findOrThrow(trackingId);
         filiere.setNbConsultations(filiere.getNbConsultations() + 1);
@@ -57,8 +86,8 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
     @Override
     public FicheFiliereResponse modifierFiliere(UUID trackingId, FicheFiliereRequest request) {
         FicheFiliere filiere = findOrThrow(trackingId);
-        Set<FicheMetier> metiers = resolveMetiers(request.getMetiersTrackingIds());
-        filiereMapper.updateFromRequest(request, filiere, metiers);
+        Set<FicheSerie> series = resolveSeries(request.getSeriesTrackingIds());
+        filiereMapper.updateFromRequest(request, filiere, series);
         FicheFiliere saved = filiereRepository.save(filiere);
         log.info("Fiche filière modifiée : trackingId={}", trackingId);
         return filiereMapper.toResponse(saved);
@@ -67,8 +96,29 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
     @Override
     public void supprimerFiliere(UUID trackingId) {
         FicheFiliere filiere = findOrThrow(trackingId);
+        deleteOldMedias(filiere);
         filiereRepository.delete(filiere);
         log.info("Fiche filière supprimée : trackingId={}", trackingId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FicheFiliereResponse> rechercher(String motCle, Pageable pageable) {
+        return filiereRepository.rechercherParTerme(motCle, pageable)
+                .map(filiereMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FicheFiliereResponse> listerParDomaine(String domaine, Pageable pageable) {
+        return filiereRepository.findByDomaineIgnoreCaseAndEstPublieTrue(domaine, pageable)
+                .map(filiereMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> obtenirTousLesDomaines() {
+        return filiereRepository.findAllDomaines();
     }
 
     private FicheFiliere findOrThrow(UUID trackingId) {
@@ -77,12 +127,46 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
                         "Fiche filière introuvable pour le trackingId : " + trackingId));
     }
 
-    private Set<FicheMetier> resolveMetiers(Set<UUID> trackingIds) {
+    private Set<FicheSerie> resolveSeries(Set<UUID> trackingIds) {
         if (trackingIds == null || trackingIds.isEmpty())
             return Set.of();
         return trackingIds.stream()
-                .map(tid -> metierRepository.findByTrackingId(tid)
-                        .orElseThrow(() -> new NoSuchElementException("Métier introuvable : " + tid)))
+                .map(tid -> serieRepository.findByTrackingId(tid)
+                        .orElseThrow(() -> new NoSuchElementException("Série introuvable : " + tid)))
                 .collect(Collectors.toSet());
+    }
+
+    private void handleUpload(FicheFiliere filiere, List<MultipartFile> images, List<MultipartFile> videos,
+            List<MultipartFile> documents) {
+        if (images != null && !images.isEmpty()) {
+            filiere.getImageUrls().addAll(minioService.uploadMultipleFiles(images, FileType.IMAGE).stream()
+                    .map(FileUploadResponse::getFileUrl).collect(Collectors.toSet()));
+        }
+        if (videos != null && !videos.isEmpty()) {
+            filiere.getVideoUrls().addAll(minioService.uploadMultipleFiles(videos, FileType.VIDEO).stream()
+                    .map(FileUploadResponse::getFileUrl).collect(Collectors.toSet()));
+        }
+        if (documents != null && !documents.isEmpty()) {
+            filiere.getDocumentUrls().addAll(minioService.uploadMultipleFiles(documents, FileType.DOCUMENT).stream()
+                    .map(FileUploadResponse::getFileUrl).collect(Collectors.toSet()));
+        }
+    }
+
+    private void deleteOldMedias(FicheFiliere filiere) {
+        if (filiere.getImageUrls() != null) {
+            filiere.getImageUrls()
+                    .forEach(url -> minioService.deleteFile(minioService.extractFileNameFromUrl(url), FileType.IMAGE));
+            filiere.getImageUrls().clear();
+        }
+        if (filiere.getVideoUrls() != null) {
+            filiere.getVideoUrls()
+                    .forEach(url -> minioService.deleteFile(minioService.extractFileNameFromUrl(url), FileType.VIDEO));
+            filiere.getVideoUrls().clear();
+        }
+        if (filiere.getDocumentUrls() != null) {
+            filiere.getDocumentUrls().forEach(
+                    url -> minioService.deleteFile(minioService.extractFileNameFromUrl(url), FileType.DOCUMENT));
+            filiere.getDocumentUrls().clear();
+        }
     }
 }

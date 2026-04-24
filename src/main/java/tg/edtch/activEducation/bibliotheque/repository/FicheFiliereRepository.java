@@ -18,7 +18,13 @@ public interface FicheFiliereRepository extends JpaRepository<FicheFiliere, Long
 
     Page<FicheFiliere> findAllByEstPublieTrue(Pageable pageable);
 
-    List<FicheFiliere> findByDomaineIgnoreCaseAndEstPublieTrue(String domaine);
+    Page<FicheFiliere> findByDomaineIgnoreCaseAndEstPublieTrue(String domaine, Pageable pageable);
+
+    @Query("SELECT f FROM FicheFiliere f WHERE f.estPublie = true AND " +
+            "(LOWER(f.titre) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
+            " LOWER(f.domaine) LIKE LOWER(CONCAT('%', :terme, '%')))")
+    Page<FicheFiliere> rechercherParTerme(@org.springframework.data.repository.query.Param("terme") String terme,
+            Pageable pageable);
 
     List<FicheFiliere> findByNiveauRequisContainingIgnoreCaseAndEstPublieTrue(String niveauRequis);
 

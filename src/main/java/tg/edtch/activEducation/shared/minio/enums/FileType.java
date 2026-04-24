@@ -17,6 +17,7 @@ public enum FileType {
     // Document files
     PDF("documents", new String[] { "application/pdf" }),
     DOCUMENT("documents", new String[] {
+            "application/pdf",
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             "application/vnd.ms-excel",
@@ -63,7 +64,7 @@ public enum FileType {
     public long getMaxFileSize() {
         switch (this) {
             case IMAGE:
-                return 10L * 1024 * 1024; // 10MB
+                return 500L * 1024 * 1024; // 500MB
             case VIDEO:
                 return 500L * 1024 * 1024; // 500MB
             case PDF:

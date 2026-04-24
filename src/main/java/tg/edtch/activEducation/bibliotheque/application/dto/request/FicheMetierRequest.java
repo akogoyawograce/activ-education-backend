@@ -8,6 +8,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+import java.util.UUID;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -25,9 +28,6 @@ public class FicheMetierRequest {
     @NotBlank(message = "Le contenu est obligatoire")
     private String contenu;
 
-    private String videoUrl;
-    private String imageUrl;
-
     @NotNull(message = "Le statut de publication est obligatoire")
     private Boolean estPublie;
 
@@ -39,4 +39,6 @@ public class FicheMetierRequest {
     private String formationsAcces;
     private String debouchesTogo;
     private String fourchetteSalaire;
+
+    private Set<UUID> filieresTrackingIds;
 }

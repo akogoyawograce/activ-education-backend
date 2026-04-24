@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +41,8 @@ public class FicheSerieController {
     public ResponseEntity<Page<FicheSerieResponse>> lister(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(serieService.listerToutes(PageRequest.of(page, size)));
+        return ResponseEntity
+                .ok(serieService.listerToutes(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }
 
     @PutMapping("/{trackingId}")
@@ -56,5 +58,15 @@ public class FicheSerieController {
     public ResponseEntity<Void> supprimer(@PathVariable UUID trackingId) {
         serieService.supprimerSerie(trackingId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/recherche")
+    @Operation(summary = "Rechercher des séries par mot-clé")
+    public ResponseEntity<Page<FicheSerieResponse>> rechercher(
+            @RequestParam String motCle,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(
+                serieService.rechercher(motCle, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }
 }

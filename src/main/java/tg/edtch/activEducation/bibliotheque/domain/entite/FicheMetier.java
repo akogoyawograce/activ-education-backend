@@ -75,7 +75,8 @@ public class FicheMetier extends Fiche {
      * Relation inverse : la table de jointure est gérée par
      * {@link FicheFiliere#metiersPrepares}.
      */
-    @ManyToMany(mappedBy = "metiersPrepares", fetch = FetchType.LAZY)
+    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.LAZY)
+    @JoinTable(name = "filiere_metier", joinColumns = @JoinColumn(name = "metier_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "filiere_id", referencedColumnName = "id"))
     @Builder.Default
     private Set<FicheFiliere> filieresPreparantes = new HashSet<>();
 }

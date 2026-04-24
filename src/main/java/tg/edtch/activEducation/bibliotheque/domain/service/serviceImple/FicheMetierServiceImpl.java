@@ -10,11 +10,20 @@ import tg.edtch.activEducation.bibliotheque.application.dto.request.FicheMetierR
 import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheMetierResponse;
 import tg.edtch.activEducation.bibliotheque.application.mapper.FicheMetierMapper;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheMetier;
+import tg.edtch.activEducation.bibliotheque.domain.entite.FicheFiliere;
 import tg.edtch.activEducation.bibliotheque.domain.service.FicheMetierService;
 import tg.edtch.activEducation.bibliotheque.repository.FicheMetierRepository;
+import tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository;
+import tg.edtch.activEducation.shared.minio.service.MinioService;
+import tg.edtch.activEducation.shared.minio.enums.FileType;
+import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,18 +32,44 @@ import java.util.UUID;
 public class FicheMetierServiceImpl implements FicheMetierService {
 
     private final FicheMetierRepository metierRepository;
+    private final FicheFiliereRepository filiereRepository;
     private final FicheMetierMapper metierMapper;
+    private final MinioService minioService;
 
     @Override
-    public FicheMetierResponse creerMetier(FicheMetierRequest request) {
-        FicheMetier metier = metierMapper.toEntity(request);
+    public FicheMetierResponse creerMetier(FicheMetierRequest request, List<MultipartFile> images,
+            List<MultipartFile> videos, List<MultipartFile> documents) {
+        Set<FicheFiliere> filieres = resolveFilieres(request.getFilieresTrackingIds());
+        FicheMetier metier = metierMapper.toEntity(request, filieres);
+        handleUpload(metier, images, videos, documents);
         FicheMetier saved = metierRepository.save(metier);
         log.info("Fiche métier créée : trackingId={}", saved.getTrackingId());
         return metierMapper.toResponse(saved);
     }
 
     @Override
-    @Transactional(readOnly = true)
+    public FicheMetierResponse remplacerMedias(UUID trackingId, List<MultipartFile> images, List<MultipartFile> videos,
+            List<MultipartFile> documents) {
+        FicheMetier metier = findOrThrow(trackingId);
+        deleteOldMedias(metier);
+        handleUpload(metier, images, videos, documents);
+        FicheMetier saved = metierRepository.save(metier);
+        log.info("Medias remplacés pour métier : trackingId={}", trackingId);
+        return metierMapper.toResponse(saved);
+    }
+
+    @Override
+    public FicheMetierResponse ajouterMedias(UUID trackingId, List<MultipartFile> images, List<MultipartFile> videos,
+            List<MultipartFile> documents) {
+        FicheMetier metier = findOrThrow(trackingId);
+        handleUpload(metier, images, videos, documents);
+        FicheMetier saved = metierRepository.save(metier);
+        log.info("Medias ajoutés pour métier : trackingId={}", trackingId);
+        return metierMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional
     public FicheMetierResponse getMetier(UUID trackingId) {
         FicheMetier metier = findOrThrow(trackingId);
         metier.setNbConsultations(metier.getNbConsultations() + 1);
@@ -51,7 +86,8 @@ public class FicheMetierServiceImpl implements FicheMetierService {
     @Override
     public FicheMetierResponse modifierMetier(UUID trackingId, FicheMetierRequest request) {
         FicheMetier metier = findOrThrow(trackingId);
-        metierMapper.updateFromRequest(request, metier);
+        Set<FicheFiliere> filieres = resolveFilieres(request.getFilieresTrackingIds());
+        metierMapper.updateFromRequest(request, metier, filieres);
         FicheMetier saved = metierRepository.save(metier);
         log.info("Fiche métier modifiée : trackingId={}", trackingId);
         return metierMapper.toResponse(saved);
@@ -60,13 +96,77 @@ public class FicheMetierServiceImpl implements FicheMetierService {
     @Override
     public void supprimerMetier(UUID trackingId) {
         FicheMetier metier = findOrThrow(trackingId);
+        deleteOldMedias(metier);
         metierRepository.delete(metier);
         log.info("Fiche métier supprimée : trackingId={}", trackingId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FicheMetierResponse> rechercher(String motCle, Pageable pageable) {
+        return metierRepository.rechercherParTerme(motCle, pageable)
+                .map(metierMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FicheMetierResponse> listerParSecteur(String secteur, Pageable pageable) {
+        return metierRepository.findBySecteurIgnoreCaseAndEstPublieTrue(secteur, pageable)
+                .map(metierMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> obtenirTousLesSecteurs() {
+        return metierRepository.findAllSecteurs();
     }
 
     private FicheMetier findOrThrow(UUID trackingId) {
         return metierRepository.findByTrackingId(trackingId)
                 .orElseThrow(() -> new NoSuchElementException(
                         "Fiche métier introuvable pour le trackingId : " + trackingId));
+    }
+
+    private Set<FicheFiliere> resolveFilieres(Set<UUID> trackingIds) {
+        if (trackingIds == null || trackingIds.isEmpty())
+            return Set.of();
+        return trackingIds.stream()
+                .map(tid -> filiereRepository.findByTrackingId(tid)
+                        .orElseThrow(() -> new NoSuchElementException("Filière introuvable : " + tid)))
+                .collect(Collectors.toSet());
+    }
+
+    private void handleUpload(FicheMetier metier, List<MultipartFile> images, List<MultipartFile> videos,
+            List<MultipartFile> documents) {
+        if (images != null && !images.isEmpty()) {
+            metier.getImageUrls().addAll(minioService.uploadMultipleFiles(images, FileType.IMAGE).stream()
+                    .map(FileUploadResponse::getFileUrl).collect(Collectors.toSet()));
+        }
+        if (videos != null && !videos.isEmpty()) {
+            metier.getVideoUrls().addAll(minioService.uploadMultipleFiles(videos, FileType.VIDEO).stream()
+                    .map(FileUploadResponse::getFileUrl).collect(Collectors.toSet()));
+        }
+        if (documents != null && !documents.isEmpty()) {
+            metier.getDocumentUrls().addAll(minioService.uploadMultipleFiles(documents, FileType.DOCUMENT).stream()
+                    .map(FileUploadResponse::getFileUrl).collect(Collectors.toSet()));
+        }
+    }
+
+    private void deleteOldMedias(FicheMetier metier) {
+        if (metier.getImageUrls() != null) {
+            metier.getImageUrls()
+                    .forEach(url -> minioService.deleteFile(minioService.extractFileNameFromUrl(url), FileType.IMAGE));
+            metier.getImageUrls().clear();
+        }
+        if (metier.getVideoUrls() != null) {
+            metier.getVideoUrls()
+                    .forEach(url -> minioService.deleteFile(minioService.extractFileNameFromUrl(url), FileType.VIDEO));
+            metier.getVideoUrls().clear();
+        }
+        if (metier.getDocumentUrls() != null) {
+            metier.getDocumentUrls().forEach(
+                    url -> minioService.deleteFile(minioService.extractFileNameFromUrl(url), FileType.DOCUMENT));
+            metier.getDocumentUrls().clear();
+        }
     }
 }
