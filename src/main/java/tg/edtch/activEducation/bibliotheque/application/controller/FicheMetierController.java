@@ -91,6 +91,24 @@ public class FicheMetierController {
                 .ok(metierService.listerTous(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }
 
+    @GetMapping("/public")
+    @Operation(summary = "Lister les fiches métiers publiques (paginé)")
+    public ResponseEntity<Page<FicheMetierResponse>> listerPublies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity
+                .ok(metierService.listerPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+    }
+
+    @GetMapping("/non-public")
+    @Operation(summary = "Lister les fiches métiers non publiques (paginé)")
+    public ResponseEntity<Page<FicheMetierResponse>> listerNonPublies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity
+                .ok(metierService.listerNonPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+    }
+
     @PutMapping("/{trackingId}")
     @Operation(summary = "Modifier une fiche métier existante")
     public ResponseEntity<FicheMetierResponse> modifier(

@@ -22,4 +22,7 @@ public interface EntreeFAQService {
     void supprimerEntree(UUID trackingId);
 
     List<String> listerCategories();
+
+    tg.edtch.activEducation.bibliotheque.application.dto.response.RechercheIAResponse rechercherParIA(
+            String questionUser, int limite);
 }

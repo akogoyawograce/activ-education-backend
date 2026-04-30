@@ -14,6 +14,10 @@ public interface FicheSerieService {
 
     Page<FicheSerieResponse> listerToutes(Pageable pageable);
 
+    Page<FicheSerieResponse> listerPublies(Pageable pageable);
+
+    Page<FicheSerieResponse> listerNonPublies(Pageable pageable);
+
     FicheSerieResponse modifierSerie(UUID trackingId, FicheSerieRequest request);
 
     void supprimerSerie(UUID trackingId);

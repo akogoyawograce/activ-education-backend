@@ -23,6 +23,10 @@ public interface FicheFiliereService {
 
         Page<FicheFiliereResponse> listerToutes(Pageable pageable);
 
+        Page<FicheFiliereResponse> listerPublies(Pageable pageable);
+
+        Page<FicheFiliereResponse> listerNonPublies(Pageable pageable);
+
         FicheFiliereResponse modifierFiliere(UUID trackingId, FicheFiliereRequest request);
 
         void supprimerFiliere(UUID trackingId);

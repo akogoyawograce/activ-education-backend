@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tg.edtch.activEducation.bibliotheque.application.dto.request.FicheMetierRequest;
@@ -17,6 +19,7 @@ import tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
+import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
@@ -35,6 +38,7 @@ public class FicheMetierServiceImpl implements FicheMetierService {
     private final FicheFiliereRepository filiereRepository;
     private final FicheMetierMapper metierMapper;
     private final MinioService minioService;
+    private final GeminiEmbeddingService geminiEmbeddingService;
 
     @Override
     public FicheMetierResponse creerMetier(FicheMetierRequest request, List<MultipartFile> images,
@@ -42,6 +46,15 @@ public class FicheMetierServiceImpl implements FicheMetierService {
         Set<FicheFiliere> filieres = resolveFilieres(request.getFilieresTrackingIds());
         FicheMetier metier = metierMapper.toEntity(request, filieres);
         handleUpload(metier, images, videos, documents);
+        // Génération de l'embedding sémantique pour la recherche globale
+        try {
+            String texte = (metier.getTitre() != null ? metier.getTitre() : "") + " "
+                    + (metier.getResume() != null ? metier.getResume() : "") + " "
+                    + (metier.getContenu() != null ? metier.getContenu() : "");
+            metier.setEmbedding(geminiEmbeddingService.generateEmbedding(texte.trim()));
+        } catch (Exception e) {
+            log.warn("Impossible de générer l'embedding pour FicheMetier: {}", e.getMessage());
+        }
         FicheMetier saved = metierRepository.save(metier);
         log.info("Fiche métier créée : trackingId={}", saved.getTrackingId());
         return metierMapper.toResponse(saved);
@@ -80,6 +93,20 @@ public class FicheMetierServiceImpl implements FicheMetierService {
     @Transactional(readOnly = true)
     public Page<FicheMetierResponse> listerTous(Pageable pageable) {
         return metierRepository.findAll(pageable)
+                .map(metierMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FicheMetierResponse> listerPublies(Pageable pageable) {
+        return metierRepository.findAllByEstPublieTrue(pageable)
+                .map(metierMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FicheMetierResponse> listerNonPublies(Pageable pageable) {
+        return metierRepository.findAllByEstPublieFalse(pageable)
                 .map(metierMapper::toResponse);
     }
 

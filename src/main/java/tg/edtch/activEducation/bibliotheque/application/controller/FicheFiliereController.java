@@ -92,6 +92,24 @@ public class FicheFiliereController {
                 .ok(filiereService.listerToutes(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }
 
+    @GetMapping("/public")
+    @Operation(summary = "Lister les fiches filières publiques (paginé)")
+    public ResponseEntity<Page<FicheFiliereResponse>> listerPublies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity
+                .ok(filiereService.listerPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+    }
+
+    @GetMapping("/non-public")
+    @Operation(summary = "Lister les fiches filières non publiques (paginé)")
+    public ResponseEntity<Page<FicheFiliereResponse>> listerNonPublies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity
+                .ok(filiereService.listerNonPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+    }
+
     @PutMapping("/{trackingId}")
     @Operation(summary = "Modifier une fiche filière existante")
     public ResponseEntity<FicheFiliereResponse> modifier(

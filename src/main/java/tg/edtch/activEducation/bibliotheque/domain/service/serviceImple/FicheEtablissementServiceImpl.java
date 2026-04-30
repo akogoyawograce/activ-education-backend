@@ -17,12 +17,14 @@ import tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
+import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +37,7 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
     private final FicheFiliereRepository filiereRepository;
     private final FicheEtablissementMapper etablissementMapper;
     private final MinioService minioService;
+    private final GeminiEmbeddingService geminiEmbeddingService;
 
     @Override
     public FicheEtablissementResponse creerEtablissement(FicheEtablissementRequest request, List<MultipartFile> images,
@@ -42,6 +45,15 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
         Set<FicheFiliere> filieres = resolveFilieres(request.getFilieresTrackingIds());
         FicheEtablissement etablissement = etablissementMapper.toEntity(request, filieres);
         handleUpload(etablissement, images, videos, documents);
+        // Génération de l'embedding sémantique pour la recherche globale
+        try {
+            String texte = (etablissement.getTitre() != null ? etablissement.getTitre() : "") + " "
+                    + (etablissement.getResume() != null ? etablissement.getResume() : "") + " "
+                    + (etablissement.getContenu() != null ? etablissement.getContenu() : "");
+            etablissement.setEmbedding(geminiEmbeddingService.generateEmbedding(texte.trim()));
+        } catch (Exception e) {
+            log.warn("Impossible de générer l'embedding pour FicheEtablissement: {}", e.getMessage());
+        }
         FicheEtablissement saved = etablissementRepository.save(etablissement);
         log.info("Fiche établissement créée : trackingId={}", saved.getTrackingId());
         return etablissementMapper.toResponse(saved);
@@ -84,6 +96,20 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public Page<FicheEtablissementResponse> listerPublies(Pageable pageable) {
+        return etablissementRepository.findAllByEstPublieTrue(pageable)
+                .map(etablissementMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FicheEtablissementResponse> listerNonPublies(Pageable pageable) {
+        return etablissementRepository.findAllByEstPublieFalse(pageable)
+                .map(etablissementMapper::toResponse);
+    }
+
+    @Override
     public FicheEtablissementResponse modifierEtablissement(UUID trackingId, FicheEtablissementRequest request) {
         FicheEtablissement etablissement = findOrThrow(trackingId);
         Set<FicheFiliere> filieres = resolveFilieres(request.getFilieresTrackingIds());
@@ -111,8 +137,7 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
     @Override
     @Transactional(readOnly = true)
     public Page<FicheEtablissementResponse> listerParType(String type, Pageable pageable) {
-        return etablissementRepository.findByTypeEtablissementAndEstPublieTrue(
-                FicheEtablissement.TypeEtablissement.valueOf(type.toUpperCase()), pageable)
+        return etablissementRepository.findByTypeEtablissementAndEstPublieTrue(parseTypeEtablissement(type), pageable)
                 .map(etablissementMapper::toResponse);
     }
 
@@ -176,6 +201,21 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
             etablissement.getDocumentUrls().forEach(
                     url -> minioService.deleteFile(minioService.extractFileNameFromUrl(url), FileType.DOCUMENT));
             etablissement.getDocumentUrls().clear();
+        }
+    }
+
+    private FicheEtablissement.TypeEtablissement parseTypeEtablissement(String rawType) {
+        String normalized = rawType == null ? ""
+                : rawType.trim()
+                        .replace("-", "_")
+                        .replace(" ", "_")
+                        .toUpperCase(Locale.ROOT);
+        try {
+            return FicheEtablissement.TypeEtablissement.valueOf(normalized);
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException(
+                    "Type d'etablissement invalide: " + rawType + ". Valeurs possibles: "
+                            + java.util.Arrays.toString(FicheEtablissement.TypeEtablissement.values()));
         }
     }
 }

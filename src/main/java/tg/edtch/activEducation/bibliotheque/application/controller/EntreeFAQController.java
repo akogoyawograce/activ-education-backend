@@ -71,6 +71,18 @@ public class EntreeFAQController {
         return ResponseEntity.ok(faqService.listerCategories());
     }
 
+    @GetMapping("/recherche-ia")
+    @Operation(summary = "Recherche sémantique + RAG via l'IA Gemini")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Recherche effectuée avec succès"),
+            @ApiResponse(responseCode = "500", description = "Erreur avec l'API Gemini", content = @Content)
+    })
+    public ResponseEntity<tg.edtch.activEducation.bibliotheque.application.dto.response.RechercheIAResponse> rechercherParIA(
+            @RequestParam String question,
+            @RequestParam(defaultValue = "3") int limite) {
+        return ResponseEntity.ok(faqService.rechercherParIA(question, limite));
+    }
+
     @PutMapping("/{trackingId}")
     @Operation(summary = "Modifier une entrée FAQ existante")
     @ApiResponses({

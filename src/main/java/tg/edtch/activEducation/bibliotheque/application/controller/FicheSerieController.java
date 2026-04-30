@@ -45,6 +45,24 @@ public class FicheSerieController {
                 .ok(serieService.listerToutes(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }
 
+    @GetMapping("/public")
+    @Operation(summary = "Lister les fiches séries publiques (paginé)")
+    public ResponseEntity<Page<FicheSerieResponse>> listerPublies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity
+                .ok(serieService.listerPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+    }
+
+    @GetMapping("/non-public")
+    @Operation(summary = "Lister les fiches séries non publiques (paginé)")
+    public ResponseEntity<Page<FicheSerieResponse>> listerNonPublies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity
+                .ok(serieService.listerNonPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+    }
+
     @PutMapping("/{trackingId}")
     @Operation(summary = "Modifier une fiche série existante")
     public ResponseEntity<FicheSerieResponse> modifier(

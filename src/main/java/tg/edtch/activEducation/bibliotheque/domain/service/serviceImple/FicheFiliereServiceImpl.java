@@ -17,6 +17,7 @@ import tg.edtch.activEducation.bibliotheque.repository.FicheSerieRepository;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
+import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
     private final FicheSerieRepository serieRepository;
     private final FicheFiliereMapper filiereMapper;
     private final MinioService minioService;
+    private final GeminiEmbeddingService geminiEmbeddingService;
 
     @Override
     public FicheFiliereResponse creerFiliere(FicheFiliereRequest request, List<MultipartFile> images,
@@ -42,6 +44,15 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
         Set<FicheSerie> series = resolveSeries(request.getSeriesTrackingIds());
         FicheFiliere filiere = filiereMapper.toEntity(request, series);
         handleUpload(filiere, images, videos, documents);
+        // Génération de l'embedding sémantique pour la recherche globale
+        try {
+            String texte = (filiere.getTitre() != null ? filiere.getTitre() : "") + " "
+                    + (filiere.getResume() != null ? filiere.getResume() : "") + " "
+                    + (filiere.getContenu() != null ? filiere.getContenu() : "");
+            filiere.setEmbedding(geminiEmbeddingService.generateEmbedding(texte.trim()));
+        } catch (Exception e) {
+            log.warn("Impossible de générer l'embedding pour FicheFiliere: {}", e.getMessage());
+        }
         FicheFiliere saved = filiereRepository.save(filiere);
         log.info("Fiche filière créée : trackingId={}", saved.getTrackingId());
         return filiereMapper.toResponse(saved);
@@ -74,6 +85,20 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
         FicheFiliere filiere = findOrThrow(trackingId);
         filiere.setNbConsultations(filiere.getNbConsultations() + 1);
         return filiereMapper.toResponse(filiere);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FicheFiliereResponse> listerPublies(Pageable pageable) {
+        return filiereRepository.findAllByEstPublieTrue(pageable)
+                .map(filiereMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<FicheFiliereResponse> listerNonPublies(Pageable pageable) {
+        return filiereRepository.findAllByEstPublieFalse(pageable)
+                .map(filiereMapper::toResponse);
     }
 
     @Override

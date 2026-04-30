@@ -95,6 +95,24 @@ public class FicheEtablissementController {
                 etablissementService.listerTous(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }
 
+    @GetMapping("/public")
+    @Operation(summary = "Lister les fiches établissements publiques (paginé)")
+    public ResponseEntity<Page<FicheEtablissementResponse>> listerPublies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(etablissementService.listerPublies(
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+    }
+
+    @GetMapping("/non-public")
+    @Operation(summary = "Lister les fiches établissements non publiques (paginé)")
+    public ResponseEntity<Page<FicheEtablissementResponse>> listerNonPublies(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(etablissementService.listerNonPublies(
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+    }
+
     @PutMapping("/{trackingId}")
     @Operation(summary = "Modifier une fiche établissement existante")
     public ResponseEntity<FicheEtablissementResponse> modifier(

@@ -9,6 +9,7 @@ import tg.edtch.activEducation.bibliotheque.domain.entite.FicheFiliere;
 
 import java.util.Set;
 import java.util.UUID;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Component
@@ -25,8 +26,7 @@ public class FicheEtablissementMapper {
                 .estPublie(request.getEstPublie() != null ? request.getEstPublie() : false)
                 .adresse(request.getAdresse())
                 .ville(request.getVille())
-
-                .typeEtablissement(FicheEtablissement.TypeEtablissement.valueOf(
+                .typeEtablissement(parseTypeEtablissement(
                         request.getTypeEtablissement() != null ? request.getTypeEtablissement() : "UNIVERSITE"))
                 .contacts(request.getContacts())
                 .siteWeb(request.getSiteWeb())
@@ -89,7 +89,7 @@ public class FicheEtablissementMapper {
             entity.setVille(request.getVille());
 
         if (request.getTypeEtablissement() != null)
-            entity.setTypeEtablissement(FicheEtablissement.TypeEtablissement.valueOf(request.getTypeEtablissement()));
+            entity.setTypeEtablissement(parseTypeEtablissement(request.getTypeEtablissement()));
         if (request.getContacts() != null)
             entity.setContacts(request.getContacts());
         if (request.getSiteWeb() != null)
@@ -100,5 +100,13 @@ public class FicheEtablissementMapper {
             entity.setEstPublic(request.getEstPublic());
         if (filieres != null)
             entity.setFilieresProposees(filieres);
+    }
+
+    private FicheEtablissement.TypeEtablissement parseTypeEtablissement(String rawType) {
+        String normalized = rawType == null ? "" : rawType.trim()
+                .replace("-", "_")
+                .replace(" ", "_")
+                .toUpperCase(Locale.ROOT);
+        return FicheEtablissement.TypeEtablissement.valueOf(normalized);
     }
 }

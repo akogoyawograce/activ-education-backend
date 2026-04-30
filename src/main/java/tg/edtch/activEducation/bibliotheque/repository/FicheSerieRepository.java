@@ -2,6 +2,7 @@ package tg.edtch.activEducation.bibliotheque.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -16,11 +17,19 @@ public interface FicheSerieRepository extends JpaRepository<FicheSerie, Long> {
 
     Optional<FicheSerie> findByTrackingId(UUID trackingId);
 
+    @EntityGraph(attributePaths = {"filieresAssociees", "imageUrls", "videoUrls", "documentUrls"})
     Page<FicheSerie> findAllByEstPublieTrue(Pageable pageable);
 
     List<FicheSerie> findByNiveauIgnoreCaseAndEstPublieTrue(String niveau);
 
+    @EntityGraph(attributePaths = {"filieresAssociees", "imageUrls", "videoUrls", "documentUrls"})
     @Query("SELECT f FROM FicheSerie f WHERE f.estPublie = true AND LOWER(f.titre) LIKE LOWER(CONCAT('%', :motCle, '%'))")
     Page<FicheSerie> rechercherParMotCle(@org.springframework.data.repository.query.Param("motCle") String motCle,
             Pageable pageable);
+
+    @EntityGraph(attributePaths = {"filieresAssociees", "imageUrls", "videoUrls", "documentUrls"})
+    Page<FicheSerie> findAll(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"filieresAssociees", "imageUrls", "videoUrls", "documentUrls"})
+    Page<FicheSerie> findAllByEstPublieFalse(Pageable pageable);
 }

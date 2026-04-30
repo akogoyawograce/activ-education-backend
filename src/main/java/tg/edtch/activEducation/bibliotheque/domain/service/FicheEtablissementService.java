@@ -25,6 +25,10 @@ public interface FicheEtablissementService {
 
         Page<FicheEtablissementResponse> listerTous(Pageable pageable);
 
+        Page<FicheEtablissementResponse> listerPublies(Pageable pageable);
+
+        Page<FicheEtablissementResponse> listerNonPublies(Pageable pageable);
+
         FicheEtablissementResponse modifierEtablissement(UUID trackingId, FicheEtablissementRequest request);
 
         void supprimerEtablissement(UUID trackingId);

@@ -3,6 +3,9 @@ package tg.edtch.activEducation.bibliotheque.domain.entite;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.Array;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import tg.edtch.activEducation.shared.util.BaseEntity;
 
 import java.util.HashSet;
@@ -95,6 +98,16 @@ public abstract class Fiche extends BaseEntity {
     @Column(name = "nb_consultations")
     @Builder.Default
     private Long nbConsultations = 0L;
+
+    /**
+     * Vecteur d'embedding (768 dimensions) généré par Gemini pour la recherche
+     * sémantique.
+     * Permet une recherche par similarité cosinus via pgvector.
+     */
+    @Column(name = "embedding", columnDefinition = "vector(768)")
+    @JdbcTypeCode(SqlTypes.VECTOR)
+    @Array(length = 768)
+    private float[] embedding;
 
     @PrePersist
     protected void onPrePersist() {

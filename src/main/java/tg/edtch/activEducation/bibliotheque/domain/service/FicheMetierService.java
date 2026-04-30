@@ -24,6 +24,10 @@ public interface FicheMetierService {
 
         Page<FicheMetierResponse> listerTous(Pageable pageable);
 
+        Page<FicheMetierResponse> listerPublies(Pageable pageable);
+
+        Page<FicheMetierResponse> listerNonPublies(Pageable pageable);
+
         FicheMetierResponse modifierMetier(UUID trackingId, FicheMetierRequest request);
 
         void supprimerMetier(UUID trackingId);
