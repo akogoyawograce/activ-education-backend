@@ -100,6 +100,13 @@ public class FicheFiliere extends Fiche {
      * {@link FicheEtablissement#filieresProposees}.
      */
     @ManyToMany(mappedBy = "filieresProposees", fetch = FetchType.LAZY)
+    @ToString.Exclude
     @Builder.Default
     private Set<FicheEtablissement> etablissements = new HashSet<>();
+
+    @Override
+    @Transient
+    public String getTypeResultat() {
+        return "FILIERE";
+    }
 }

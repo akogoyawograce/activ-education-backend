@@ -32,8 +32,10 @@ public class FicheSerieController {
 
     @GetMapping("/{trackingId}")
     @Operation(summary = "Récupérer une fiche série par son trackingId")
-    public ResponseEntity<FicheSerieResponse> get(@PathVariable UUID trackingId) {
-        return ResponseEntity.ok(serieService.getSerie(trackingId));
+    public ResponseEntity<FicheSerieResponse> get(
+            @PathVariable UUID trackingId,
+            @RequestParam(required = false) UUID utilisateurTrackingId) {
+        return ResponseEntity.ok(serieService.getSerie(trackingId, utilisateurTrackingId));
     }
 
     @GetMapping
@@ -60,7 +62,8 @@ public class FicheSerieController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity
-                .ok(serieService.listerNonPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+                .ok(serieService
+                        .listerNonPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }
 
     @PutMapping("/{trackingId}")

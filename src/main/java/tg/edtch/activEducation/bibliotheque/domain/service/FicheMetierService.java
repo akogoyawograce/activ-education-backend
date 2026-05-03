@@ -20,7 +20,7 @@ public interface FicheMetierService {
         FicheMetierResponse ajouterMedias(UUID trackingId, List<MultipartFile> images, List<MultipartFile> videos,
                         List<MultipartFile> documents);
 
-        FicheMetierResponse getMetier(UUID trackingId);
+        FicheMetierResponse getMetier(UUID trackingId, UUID utilisateurTrackingId);
 
         Page<FicheMetierResponse> listerTous(Pageable pageable);
 

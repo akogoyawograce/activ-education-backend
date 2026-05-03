@@ -19,7 +19,7 @@ public interface FicheFiliereService {
         FicheFiliereResponse ajouterMedias(UUID trackingId, List<MultipartFile> images, List<MultipartFile> videos,
                         List<MultipartFile> documents);
 
-        FicheFiliereResponse getFiliere(UUID trackingId);
+        FicheFiliereResponse getFiliere(UUID trackingId, UUID utilisateurTrackingId);
 
         Page<FicheFiliereResponse> listerToutes(Pageable pageable);
 

@@ -21,7 +21,7 @@ public interface FicheEtablissementService {
                         List<MultipartFile> videos,
                         List<MultipartFile> documents);
 
-        FicheEtablissementResponse getEtablissement(UUID trackingId);
+        FicheEtablissementResponse getEtablissement(UUID trackingId, UUID utilisateurTrackingId);
 
         Page<FicheEtablissementResponse> listerTous(Pageable pageable);
 

@@ -115,4 +115,7 @@ public abstract class Fiche extends BaseEntity {
             this.trackingId = UUID.randomUUID();
         }
     }
+
+    @Transient
+    public abstract String getTypeResultat();
 }

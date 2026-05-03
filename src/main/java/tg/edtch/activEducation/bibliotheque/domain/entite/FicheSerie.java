@@ -66,6 +66,13 @@ public class FicheSerie extends Fiche {
      * définie ici.
      */
     @ManyToMany(mappedBy = "seriesAssociees", fetch = FetchType.LAZY)
+    @ToString.Exclude
     @Builder.Default
     private Set<FicheFiliere> filieresAssociees = new HashSet<>();
+
+    @Override
+    @Transient
+    public String getTypeResultat() {
+        return "SERIE";
+    }
 }

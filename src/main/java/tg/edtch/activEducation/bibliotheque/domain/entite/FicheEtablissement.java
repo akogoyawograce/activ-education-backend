@@ -89,8 +89,15 @@ public class FicheEtablissement extends Fiche {
      */
     @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.LAZY)
     @JoinTable(name = "etablissement_filiere", joinColumns = @JoinColumn(name = "etablissement_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "filiere_id", referencedColumnName = "id"))
+    @ToString.Exclude
     @Builder.Default
     private Set<FicheFiliere> filieresProposees = new HashSet<>();
+
+    @Override
+    @Transient
+    public String getTypeResultat() {
+        return "ETABLISSEMENT";
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Enum

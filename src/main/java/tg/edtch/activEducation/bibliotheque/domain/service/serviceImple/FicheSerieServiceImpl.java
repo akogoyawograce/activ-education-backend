@@ -11,6 +11,8 @@ import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheSerieR
 import tg.edtch.activEducation.bibliotheque.application.mapper.FicheSerieMapper;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheSerie;
 import tg.edtch.activEducation.bibliotheque.domain.service.FicheSerieService;
+import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
+import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.bibliotheque.repository.FicheSerieRepository;
 import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
 
@@ -26,6 +28,7 @@ public class FicheSerieServiceImpl implements FicheSerieService {
     private final FicheSerieRepository serieRepository;
     private final FicheSerieMapper serieMapper;
     private final GeminiEmbeddingService geminiEmbeddingService;
+    private final HistoriqueService historiqueService;
 
     @Override
     public FicheSerieResponse creerSerie(FicheSerieRequest request) {
@@ -46,9 +49,15 @@ public class FicheSerieServiceImpl implements FicheSerieService {
 
     @Override
     @Transactional
-    public FicheSerieResponse getSerie(UUID trackingId) {
+    public FicheSerieResponse getSerie(UUID trackingId, UUID utilisateurTrackingId) {
         FicheSerie serie = findOrThrow(trackingId);
         serie.setNbConsultations(serie.getNbConsultations() + 1);
+        if (utilisateurTrackingId != null) {
+            HistoriqueRequest req = new HistoriqueRequest();
+            req.setAction("CONSULTATION_FICHE");
+            req.setDetails(trackingId.toString());
+            historiqueService.enregistrer(utilisateurTrackingId, req);
+        }
         return serieMapper.toResponse(serie);
     }
 

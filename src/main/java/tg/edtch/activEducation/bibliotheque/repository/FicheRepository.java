@@ -54,4 +54,30 @@ public interface FicheRepository extends JpaRepository<Fiche, Long> {
             + "WHEN :#{#ids.get(9)} THEN 9 "
             + "ELSE 99 END")
     List<Fiche> trouverParIdsOrdonnes(@Param("ids") List<Long> ids);
+
+    /**
+     * Tendance sur 7 jours basée sur l'historique de consultation.
+     */
+    @Query(value = "SELECT f.id FROM fiches f " +
+            "JOIN historique_utilisateur h ON h.details = CAST(f.tracking_id AS text) " +
+            "WHERE h.action = 'CONSULTATION_FICHE' " +
+            "AND h.created_at >= NOW() - INTERVAL '7 days' " +
+            "GROUP BY f.id " +
+            "ORDER BY COUNT(h.id) DESC " +
+            "LIMIT :limite", nativeQuery = true)
+    List<Long> trouverIdsTendances(@Param("limite") int limite);
+
+    /**
+     * Vues récentes (Historique) par un utilisateur spécifique.
+     */
+    @Query(value = "SELECT f.id FROM fiches f " +
+            "JOIN historique_utilisateur h ON h.details = CAST(f.tracking_id AS text) " +
+            "JOIN utilisateurs u ON h.utilisateur_id = u.id " +
+            "WHERE h.action = 'CONSULTATION_FICHE' " +
+            "AND u.tracking_id = :utilisateurTrackingId " +
+            "GROUP BY f.id " +
+            "ORDER BY MAX(h.created_at) DESC " +
+            "LIMIT :limite", nativeQuery = true)
+    List<Long> trouverIdsConsultationsRecentes(@Param("utilisateurTrackingId") UUID utilisateurTrackingId,
+            @Param("limite") int limite);
 }

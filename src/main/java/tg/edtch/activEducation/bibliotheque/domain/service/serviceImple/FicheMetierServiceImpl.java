@@ -18,6 +18,8 @@ import tg.edtch.activEducation.bibliotheque.repository.FicheMetierRepository;
 import tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
+import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
+import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
 import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +41,7 @@ public class FicheMetierServiceImpl implements FicheMetierService {
     private final FicheMetierMapper metierMapper;
     private final MinioService minioService;
     private final GeminiEmbeddingService geminiEmbeddingService;
+    private final HistoriqueService historiqueService;
 
     @Override
     public FicheMetierResponse creerMetier(FicheMetierRequest request, List<MultipartFile> images,
@@ -83,9 +86,15 @@ public class FicheMetierServiceImpl implements FicheMetierService {
 
     @Override
     @Transactional
-    public FicheMetierResponse getMetier(UUID trackingId) {
+    public FicheMetierResponse getMetier(UUID trackingId, UUID utilisateurTrackingId) {
         FicheMetier metier = findOrThrow(trackingId);
         metier.setNbConsultations(metier.getNbConsultations() + 1);
+        if (utilisateurTrackingId != null) {
+            HistoriqueRequest req = new HistoriqueRequest();
+            req.setAction("CONSULTATION_FICHE");
+            req.setDetails(trackingId.toString());
+            historiqueService.enregistrer(utilisateurTrackingId, req);
+        }
         return metierMapper.toResponse(metier);
     }
 

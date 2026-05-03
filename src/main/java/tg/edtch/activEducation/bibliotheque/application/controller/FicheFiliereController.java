@@ -79,8 +79,10 @@ public class FicheFiliereController {
 
     @GetMapping("/{trackingId}")
     @Operation(summary = "Récupérer une fiche filière par son trackingId")
-    public ResponseEntity<FicheFiliereResponse> get(@PathVariable UUID trackingId) {
-        return ResponseEntity.ok(filiereService.getFiliere(trackingId));
+    public ResponseEntity<FicheFiliereResponse> get(
+            @PathVariable UUID trackingId,
+            @RequestParam(required = false) UUID utilisateurTrackingId) {
+        return ResponseEntity.ok(filiereService.getFiliere(trackingId, utilisateurTrackingId));
     }
 
     @GetMapping
@@ -98,7 +100,8 @@ public class FicheFiliereController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity
-                .ok(filiereService.listerPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+                .ok(filiereService
+                        .listerPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }
 
     @GetMapping("/non-public")
@@ -107,7 +110,8 @@ public class FicheFiliereController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity
-                .ok(filiereService.listerNonPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+                .ok(filiereService
+                        .listerNonPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }
 
     @PutMapping("/{trackingId}")

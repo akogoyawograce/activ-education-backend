@@ -79,4 +79,10 @@ public class FicheMetier extends Fiche {
     @JoinTable(name = "filiere_metier", joinColumns = @JoinColumn(name = "metier_id", referencedColumnName = "id"), inverseJoinColumns = @JoinColumn(name = "filiere_id", referencedColumnName = "id"))
     @Builder.Default
     private Set<FicheFiliere> filieresPreparantes = new HashSet<>();
+
+    @Override
+    @Transient
+    public String getTypeResultat() {
+        return "METIER";
+    }
 }

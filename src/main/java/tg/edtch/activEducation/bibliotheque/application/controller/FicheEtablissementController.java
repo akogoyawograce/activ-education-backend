@@ -82,8 +82,10 @@ public class FicheEtablissementController {
 
     @GetMapping("/{trackingId}")
     @Operation(summary = "Récupérer une fiche établissement par son trackingId")
-    public ResponseEntity<FicheEtablissementResponse> get(@PathVariable UUID trackingId) {
-        return ResponseEntity.ok(etablissementService.getEtablissement(trackingId));
+    public ResponseEntity<FicheEtablissementResponse> get(
+            @PathVariable UUID trackingId,
+            @RequestParam(required = false) UUID utilisateurTrackingId) {
+        return ResponseEntity.ok(etablissementService.getEtablissement(trackingId, utilisateurTrackingId));
     }
 
     @GetMapping

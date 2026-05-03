@@ -10,7 +10,7 @@ import java.util.UUID;
 public interface FicheSerieService {
     FicheSerieResponse creerSerie(FicheSerieRequest request);
 
-    FicheSerieResponse getSerie(UUID trackingId);
+    FicheSerieResponse getSerie(UUID trackingId, UUID utilisateurTrackingId);
 
     Page<FicheSerieResponse> listerToutes(Pageable pageable);
 

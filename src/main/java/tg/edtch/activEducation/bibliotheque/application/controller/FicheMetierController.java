@@ -78,8 +78,10 @@ public class FicheMetierController {
 
     @GetMapping("/{trackingId}")
     @Operation(summary = "Récupérer une fiche métier par son trackingId")
-    public ResponseEntity<FicheMetierResponse> get(@PathVariable UUID trackingId) {
-        return ResponseEntity.ok(metierService.getMetier(trackingId));
+    public ResponseEntity<FicheMetierResponse> get(
+            @PathVariable UUID trackingId,
+            @RequestParam(required = false) UUID utilisateurTrackingId) {
+        return ResponseEntity.ok(metierService.getMetier(trackingId, utilisateurTrackingId));
     }
 
     @GetMapping
@@ -106,7 +108,8 @@ public class FicheMetierController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity
-                .ok(metierService.listerNonPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+                .ok(metierService
+                        .listerNonPublies(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }
 
     @PutMapping("/{trackingId}")

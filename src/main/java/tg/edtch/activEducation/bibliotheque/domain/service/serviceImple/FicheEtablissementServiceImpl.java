@@ -16,6 +16,8 @@ import tg.edtch.activEducation.bibliotheque.repository.FicheEtablissementReposit
 import tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
+import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
+import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
 import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +40,7 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
     private final FicheEtablissementMapper etablissementMapper;
     private final MinioService minioService;
     private final GeminiEmbeddingService geminiEmbeddingService;
+    private final HistoriqueService historiqueService;
 
     @Override
     public FicheEtablissementResponse creerEtablissement(FicheEtablissementRequest request, List<MultipartFile> images,
@@ -82,9 +85,15 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
 
     @Override
     @Transactional
-    public FicheEtablissementResponse getEtablissement(UUID trackingId) {
+    public FicheEtablissementResponse getEtablissement(UUID trackingId, UUID utilisateurTrackingId) {
         FicheEtablissement etablissement = findOrThrow(trackingId);
         etablissement.setNbConsultations(etablissement.getNbConsultations() + 1);
+        if (utilisateurTrackingId != null) {
+            HistoriqueRequest req = new HistoriqueRequest();
+            req.setAction("CONSULTATION_FICHE");
+            req.setDetails(trackingId.toString());
+            historiqueService.enregistrer(utilisateurTrackingId, req);
+        }
         return etablissementMapper.toResponse(etablissement);
     }
 

@@ -16,6 +16,8 @@ import tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository;
 import tg.edtch.activEducation.bibliotheque.repository.FicheSerieRepository;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
+import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
+import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
 import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +39,7 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
     private final FicheFiliereMapper filiereMapper;
     private final MinioService minioService;
     private final GeminiEmbeddingService geminiEmbeddingService;
+    private final HistoriqueService historiqueService;
 
     @Override
     public FicheFiliereResponse creerFiliere(FicheFiliereRequest request, List<MultipartFile> images,
@@ -81,9 +84,15 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
 
     @Override
     @Transactional
-    public FicheFiliereResponse getFiliere(UUID trackingId) {
+    public FicheFiliereResponse getFiliere(UUID trackingId, UUID utilisateurTrackingId) {
         FicheFiliere filiere = findOrThrow(trackingId);
         filiere.setNbConsultations(filiere.getNbConsultations() + 1);
+        if (utilisateurTrackingId != null) {
+            HistoriqueRequest req = new HistoriqueRequest();
+            req.setAction("CONSULTATION_FICHE");
+            req.setDetails(trackingId.toString());
+            historiqueService.enregistrer(utilisateurTrackingId, req);
+        }
         return filiereMapper.toResponse(filiere);
     }
 
