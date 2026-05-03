@@ -32,8 +32,38 @@ Le projet est conçu selon une architecture **Monolithe Modulaire ("Package by F
 - **Fonctionnalités :** Authentification (2FA), gestion des rôles, documents scolaires et historique d'activités.
 
 ### 2. 📚 Bibliothèque d'exploration (`bibliotheque`)
-- Fiches de métiers, filières, séries et établissements spécifiques au Togo (stratégie d'héritage d'entités avec `JOINED`).
-- **FAQ Intelligente :** Moteur de recherche assisté par IA grâce aux embeddings et à la recherche par similarité cosinus.
+
+**A. Rôle du Module**
+Ce module est le cœur informationnel de la plateforme. Il centralise, structure et expose aux élèves toutes les informations sur l'orientation au Togo : quelles sont les **Séries** existantes, à quelles **Filières** elles mènent, quels sont les **Métiers** possibles et dans quels **Établissements** se former.
+
+**B. Fonctionnalités Clés**
+- **CRUD Avancé** : Gestion de contenu asynchrone avec attachements enrichis (Images, Vidéos, Documents hébergés sur `MinIO`).
+- **Recherche Multidimensionnelle** : Filtres classiques par secteurs, profils recherchés.
+- **Système de Favoris** : Sauvegarde de fiches par l'utilisateur.
+- **Analytics & Tendances** : Suivi des consultations pour mettre en avant les fiches "Tendances" (sur les 7 derniers jours) et générer l'historique de contenu "Récemment consulté" par l'élève.
+- **Moteur IA Sémantique ("RAG")** : Permet à l'utilisateur de chercher "Je veux travailler dans la nature" et d'obtenir des Filières ou Métiers grâce à une recherche vectorielle profonde.
+
+**C. Architecture Technique & Choix de Conception**
+L'implémentation de ce module regorge de patterns de conception importants pour conjuguer flexibilité et performance :
+
+1. **Polymorphisme et Héritage JPA (`InheritanceType.JOINED`)**
+   Toutes nos fiches héritent d'une entité mère abstraite `Fiche.java`. Chaque sous-type (`FicheMetier`, `FicheFiliere`, etc.) possède sa propre table liées par clé étrangère. Cela garantit l'intégrité des données tout en nous permettant d'effectuer des recherches génériques.
+
+2. **Génération d'Embeddings (Pipeline RAG avec Google Gemini)**
+   - Dès qu'une `Fiche`  ou une `EntreeFAQ` est créée ou modifiée, le `GeminiEmbeddingService` interroge secrètement l'API Gemini (`gemini-embedding-2`) pour transformer son contenu en un vecteur de *768 dimensions*.
+   - Ce vecteur est sauvegardé dans l'attribut `float[] embedding` natif à PostgreSQL.
+
+3. **Recherche Vectorielle Natif (PostgreSQL `pgvector`)**
+   - Au lieu d'une simple recherche LIKE, la recherche IA calcule la "similarité Cosinus" (`<=>`) entre la phrase de l'utilisateur (vectorisée) et toutes les embeddings de la base de données.
+
+4. **Contournement des limites Hibernate (Stratégie en 2 Étapes)**
+   - L'héritage *JOINED* couplé aux requêtes SQL Natives provoque une perte du discriminateur chez Hibernate (`clazz_ not found`).
+   - Pour l'IA et l'Analytics, nous utilisons un **Pipeline à 2 étapes** : 
+     1) Requête Native SQL pure pour extraire uniquement les identifiants `List<Long> id` (avec pagination/limites).
+     2) Requête JPQL classique pour instancier les bonnes sous-classes (`SELECT f FROM Fiche f WHERE f.id IN ... ORDER BY CASE`) en préservant l'ordre mathématique ou chronologique.
+
+5. **Interopérabilité Trans-Modules**
+   - Le système d'Analytics enregistre les vues en s'appuyant sur l'entité globale `Historique` du module *Profil*. Les requêtes SQL de tendance effectuent un pont asynchrone (`CAST(f.tracking_id AS text) = h.details`) sans générer de couplage fort en base de données.
 
 ### 3. 🧭 Diagnostic d'orientation (`diagnostic`)
 - Évaluation à travers des quiz thématiques.
