@@ -15,29 +15,31 @@ import java.util.UUID;
 @Repository
 public interface FicheFiliereRepository extends JpaRepository<FicheFiliere, Long> {
 
-    Optional<FicheFiliere> findByTrackingId(UUID trackingId);
+        Optional<FicheFiliere> findByTrackingId(UUID trackingId);
 
-    @EntityGraph(attributePaths = {"metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls"})
-    Page<FicheFiliere> findAllByEstPublieTrue(Pageable pageable);
+        @EntityGraph(attributePaths = { "metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls" })
+        Page<FicheFiliere> findAllByEstPublieTrue(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls"})
-    Page<FicheFiliere> findByDomaineIgnoreCaseAndEstPublieTrue(String domaine, Pageable pageable);
+        @EntityGraph(attributePaths = { "metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls" })
+        Page<FicheFiliere> findByDomaineIgnoreCaseAndEstPublieTrue(String domaine, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls"})
-    @Query("SELECT f FROM FicheFiliere f WHERE f.estPublie = true AND " +
-            "(LOWER(f.titre) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
-            " LOWER(f.domaine) LIKE LOWER(CONCAT('%', :terme, '%')))")
-    Page<FicheFiliere> rechercherParTerme(@org.springframework.data.repository.query.Param("terme") String terme,
-            Pageable pageable);
+        @EntityGraph(attributePaths = { "metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls" })
+        @Query("SELECT f FROM FicheFiliere f WHERE f.estPublie = true AND " +
+                        "(LOWER(f.titre) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
+                        " LOWER(f.resume) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
+                        " LOWER(f.contenu) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
+                        " LOWER(f.domaine) LIKE LOWER(CONCAT('%', :terme, '%')))")
+        Page<FicheFiliere> rechercherParTerme(@org.springframework.data.repository.query.Param("terme") String terme,
+                        Pageable pageable);
 
-    List<FicheFiliere> findByNiveauRequisContainingIgnoreCaseAndEstPublieTrue(String niveauRequis);
+        List<FicheFiliere> findByNiveauRequisContainingIgnoreCaseAndEstPublieTrue(String niveauRequis);
 
-    @Query("SELECT DISTINCT f.domaine FROM FicheFiliere f WHERE f.domaine IS NOT NULL AND f.estPublie = true ORDER BY f.domaine")
-    List<String> findAllDomaines();
+        @Query("SELECT DISTINCT f.domaine FROM FicheFiliere f WHERE f.domaine IS NOT NULL AND f.estPublie = true ORDER BY f.domaine")
+        List<String> findAllDomaines();
 
-    @EntityGraph(attributePaths = {"metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls"})
-    Page<FicheFiliere> findAllByEstPublieFalse(Pageable pageable);
+        @EntityGraph(attributePaths = { "metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls" })
+        Page<FicheFiliere> findAllByEstPublieFalse(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls"})
-    Page<FicheFiliere> findAll(Pageable pageable);
+        @EntityGraph(attributePaths = { "metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls" })
+        Page<FicheFiliere> findAll(Pageable pageable);
 }

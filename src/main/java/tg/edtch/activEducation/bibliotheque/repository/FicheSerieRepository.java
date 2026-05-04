@@ -17,19 +17,22 @@ public interface FicheSerieRepository extends JpaRepository<FicheSerie, Long> {
 
     Optional<FicheSerie> findByTrackingId(UUID trackingId);
 
-    @EntityGraph(attributePaths = {"filieresAssociees", "imageUrls", "videoUrls", "documentUrls"})
+    @EntityGraph(attributePaths = { "filieresAssociees", "imageUrls", "videoUrls", "documentUrls" })
     Page<FicheSerie> findAllByEstPublieTrue(Pageable pageable);
 
     List<FicheSerie> findByNiveauIgnoreCaseAndEstPublieTrue(String niveau);
 
-    @EntityGraph(attributePaths = {"filieresAssociees", "imageUrls", "videoUrls", "documentUrls"})
-    @Query("SELECT f FROM FicheSerie f WHERE f.estPublie = true AND LOWER(f.titre) LIKE LOWER(CONCAT('%', :motCle, '%'))")
+    @EntityGraph(attributePaths = { "filieresAssociees", "imageUrls", "videoUrls", "documentUrls" })
+    @Query("SELECT f FROM FicheSerie f WHERE f.estPublie = true AND " +
+            "(LOWER(f.titre) LIKE LOWER(CONCAT('%', :motCle, '%')) OR " +
+            " LOWER(f.resume) LIKE LOWER(CONCAT('%', :motCle, '%')) OR " +
+            " LOWER(f.contenu) LIKE LOWER(CONCAT('%', :motCle, '%')))")
     Page<FicheSerie> rechercherParMotCle(@org.springframework.data.repository.query.Param("motCle") String motCle,
             Pageable pageable);
 
-    @EntityGraph(attributePaths = {"filieresAssociees", "imageUrls", "videoUrls", "documentUrls"})
+    @EntityGraph(attributePaths = { "filieresAssociees", "imageUrls", "videoUrls", "documentUrls" })
     Page<FicheSerie> findAll(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"filieresAssociees", "imageUrls", "videoUrls", "documentUrls"})
+    @EntityGraph(attributePaths = { "filieresAssociees", "imageUrls", "videoUrls", "documentUrls" })
     Page<FicheSerie> findAllByEstPublieFalse(Pageable pageable);
 }
