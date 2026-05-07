@@ -12,6 +12,7 @@ import tg.edtch.activEducation.bibliotheque.application.mapper.FicheSerieMapper;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheSerie;
 import tg.edtch.activEducation.bibliotheque.domain.service.FicheSerieService;
 import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
+import tg.edtch.activEducation.bibliotheque.domain.service.RechercheOrphelineService;
 import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.bibliotheque.repository.FicheSerieRepository;
 import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
@@ -29,6 +30,7 @@ public class FicheSerieServiceImpl implements FicheSerieService {
     private final FicheSerieMapper serieMapper;
     private final GeminiEmbeddingService geminiEmbeddingService;
     private final HistoriqueService historiqueService;
+    private final RechercheOrphelineService orphelineService;
 
     @Override
     public FicheSerieResponse creerSerie(FicheSerieRequest request) {
@@ -107,7 +109,11 @@ public class FicheSerieServiceImpl implements FicheSerieService {
     @Override
     @Transactional(readOnly = true)
     public Page<FicheSerieResponse> rechercher(String motCle, Pageable pageable) {
-        return serieRepository.rechercherParMotCle(motCle, pageable)
+        Page<FicheSerieResponse> resultat = serieRepository.rechercherParMotCle(motCle, pageable)
                 .map(serieMapper::toResponse);
+        if (resultat.isEmpty() && motCle != null && !motCle.trim().isEmpty()) {
+            orphelineService.signaler(motCle, "SERIE");
+        }
+        return resultat;
     }
 }

@@ -14,11 +14,13 @@ import tg.edtch.activEducation.bibliotheque.application.mapper.FicheMetierMapper
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheMetier;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheFiliere;
 import tg.edtch.activEducation.bibliotheque.domain.service.FicheMetierService;
+import tg.edtch.activEducation.bibliotheque.domain.service.FicheMetierService;
 import tg.edtch.activEducation.bibliotheque.repository.FicheMetierRepository;
 import tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
 import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
+import tg.edtch.activEducation.bibliotheque.domain.service.RechercheOrphelineService;
 import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
 import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
@@ -42,6 +44,7 @@ public class FicheMetierServiceImpl implements FicheMetierService {
     private final MinioService minioService;
     private final GeminiEmbeddingService geminiEmbeddingService;
     private final HistoriqueService historiqueService;
+    private final RechercheOrphelineService orphelineService;
 
     @Override
     public FicheMetierResponse creerMetier(FicheMetierRequest request, List<MultipartFile> images,
@@ -140,8 +143,12 @@ public class FicheMetierServiceImpl implements FicheMetierService {
     @Override
     @Transactional(readOnly = true)
     public Page<FicheMetierResponse> rechercher(String motCle, Pageable pageable) {
-        return metierRepository.rechercherParTerme(motCle, pageable)
+        Page<FicheMetierResponse> resultat = metierRepository.rechercherParTerme(motCle, pageable)
                 .map(metierMapper::toResponse);
+        if (resultat.isEmpty() && motCle != null && !motCle.trim().isEmpty()) {
+            orphelineService.signaler(motCle, "METIER");
+        }
+        return resultat;
     }
 
     @Override

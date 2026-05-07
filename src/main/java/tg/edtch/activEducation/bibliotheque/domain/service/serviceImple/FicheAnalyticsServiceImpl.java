@@ -37,6 +37,21 @@ public class FicheAnalyticsServiceImpl implements FicheAnalyticsService {
         return chargerEtMapper(ids);
     }
 
+    @Override
+    public List<RechercheGlobaleResponse> getFichesSimilaires(UUID trackingId, int limite) {
+        log.debug("Récupération des fiches similaires pour trackingId={}, limite={}", trackingId, limite);
+        Fiche cible = ficheRepository.findByTrackingId(trackingId)
+                .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException(
+                        "Fiche non trouvée avec ID : " + trackingId));
+
+        if (cible.getEmbedding() == null) {
+            return List.of();
+        }
+
+        List<Long> ids = ficheRepository.trouverIdsFichesSimilaires(cible.getId(), cible.getEmbedding(), limite);
+        return chargerEtMapper(ids);
+    }
+
     private List<RechercheGlobaleResponse> chargerEtMapper(List<Long> ids) {
         if (ids.isEmpty())
             return List.of();

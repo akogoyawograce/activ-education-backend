@@ -8,4 +8,6 @@ public interface FicheAnalyticsService {
     List<RechercheGlobaleResponse> getTendances(int limite);
 
     List<RechercheGlobaleResponse> getConsultationsRecentes(UUID utilisateurTrackingId, int limite);
+
+    List<RechercheGlobaleResponse> getFichesSimilaires(UUID trackingId, int limite);
 }

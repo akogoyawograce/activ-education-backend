@@ -33,4 +33,12 @@ public class FicheAnalyticsController {
             @RequestParam(defaultValue = "5") int limite) {
         return ResponseEntity.ok(analyticsService.getConsultationsRecentes(utilisateurTrackingId, limite));
     }
+
+    @GetMapping("/similaires/{trackingId}")
+    @Operation(summary = "Récupérer les fiches similaires à une fiche spécifique")
+    public ResponseEntity<List<RechercheGlobaleResponse>> getFichesSimilaires(
+            @PathVariable UUID trackingId,
+            @RequestParam(defaultValue = "3") int limite) {
+        return ResponseEntity.ok(analyticsService.getFichesSimilaires(trackingId, limite));
+    }
 }

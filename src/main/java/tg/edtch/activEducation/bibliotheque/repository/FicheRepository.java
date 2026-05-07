@@ -83,4 +83,12 @@ public interface FicheRepository extends JpaRepository<Fiche, Long> {
                         "LIMIT :limite", nativeQuery = true)
         List<Long> trouverIdsConsultationsRecentes(@Param("utilisateurTrackingId") UUID utilisateurTrackingId,
                         @Param("limite") int limite);
+
+        /**
+         * Recherche de fiches similaires en utilisant les embeddings pgvector, tout en
+         * excluant la fiche cible.
+         */
+        @Query(value = "SELECT f.id FROM fiches f WHERE f.id != :ficheId AND f.est_publie = true AND f.embedding IS NOT NULL ORDER BY f.embedding <=> CAST(:vecteur AS vector) LIMIT :limite", nativeQuery = true)
+        List<Long> trouverIdsFichesSimilaires(@Param("ficheId") Long ficheId, @Param("vecteur") float[] vecteur,
+                        @Param("limite") int limite);
 }

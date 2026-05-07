@@ -17,6 +17,7 @@ import tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
 import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
+import tg.edtch.activEducation.bibliotheque.domain.service.RechercheOrphelineService;
 import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
 import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
@@ -41,6 +42,7 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
     private final MinioService minioService;
     private final GeminiEmbeddingService geminiEmbeddingService;
     private final HistoriqueService historiqueService;
+    private final RechercheOrphelineService orphelineService;
 
     @Override
     public FicheEtablissementResponse creerEtablissement(FicheEtablissementRequest request, List<MultipartFile> images,
@@ -159,8 +161,12 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
     @Override
     @Transactional(readOnly = true)
     public Page<FicheEtablissementResponse> rechercher(String motCle, Pageable pageable) {
-        return etablissementRepository.rechercherParTerme(motCle, pageable)
+        Page<FicheEtablissementResponse> resultat = etablissementRepository.rechercherParTerme(motCle, pageable)
                 .map(etablissementMapper::toResponse);
+        if (resultat.isEmpty() && motCle != null && !motCle.trim().isEmpty()) {
+            orphelineService.signaler(motCle, "ETABLISSEMENT");
+        }
+        return resultat;
     }
 
     private FicheEtablissement findOrThrow(UUID trackingId) {

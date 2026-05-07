@@ -17,6 +17,7 @@ import tg.edtch.activEducation.bibliotheque.repository.FicheSerieRepository;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
 import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
+import tg.edtch.activEducation.bibliotheque.domain.service.RechercheOrphelineService;
 import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
 import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
@@ -40,6 +41,7 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
     private final MinioService minioService;
     private final GeminiEmbeddingService geminiEmbeddingService;
     private final HistoriqueService historiqueService;
+    private final RechercheOrphelineService orphelineService;
 
     @Override
     public FicheFiliereResponse creerFiliere(FicheFiliereRequest request, List<MultipartFile> images,
@@ -138,8 +140,12 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
     @Override
     @Transactional(readOnly = true)
     public Page<FicheFiliereResponse> rechercher(String motCle, Pageable pageable) {
-        return filiereRepository.rechercherParTerme(motCle, pageable)
+        Page<FicheFiliereResponse> resultat = filiereRepository.rechercherParTerme(motCle, pageable)
                 .map(filiereMapper::toResponse);
+        if (resultat.isEmpty() && motCle != null && !motCle.trim().isEmpty()) {
+            orphelineService.signaler(motCle, "FILIERE");
+        }
+        return resultat;
     }
 
     @Override

@@ -38,10 +38,12 @@ Ce module est le cœur informationnel de la plateforme. Il centralise, structure
 
 **B. Fonctionnalités Clés**
 - **CRUD Avancé** : Gestion de contenu asynchrone avec attachements enrichis (Images, Vidéos, Documents hébergés sur `MinIO`).
-- **Recherche Multidimensionnelle** : Filtres classiques par secteurs, profils recherchés.
+- **Recherche Textuelle Étendue** : Les requêtes classiques (Mots-clés) n'inspectent pas que le titre, mais "scannent" le résumé et le contenu intégral de chaque fiche pour un maximum de résultats pertinents.
 - **Système de Favoris** : Sauvegarde de fiches par l'utilisateur.
-- **Analytics & Tendances** : Suivi des consultations pour mettre en avant les fiches "Tendances" (sur les 7 derniers jours) et générer l'historique de contenu "Récemment consulté" par l'élève.
-- **Moteur IA Sémantique ("RAG")** : Permet à l'utilisateur de chercher "Je veux travailler dans la nature" et d'obtenir des Filières ou Métiers grâce à une recherche vectorielle profonde.
+- **Analytics & Tendances** : Suivi des consultations pour mettre en avant les fiches "Tendances" (7 derniers jours) et "Récemment consultées".
+- **Recommandation Intelligente (IA)** : Proposition automatique de "Fiches Similaires" pour guider l'élève dans la même galaxie d'orientation.
+- **Détection des Carences Administratives** : Monitoring et stockage des mots-clés d'élèves qui n'ont conduit à aucune fiche, permettant à l'Admin de combler les trous de contenus.
+- **Moteur IA Sémantique ("RAG")** : Permet à l'utilisateur de chercher "Je veux travailler dans la nature" et d'obtenir des réponses structurées grâce à une recherche vectorielle profonde.
 
 **C. Architecture Technique & Choix de Conception**
 L'implémentation de ce module regorge de patterns de conception importants pour conjuguer flexibilité et performance :
@@ -64,6 +66,9 @@ L'implémentation de ce module regorge de patterns de conception importants pour
 
 5. **Interopérabilité Trans-Modules**
    - Le système d'Analytics enregistre les vues en s'appuyant sur l'entité globale `Historique` du module *Profil*. Les requêtes SQL de tendance effectuent un pont asynchrone (`CAST(f.tracking_id AS text) = h.details`) sans générer de couplage fort en base de données.
+
+6. **Journalisation Asynchrone (Non-Bloquante)**
+   - Le tracking des "Carences" (Recherches Orphelines) utilise intégralement l'annotation locale `@Async` pour écrire en base PostgreSQL. L'expérience élève reste ultra-fluide et fulgurante (temps de réponse HTTP non affecté).
 
 ### 3. 🧭 Diagnostic d'orientation (`diagnostic`)
 - Évaluation à travers des quiz thématiques.
