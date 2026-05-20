@@ -23,4 +23,7 @@ public class QuestionRequest {
     /** Ordre d'affichage dans le quiz (optionnel, trié côté service si absent). */
     @Min(value = 1, message = "L'ordre doit être ≥ 1")
     private Integer ordre;
+
+    /** Niveau scolaire cible pour filtrage. */
+    private String niveauCible;
 }

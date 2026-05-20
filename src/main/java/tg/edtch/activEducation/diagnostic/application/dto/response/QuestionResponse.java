@@ -22,6 +22,7 @@ public class QuestionResponse {
     private UUID trackingId;
     private String texteQuestion;
     private Integer ordre;
+    private String niveauCible;
 
     /** trackingId public du quiz parent. */
     private UUID quizTrackingId;

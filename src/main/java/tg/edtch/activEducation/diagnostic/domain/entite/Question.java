@@ -43,6 +43,13 @@ public class Question extends BaseEntity {
     @Column(name = "ordre")
     private Integer ordre;
 
+    /**
+     * Niveau scolaire cible (ex: "Collégien", "Bachelier", "Lycéen").
+     * Permet d'adapter le quiz au profil de l'utilisateur.
+     */
+    @Column(name = "niveau_cible", length = 100)
+    private String niveauCible;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;

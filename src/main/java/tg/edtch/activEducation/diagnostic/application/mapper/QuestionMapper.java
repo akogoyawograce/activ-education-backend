@@ -21,6 +21,7 @@ public class QuestionMapper {
                 .trackingId(UUID.randomUUID())
                 .texteQuestion(request.getTexteQuestion())
                 .ordre(request.getOrdre())
+                .niveauCible(request.getNiveauCible())
                 .quiz(quiz)
                 .build();
     }
@@ -32,6 +33,7 @@ public class QuestionMapper {
                 .trackingId(question.getTrackingId())
                 .texteQuestion(question.getTexteQuestion())
                 .ordre(question.getOrdre())
+                .niveauCible(question.getNiveauCible())
                 .quizTrackingId(question.getQuiz() != null ? question.getQuiz().getTrackingId() : null)
                 .nombreReponses(question.getReponses() != null ? question.getReponses().size() : 0)
                 .createdAt(question.getCreatedAt())
@@ -43,5 +45,7 @@ public class QuestionMapper {
             question.setTexteQuestion(request.getTexteQuestion());
         if (request.getOrdre() != null)
             question.setOrdre(request.getOrdre());
+        if (request.getNiveauCible() != null)
+            question.setNiveauCible(request.getNiveauCible());
     }
 }

@@ -14,7 +14,7 @@ import java.util.UUID;
 @Component
 public class ReponseMapper {
 
-    public Reponse toEntity(ReponseRequest request, Question question) {
+    public Reponse toEntity(ReponseRequest request, Question question, Question prochaineQuestion) {
         if (request == null)
             return null;
         return Reponse.builder()
@@ -23,6 +23,7 @@ public class ReponseMapper {
                 .categoriePoint(request.getCategoriePoint())
                 .points(request.getPoints() != null ? request.getPoints() : 1)
                 .question(question)
+                .prochaineQuestion(prochaineQuestion)
                 .build();
     }
 
@@ -35,16 +36,20 @@ public class ReponseMapper {
                 .categoriePoint(reponse.getCategoriePoint())
                 .points(reponse.getPoints())
                 .questionTrackingId(reponse.getQuestion() != null ? reponse.getQuestion().getTrackingId() : null)
+                .prochaineQuestionTrackingId(
+                        reponse.getProchaineQuestion() != null ? reponse.getProchaineQuestion().getTrackingId() : null)
                 .createdAt(reponse.getCreatedAt())
                 .build();
     }
 
-    public void updateFromRequest(ReponseRequest request, Reponse reponse) {
+    public void updateFromRequest(ReponseRequest request, Reponse reponse, Question prochaineQuestion) {
         if (request.getTexteReponse() != null)
             reponse.setTexteReponse(request.getTexteReponse());
         if (request.getCategoriePoint() != null)
             reponse.setCategoriePoint(request.getCategoriePoint());
         if (request.getPoints() != null)
             reponse.setPoints(request.getPoints());
+
+        reponse.setProchaineQuestion(prochaineQuestion);
     }
 }

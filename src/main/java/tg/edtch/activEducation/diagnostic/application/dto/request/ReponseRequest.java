@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 /**
  * DTO de requête pour la création ou modification d'une Réponse.
  * La question est identifiée via son trackingId dans l'URL.
@@ -33,4 +35,7 @@ public class ReponseRequest {
      */
     @Min(value = 0, message = "Les points doivent être ≥ 0")
     private Integer points;
+
+    /** trackingId de la prochaine question si choisie (branchement). */
+    private UUID prochaineQuestionTrackingId;
 }

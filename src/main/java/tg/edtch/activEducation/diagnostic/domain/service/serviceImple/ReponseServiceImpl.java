@@ -34,10 +34,19 @@ public class ReponseServiceImpl implements ReponseService {
                 .orElseThrow(() -> new NoSuchElementException(
                         "Question introuvable pour le trackingId : " + questionTrackingId));
 
-        Reponse reponse = reponseMapper.toEntity(request, question);
+        Question prochaineQuestion = null;
+        if (request.getProchaineQuestionTrackingId() != null) {
+            prochaineQuestion = questionRepository.findByTrackingId(request.getProchaineQuestionTrackingId())
+                    .orElseThrow(() -> new NoSuchElementException(
+                            "Prochaine question introuvable pour le trackingId : "
+                                    + request.getProchaineQuestionTrackingId()));
+        }
+
+        Reponse reponse = reponseMapper.toEntity(request, question, prochaineQuestion);
         Reponse saved = reponseRepository.save(reponse);
-        log.info("Réponse ajoutée à la question {} : categorie={} points={} trackingId={}",
-                questionTrackingId, saved.getCategoriePoint(), saved.getPoints(), saved.getTrackingId());
+        log.info("Réponse ajoutée à la question {} (prochaine={}) : categorie={} points={} trackingId={}",
+                questionTrackingId, request.getProchaineQuestionTrackingId(), saved.getCategoriePoint(),
+                saved.getPoints(), saved.getTrackingId());
         return reponseMapper.toResponse(saved);
     }
 
@@ -59,7 +68,16 @@ public class ReponseServiceImpl implements ReponseService {
     @Override
     public ReponseResponse modifierReponse(UUID trackingId, ReponseRequest request) {
         Reponse reponse = findOrThrow(trackingId);
-        reponseMapper.updateFromRequest(request, reponse);
+
+        Question prochaineQuestion = null;
+        if (request.getProchaineQuestionTrackingId() != null) {
+            prochaineQuestion = questionRepository.findByTrackingId(request.getProchaineQuestionTrackingId())
+                    .orElseThrow(() -> new NoSuchElementException(
+                            "Prochaine question introuvable pour le trackingId : "
+                                    + request.getProchaineQuestionTrackingId()));
+        }
+
+        reponseMapper.updateFromRequest(request, reponse, prochaineQuestion);
         Reponse saved = reponseRepository.save(reponse);
         log.info("Réponse modifiée : trackingId={}", trackingId);
         return reponseMapper.toResponse(saved);

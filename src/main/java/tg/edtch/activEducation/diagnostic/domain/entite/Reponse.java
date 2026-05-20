@@ -57,6 +57,14 @@ public class Reponse extends BaseEntity {
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
+    /**
+     * Prochaine question à poser si cette réponse est choisie (logique de
+     * branchement).
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "prochaine_question_id")
+    private Question prochaineQuestion;
+
     @PrePersist
     protected void onPrePersist() {
         if (this.trackingId == null)

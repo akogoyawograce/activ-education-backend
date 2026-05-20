@@ -30,5 +30,8 @@ public class ReponseResponse {
     /** trackingId public de la question parente — jamais son Long id. */
     private UUID questionTrackingId;
 
+    /** trackingId de la prochaine question (si branchement). */
+    private UUID prochaineQuestionTrackingId;
+
     private LocalDateTime createdAt;
 }
