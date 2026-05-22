@@ -71,8 +71,9 @@ L'implémentation de ce module regorge de patterns de conception importants pour
    - Le tracking des "Carences" (Recherches Orphelines) utilise intégralement l'annotation locale `@Async` pour écrire en base PostgreSQL. L'expérience élève reste ultra-fluide et fulgurante (temps de réponse HTTP non affecté).
 
 ### 3. 🧭 Diagnostic d'orientation (`diagnostic`)
-- Évaluation à travers des quiz thématiques.
-- Calcul de recommandation via des matrices de score et confrontation avec les seuils d'admission des différentes filières.
+- **Moteur de Quiz Intelligent** : Évaluation à travers des quiz thématiques avec un **système de branchement (Decision Tree)** où la prochaine question dépend de la réponse précédente.
+- **Filtrage Dynamique** : Les questions sont automatiquement filtrées et adaptées selon le niveau académique et le profil de l'élève.
+- **Calcul de Recommandation** : Analyse des résultats via des matrices de score et confrontation avec les seuils d'admission des différentes filières.
 
 ### 4. 🤝 Accompagnement (`accompagnement`)
 - Mise en relation entre les élèves et les professionnels.
@@ -102,7 +103,7 @@ Nous avons adopté des conventions architecturales strictes pour préserver la p
 - **Package by Feature :** Chaque module encapsule son propre domaine métier. Par exemple : `tg.edtch.activeducation.[module]`.
 - **Classe `BaseEntity`:** Une classe mère globale qui gère le **JPA Auditing** de manière uniforme (`createdAt`, `updatedAt`, `createdBy`, `updatedBy`). Toutes nos entités intègrent la traçabilité sans redondance.
 - **Isolations des Enums :** Les énumérations sont centralisées dans des sous-packages stricts : `domain.enums` au sein de chaque module.
-- **Clés Primaires Sécurisées :** Utilisation standardisée de l'ID système en `Long` couplée un `trackingId` (`UUID`) public pour sécuriser nos requêtes et nos API.
+- **Clés Primaires Sécurisées :** Utilisation standardisée de l'ID système en `Long` couplée à un `trackingId` (`UUID`) public pour sécuriser nos requêtes et nos API. **Toutes les communications externes et les endpoints REST utilisent exclusivement le `trackingId`.**
 
 ---
 
@@ -129,28 +130,44 @@ Puis dans psql ou pgAdmin :
 CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
-### 3. Cloner et Lancer
+### 2. Configuration de l'environnement
+Copiez le fichier d'exemple pour l'IA (clé Gemini) :
 ```bash
-# Cloner le dépôt
-git clone https://github.com/votre-organisation/activ-education.git
-cd activ-education
+cp .env.example .env
+# Éditez le fichier .env et ajoutez votre GEMINI_API_KEY
+```
 
-# Configurer les identifiants DB dans src/main/resources/application.yml
+### 3. Lancement Rapide (Docker Compose) 🐳
+C'est la méthode recommandée pour tout lancer en une seule commande (Application + DB + MinIO) :
+```bash
+docker compose up -d --build
+```
+*L'application sera accessible sur `http://localhost:8080`, MinIO sur `http://localhost:9001`.*
 
-# Compiler les sources (sans lancer les tests, optionnel)
-./mvnw clean compile
+### 4. Lancement pour le Développement (Manuel) 🛠️
+Si vous souhaitez lancer l'application Spring Boot localement tout en utilisant Docker pour les services :
 
-# Lancer l'application
-./mvnw spring-boot:run
+**A. Lancer les services (Base de données & MinIO uniquement) :**
+```bash
+docker compose up -d db minio
+```
+
+**B. Compiler et Lancer l'application :**
+```bash
+# Compiler le projet
+./mvnw clean install
+
+# Lancer l'application avec le profil local
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
 ---
 
 ## 🗺️ État du projet / Roadmap
 
-- [x] **Phase 1 : Data Definition Laye**r — Architecture mise en place, implémentation des entités JPA et configuration des Repositories terminée (Module 1 à 4).
-- [ ] **Phase 2 : Business Logic (En cours)** — Implémentation de la couche Service (Algorithmes de recommandation, workflows métiers).
-- [ ] **Phase 3 : Interface API & Sécurité** — Développement des REST Controllers, interfaçage avec Spring Security et intégration du JWT / 2FA.
+- [x] **Phase 1 : Data Definition Layer** — Architecture mise en place, implémentation des entités JPA et configuration des Repositories terminée (Module 1 à 4).
+- [x] **Phase 2 : Business Logic** — Implémentation de la majorité de la couche Service (Algorithmes de recommandation, moteur de diagnostic intelligent, workflows métiers).
+- [/] **Phase 3 : Interface API & Sécurité** — Développement des REST Controllers (en cours d'achèvement), interfaçage avec Spring Security et intégration du JWT / 2FA.
 - [ ] **Phase 4 : Front-end & Tests Globaux** — Déploiement Cloud et QA.
 
 ---

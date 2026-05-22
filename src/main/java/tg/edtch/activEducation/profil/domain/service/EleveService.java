@@ -1,4 +1,4 @@
-package tg.edtch.activEducation.profil.application;
+package tg.edtch.activEducation.profil.domain.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
