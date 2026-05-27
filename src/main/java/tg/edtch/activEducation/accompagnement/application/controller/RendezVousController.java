@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -58,8 +59,8 @@ public class RendezVousController {
         return ResponseEntity.ok(rendezVousService.getRendezVous(trackingId));
     }
 
-    // GET /api/v1/rendez-vous/eleve/{eleveTrackingId}
     @GetMapping("/eleve/{eleveTrackingId}")
+    @PreAuthorize("@security.isOwner(#eleveTrackingId) or @security.isOwnChild(#eleveTrackingId) or @security.isOwnConseiller(#eleveTrackingId) or hasRole('ADMIN')")
     @Operation(summary = "Rendez-vous d'un élève", description = "Triés par date décroissante.")
     @ApiResponse(responseCode = "200", description = "Liste des RDV de l'élève")
     public ResponseEntity<List<RendezVousResponse>> getRendezVousEleve(
@@ -76,8 +77,8 @@ public class RendezVousController {
         return ResponseEntity.ok(rendezVousService.getRendezVousConseiller(conseillerTrackingId));
     }
 
-    // GET /api/v1/rendez-vous/eleve/{eleveTrackingId}/pagine
     @GetMapping("/eleve/{eleveTrackingId}/pagine")
+    @PreAuthorize("@security.isOwner(#eleveTrackingId) or @security.isOwnChild(#eleveTrackingId) or @security.isOwnConseiller(#eleveTrackingId) or hasRole('ADMIN')")
     @Operation(summary = "Rendez-vous d'un élève (paginés)")
     @ApiResponse(responseCode = "200", description = "Page de RDV")
     public ResponseEntity<Page<RendezVousResponse>> getRendezVousElevePagine(
@@ -100,8 +101,8 @@ public class RendezVousController {
                 conseillerTrackingId, PageRequest.of(page, size, Sort.by("dateHeurePrevue").descending())));
     }
 
-    // GET /api/v1/rendez-vous/eleve/{eleveTrackingId}/statut/{statut}
     @GetMapping("/eleve/{eleveTrackingId}/statut/{statut}")
+    @PreAuthorize("@security.isOwner(#eleveTrackingId) or @security.isOwnChild(#eleveTrackingId) or @security.isOwnConseiller(#eleveTrackingId) or hasRole('ADMIN')")
     @Operation(summary = "RDV d'un élève filtrés par statut", description = "statut : PLANIFIE | TERMINE | ANNULE")
     @ApiResponse(responseCode = "200", description = "RDV filtrés")
     public ResponseEntity<List<RendezVousResponse>> getEleveParStatut(

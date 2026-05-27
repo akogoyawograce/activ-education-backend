@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import tg.edtch.activEducation.profil.domain.enums.TypeApprenant;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -42,6 +43,12 @@ public class EleveResponse {
 
     /** Indique si le compte est actif. */
     private Boolean actif;
+
+    /** Matières préférées (transmises en JSON array depuis le Front). */
+    private List<String> matieresPreferees;
+
+    /** Style d'apprentissage préféré. */
+    private String styleApprentissage;
 
     /** Date de création du compte. */
     private LocalDateTime createdAt;

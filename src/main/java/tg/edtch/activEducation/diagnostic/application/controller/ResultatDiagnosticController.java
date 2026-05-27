@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -54,8 +55,8 @@ public class ResultatDiagnosticController {
         return ResponseEntity.ok(resultatService.getResultat(trackingId));
     }
 
-    // GET /api/v1/eleves/{eleveTrackingId}/resultats-diagnostic
     @GetMapping("/eleves/{eleveTrackingId}/resultats-diagnostic")
+    @PreAuthorize("@security.isOwner(#eleveTrackingId) or @security.isOwnChild(#eleveTrackingId) or @security.isOwnConseiller(#eleveTrackingId) or hasRole('ADMIN')")
     @Operation(summary = "Historique paginé des résultats de diagnostic d'un élève")
     @ApiResponse(responseCode = "200", description = "Page de résultats")
     public ResponseEntity<Page<ResultatDiagnosticResponse>> getResultatsEleve(
@@ -68,9 +69,8 @@ public class ResultatDiagnosticController {
                         PageRequest.of(page, size, Sort.by("datePassage").descending())));
     }
 
-    // GET
-    // /api/v1/eleves/{eleveTrackingId}/resultats-diagnostic/dernier?quizTrackingId=...
     @GetMapping("/eleves/{eleveTrackingId}/resultats-diagnostic/dernier")
+    @PreAuthorize("@security.isOwner(#eleveTrackingId) or @security.isOwnChild(#eleveTrackingId) or @security.isOwnConseiller(#eleveTrackingId) or hasRole('ADMIN')")
     @Operation(summary = "Dernier résultat d'un élève pour un quiz donné", description = "Utile pour afficher le profil RIASEC courant de l'élève. Retourne 204 si aucun résultat trouvé.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Dernier résultat trouvé", content = @Content(schema = @Schema(implementation = ResultatDiagnosticResponse.class))),

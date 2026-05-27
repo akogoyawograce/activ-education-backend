@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -111,6 +112,7 @@ public class ParentController {
     // POST /api/v1/parents/{trackingId}/enfants/{eleveTrackingId}
     // ─────────────────────────────────────────────────────────────────────────
     @PostMapping("/{trackingId}/enfants/{eleveTrackingId}")
+    @PreAuthorize("@security.isOwner(#trackingId) or hasRole('ADMIN')")
     @Operation(summary = "Rattacher un élève à un parent", description = "Crée le lien ManyToMany entre le parent et l'élève via leurs trackingId UUID publics.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lien créé, parent retourné mis à jour", content = @Content(schema = @Schema(implementation = ParentResponse.class))),
@@ -127,6 +129,7 @@ public class ParentController {
     // DELETE /api/v1/parents/{trackingId}/enfants/{eleveTrackingId}
     // ─────────────────────────────────────────────────────────────────────────
     @DeleteMapping("/{trackingId}/enfants/{eleveTrackingId}")
+    @PreAuthorize("@security.isOwner(#trackingId) or hasRole('ADMIN')")
     @Operation(summary = "Retirer le lien entre un parent et un élève", description = "Supprime la relation ManyToMany — n'affecte pas les comptes eux-mêmes.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lien supprimé, parent retourné mis à jour"),

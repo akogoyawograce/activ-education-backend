@@ -19,6 +19,7 @@ public class FicheEtablissementResponse extends FicheResponse {
     private String ville;
 
     private String typeEtablissement;
+    private String niveau;
     private String contacts;
     private String siteWeb;
     private String offreFormation;

@@ -154,6 +154,13 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
 
     @Override
     @Transactional(readOnly = true)
+    public Page<FicheEtablissementResponse> listerParNiveau(String niveau, Pageable pageable) {
+        return etablissementRepository.findByNiveauIgnoreCaseAndEstPublieTrue(niveau, pageable)
+                .map(etablissementMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<String> obtenirToutesLesVilles() {
         return etablissementRepository.findAllVilles();
     }

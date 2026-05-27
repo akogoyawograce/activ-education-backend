@@ -28,6 +28,7 @@ public class FicheEtablissementMapper {
                 .ville(request.getVille())
                 .typeEtablissement(parseTypeEtablissement(
                         request.getTypeEtablissement() != null ? request.getTypeEtablissement() : "UNIVERSITE"))
+                .niveau(request.getNiveau())
                 .contacts(request.getContacts())
                 .siteWeb(request.getSiteWeb())
                 .offreFormation(request.getOffreFormation())
@@ -43,6 +44,7 @@ public class FicheEtablissementMapper {
                 .trackingId(entity.getTrackingId())
                 .titre(entity.getTitre())
                 .resume(entity.getResume())
+                .contenu(entity.getContenu())
                 .imageUrls(entity.getImageUrls() != null ? new java.util.HashSet<>(entity.getImageUrls())
                         : new java.util.HashSet<>())
                 .videoUrls(entity.getVideoUrls() != null ? new java.util.HashSet<>(entity.getVideoUrls())
@@ -56,6 +58,7 @@ public class FicheEtablissementMapper {
                 .ville(entity.getVille())
 
                 .typeEtablissement(entity.getTypeEtablissement().name())
+                .niveau(entity.getNiveau())
                 .contacts(entity.getContacts())
                 .siteWeb(entity.getSiteWeb())
                 .offreFormation(entity.getOffreFormation())
@@ -90,6 +93,8 @@ public class FicheEtablissementMapper {
 
         if (request.getTypeEtablissement() != null)
             entity.setTypeEtablissement(parseTypeEtablissement(request.getTypeEtablissement()));
+        if (request.getNiveau() != null)
+            entity.setNiveau(request.getNiveau());
         if (request.getContacts() != null)
             entity.setContacts(request.getContacts());
         if (request.getSiteWeb() != null)

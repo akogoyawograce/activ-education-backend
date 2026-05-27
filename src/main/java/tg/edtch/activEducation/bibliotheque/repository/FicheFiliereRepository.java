@@ -17,13 +17,13 @@ public interface FicheFiliereRepository extends JpaRepository<FicheFiliere, Long
 
         Optional<FicheFiliere> findByTrackingId(UUID trackingId);
 
-        @EntityGraph(attributePaths = { "metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls" })
+        @EntityGraph(attributePaths = { "metiersPrepares", "imageUrls", "videoUrls", "documentUrls" })
         Page<FicheFiliere> findAllByEstPublieTrue(Pageable pageable);
 
-        @EntityGraph(attributePaths = { "metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls" })
+        @EntityGraph(attributePaths = { "metiersPrepares", "imageUrls", "videoUrls", "documentUrls" })
         Page<FicheFiliere> findByDomaineIgnoreCaseAndEstPublieTrue(String domaine, Pageable pageable);
 
-        @EntityGraph(attributePaths = { "metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls" })
+        @EntityGraph(attributePaths = { "metiersPrepares", "imageUrls", "videoUrls", "documentUrls" })
         @Query("SELECT f FROM FicheFiliere f WHERE f.estPublie = true AND " +
                         "(LOWER(f.titre) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
                         " LOWER(f.resume) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
@@ -37,9 +37,9 @@ public interface FicheFiliereRepository extends JpaRepository<FicheFiliere, Long
         @Query("SELECT DISTINCT f.domaine FROM FicheFiliere f WHERE f.domaine IS NOT NULL AND f.estPublie = true ORDER BY f.domaine")
         List<String> findAllDomaines();
 
-        @EntityGraph(attributePaths = { "metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls" })
+        @EntityGraph(attributePaths = { "metiersPrepares", "imageUrls", "videoUrls", "documentUrls" })
         Page<FicheFiliere> findAllByEstPublieFalse(Pageable pageable);
 
-        @EntityGraph(attributePaths = { "metiersPrepares", "etablissements", "imageUrls", "videoUrls", "documentUrls" })
+        @EntityGraph(attributePaths = { "metiersPrepares", "imageUrls", "videoUrls", "documentUrls" })
         Page<FicheFiliere> findAll(Pageable pageable);
 }

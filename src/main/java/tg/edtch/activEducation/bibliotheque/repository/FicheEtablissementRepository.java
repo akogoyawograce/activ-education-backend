@@ -18,20 +18,23 @@ public interface FicheEtablissementRepository extends JpaRepository<FicheEtablis
 
         Optional<FicheEtablissement> findByTrackingId(UUID trackingId);
 
-        @EntityGraph(attributePaths = { "filieresProposees", "imageUrls", "videoUrls", "documentUrls" })
+        @EntityGraph(attributePaths = { "imageUrls", "videoUrls", "documentUrls" })
         Page<FicheEtablissement> findAllByEstPublieTrue(Pageable pageable);
 
-        @EntityGraph(attributePaths = { "filieresProposees", "imageUrls", "videoUrls", "documentUrls" })
+        @EntityGraph(attributePaths = { "imageUrls", "videoUrls", "documentUrls" })
         Page<FicheEtablissement> findByVilleIgnoreCaseAndEstPublieTrue(String ville, Pageable pageable);
 
-        @EntityGraph(attributePaths = { "filieresProposees", "imageUrls", "videoUrls", "documentUrls" })
+        @EntityGraph(attributePaths = { "imageUrls", "videoUrls", "documentUrls" })
         Page<FicheEtablissement> findByTypeEtablissementAndEstPublieTrue(
                         FicheEtablissement.TypeEtablissement typeEtablissement, Pageable pageable);
+
+        @EntityGraph(attributePaths = { "imageUrls", "videoUrls", "documentUrls" })
+        Page<FicheEtablissement> findByNiveauIgnoreCaseAndEstPublieTrue(String niveau, Pageable pageable);
 
         @Query("SELECT DISTINCT f.ville FROM FicheEtablissement f WHERE f.ville IS NOT NULL AND f.estPublie = true ORDER BY f.ville")
         List<String> findAllVilles();
 
-        @EntityGraph(attributePaths = { "filieresProposees", "imageUrls", "videoUrls", "documentUrls" })
+        @EntityGraph(attributePaths = { "imageUrls", "videoUrls", "documentUrls" })
         @Query("SELECT f FROM FicheEtablissement f WHERE f.estPublie = true AND " +
                         "(LOWER(f.titre) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
                         " LOWER(f.resume) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
@@ -39,9 +42,9 @@ public interface FicheEtablissementRepository extends JpaRepository<FicheEtablis
                         " LOWER(f.ville) LIKE LOWER(CONCAT('%', :terme, '%')))")
         Page<FicheEtablissement> rechercherParTerme(@Param("terme") String terme, Pageable pageable);
 
-        @EntityGraph(attributePaths = { "filieresProposees", "imageUrls", "videoUrls", "documentUrls" })
+        @EntityGraph(attributePaths = { "imageUrls", "videoUrls", "documentUrls" })
         Page<FicheEtablissement> findAll(Pageable pageable);
 
-        @EntityGraph(attributePaths = { "filieresProposees", "imageUrls", "videoUrls", "documentUrls" })
+        @EntityGraph(attributePaths = { "imageUrls", "videoUrls", "documentUrls" })
         Page<FicheEtablissement> findAllByEstPublieFalse(Pageable pageable);
 }

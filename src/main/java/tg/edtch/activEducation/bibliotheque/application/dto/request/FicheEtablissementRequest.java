@@ -40,6 +40,7 @@ public class FicheEtablissementRequest {
     @NotBlank(message = "Le type d'établissement est obligatoire")
     private String typeEtablissement;
 
+    private String niveau;
     private String contacts;
     private String siteWeb;
     private String offreFormation;

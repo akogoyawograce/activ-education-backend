@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -70,6 +71,7 @@ public class NoteSaisiManuelController {
     // GET /api/v1/eleves/{eleveTrackingId}/notes
     // ─────────────────────────────────────────────────────────────────────────
     @GetMapping("/eleves/{eleveTrackingId}/notes")
+    @PreAuthorize("@security.isOwner(#eleveTrackingId) or @security.isOwnChild(#eleveTrackingId) or @security.isOwnConseiller(#eleveTrackingId) or hasRole('ADMIN')")
     @Operation(summary = "Lister toutes les notes d'un élève", description = "Retourne toutes les notes d'un élève triées par année scolaire décroissante.")
     @ApiResponse(responseCode = "200", description = "Liste des notes retournée")
     public ResponseEntity<List<NoteSaisiManuelResponse>> getNotesByEleve(
@@ -81,6 +83,7 @@ public class NoteSaisiManuelController {
     // GET /api/v1/eleves/{eleveTrackingId}/notes/pagine
     // ─────────────────────────────────────────────────────────────────────────
     @GetMapping("/eleves/{eleveTrackingId}/notes/pagine")
+    @PreAuthorize("@security.isOwner(#eleveTrackingId) or @security.isOwnChild(#eleveTrackingId) or @security.isOwnConseiller(#eleveTrackingId) or hasRole('ADMIN')")
     @Operation(summary = "Lister les notes d'un élève (paginé)", description = "Retourne une page paginée des notes d'un élève.")
     @ApiResponse(responseCode = "200", description = "Page de notes retournée")
     public ResponseEntity<Page<NoteSaisiManuelResponse>> getNotesByElevePagine(

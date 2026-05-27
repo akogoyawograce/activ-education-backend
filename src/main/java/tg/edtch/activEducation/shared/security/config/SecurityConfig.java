@@ -78,9 +78,33 @@ public class SecurityConfig {
                                                                 "/swagger-ui/**", "/swagger-ui.html")
                                                 .permitAll()
 
+                                                // ─── Exceptions : accès utilisateur (avant les règles ADMIN) ───
+                                                // Profil : un élève peut modifier son propre profil (vérifié par @PreAuthorize)
+                                                .requestMatchers(HttpMethod.PUT, "/api/v1/eleves/*",
+                                                                "/api/v1/parents/*",
+                                                                "/api/v1/conseillers/*")
+                                                .authenticated()
+                                                // Notes : un élève ou un conseiller peut ajouter/modifier des notes
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/eleves/*/notes")
+                                                .authenticated()
+                                                .requestMatchers(HttpMethod.PUT, "/api/v1/notes/**")
+                                                .authenticated()
+                                                // Favoris : tout utilisateur peut ajouter/supprimer ses favoris
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/bibliotheque/favoris")
+                                                .authenticated()
+                                                .requestMatchers(HttpMethod.DELETE, "/api/v1/bibliotheque/favoris/**")
+                                                .authenticated()
+
+                                                // Parents : auto-lier/délier leurs enfants (vérifié par @PreAuthorize)
+                                                .requestMatchers(HttpMethod.POST,
+                                                                "/api/v1/parents/*/enfants/*")
+                                                .authenticated()
+                                                .requestMatchers(HttpMethod.DELETE,
+                                                                "/api/v1/parents/*/enfants/*")
+                                                .authenticated()
+
                                                 // Règles Administrateurs Globales appliquées ici (les autres rôles
-                                                // seront gérés
-                                                // via @PreAuthorize pour une granularité fine)
+                                                // seront gérés via @PreAuthorize pour une granularité fine)
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/eleves/**",
                                                                 "/api/v1/parents/**",
                                                                 "/api/v1/conseillers/**", "/api/v1/administrateurs/**")

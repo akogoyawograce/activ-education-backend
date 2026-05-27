@@ -44,6 +44,12 @@ public class FicheEtablissement extends Fiche {
     private String ville;
 
     /**
+     * Niveau d'études proposé (ex: Bac, Licence, Master, Doctorat, Primaire, Secondaire).
+     */
+    @Column(name = "niveau", length = 100)
+    private String niveau;
+
+    /**
      * Type institutionnel de l'établissement.
      */
     @Enumerated(EnumType.STRING)

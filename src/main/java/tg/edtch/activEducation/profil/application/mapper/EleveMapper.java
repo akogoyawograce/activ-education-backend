@@ -5,7 +5,11 @@ import tg.edtch.activEducation.profil.application.dto.request.EleveRequest;
 import tg.edtch.activEducation.profil.application.dto.response.EleveResponse;
 import tg.edtch.activEducation.profil.domain.entite.Eleve;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Mapper dédié à l'entité {@link Eleve}.
@@ -33,6 +37,8 @@ public class EleveMapper {
                 .etablissement(request.getEtablissementActuel())
                 .filiere(request.getFiliere())
                 .typeApprenant(request.getTypeApprenant())
+                .matieresPreferees(listToCsv(request.getMatieresPreferees()))
+                .styleApprentissage(request.getStyleApprentissage())
                 .estActif(true)
                 .build();
     }
@@ -54,6 +60,8 @@ public class EleveMapper {
                 .etablissementActuel(eleve.getEtablissement())
                 .filiere(eleve.getFiliere())
                 .typeApprenant(eleve.getTypeApprenant())
+                .matieresPreferees(csvToList(eleve.getMatieresPreferees()))
+                .styleApprentissage(eleve.getStyleApprentissage())
                 .actif(eleve.getEstActif())
                 .createdAt(eleve.getCreatedAt())
                 .build();
@@ -79,5 +87,27 @@ public class EleveMapper {
             eleve.setFiliere(request.getFiliere());
         if (request.getTypeApprenant() != null)
             eleve.setTypeApprenant(request.getTypeApprenant());
+        if (request.getMatieresPreferees() != null)
+            eleve.setMatieresPreferees(listToCsv(request.getMatieresPreferees()));
+        if (request.getStyleApprentissage() != null)
+            eleve.setStyleApprentissage(request.getStyleApprentissage());
+    }
+
+    // ─── Helpers CSV ↔ List ─────────────────────────────────────────────────
+
+    private String listToCsv(List<String> list) {
+        if (list == null || list.isEmpty()) return null;
+        return list.stream()
+                .map(s -> s.replace(",", "\\,"))
+                .collect(Collectors.joining(","));
+    }
+
+    private List<String> csvToList(String csv) {
+        if (csv == null || csv.isBlank()) return Collections.emptyList();
+        return Stream.of(csv.split("(?<!\\\\),"))
+                .map(s -> s.replace("\\,", ","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 }

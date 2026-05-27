@@ -27,6 +27,12 @@ public interface EleveService {
     EleveResponse getEleve(UUID trackingId);
 
     /**
+     * Récupère un élève par son email.
+     * Lève {@link java.util.NoSuchElementException} si introuvable.
+     */
+    EleveResponse getEleveByEmail(String email);
+
+    /**
      * Retourne une page d'élèves actifs.
      *
      * @param pageable paramètre de pagination et tri (Spring Data)

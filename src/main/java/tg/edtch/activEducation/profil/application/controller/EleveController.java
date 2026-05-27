@@ -67,6 +67,20 @@ public class EleveController {
         }
 
         // ─────────────────────────────────────────────────────────────────────────
+        // GET /api/v1/eleves/by-email/{email}
+        // ─────────────────────────────────────────────────────────────────────────
+        @GetMapping("/by-email/{email}")
+        @Operation(summary = "Rechercher un élève par email", description = "Permet à un parent de trouver le trackingId d'un enfant via son email.")
+        @ApiResponses({
+                        @ApiResponse(responseCode = "200", description = "Élève trouvé", content = @Content(schema = @Schema(implementation = EleveResponse.class))),
+                        @ApiResponse(responseCode = "404", description = "Aucun élève avec cet email", content = @Content)
+        })
+        public ResponseEntity<EleveResponse> getEleveByEmail(
+                        @Parameter(description = "Email de l'élève", required = true) @PathVariable String email) {
+                return ResponseEntity.ok(eleveService.getEleveByEmail(email));
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
         // GET /api/v1/eleves
         // ─────────────────────────────────────────────────────────────────────────
         @GetMapping
@@ -85,6 +99,7 @@ public class EleveController {
         // PUT /api/v1/eleves/{trackingId}
         // ─────────────────────────────────────────────────────────────────────────
         @PutMapping("/{trackingId}")
+        @org.springframework.security.access.prepost.PreAuthorize("@security.isOwner(#trackingId) or hasRole('ADMIN')")
         @Operation(summary = "Modifier le profil d'un élève", description = "Met à jour les informations d'un élève. L'email est non modifiable pour des raisons de sécurité.")
         @ApiResponses({
                         @ApiResponse(responseCode = "200", description = "Élève mis à jour", content = @Content(schema = @Schema(implementation = EleveResponse.class))),

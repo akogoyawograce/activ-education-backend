@@ -21,6 +21,7 @@ public class FicheResponse {
     private UUID trackingId;
     private String titre;
     private String resume;
+    private String contenu;
     @Builder.Default
     private Set<String> imageUrls = new HashSet<>();
     @Builder.Default

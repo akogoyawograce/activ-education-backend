@@ -47,6 +47,13 @@ public class EleveServiceImpl implements EleveService {
                     "Un compte avec l'adresse email '" + request.getEmail() + "' existe déjà.");
         }
 
+        if (request.getMotDePasse() == null || request.getMotDePasse().isBlank()) {
+            throw new IllegalArgumentException("Le mot de passe est obligatoire.");
+        }
+        if (request.getMotDePasse().length() < 8) {
+            throw new IllegalArgumentException("Le mot de passe doit contenir au moins 8 caractères.");
+        }
+
         // Construction de l'entité via le Mapper (génère le trackingId automatiquement)
         Eleve eleve = eleveMapper.toEntity(request);
 
@@ -68,6 +75,15 @@ public class EleveServiceImpl implements EleveService {
     @Transactional(readOnly = true)
     public EleveResponse getEleve(UUID trackingId) {
         return eleveMapper.toResponse(findOrThrow(trackingId));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EleveResponse getEleveByEmail(String email) {
+        return eleveMapper.toResponse(
+                eleveRepository.findByEmail(email)
+                        .orElseThrow(() -> new NoSuchElementException(
+                                "Aucun élève trouvé avec l'email : " + email)));
     }
 
     @Override

@@ -10,6 +10,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * DTO de requête pour la création ou la modification d'un Élève.
  * Ne contient aucun identifiant interne (Long id) — uniquement les données
@@ -37,8 +39,6 @@ public class EleveRequest {
     @Size(max = 20, message = "Le téléphone ne peut pas dépasser 20 caractères")
     private String telephone;
 
-    @NotBlank(message = "Le mot de passe est obligatoire")
-    @Size(min = 8, message = "Le mot de passe doit contenir au moins 8 caractères")
     private String motDePasse;
 
     /** Niveau scolaire : ex. "Terminale C", "Licence 2". */
@@ -55,4 +55,8 @@ public class EleveRequest {
 
     @NotNull(message = "Le type d'apprenant est obligatoire")
     private TypeApprenant typeApprenant;
+
+    private List<String> matieresPreferees;
+
+    private String styleApprentissage;
 }

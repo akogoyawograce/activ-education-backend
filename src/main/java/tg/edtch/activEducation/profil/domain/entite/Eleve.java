@@ -62,4 +62,16 @@ public class Eleve extends Utilisateur {
     @ManyToMany(mappedBy = "enfants", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Parent> parents = new ArrayList<>();
+
+    /**
+     * Matières préférées de l'élève (stockées en CSV dans une colonne TEXT).
+     */
+    @Column(name = "matieres_preferees", columnDefinition = "TEXT")
+    private String matieresPreferees;
+
+    /**
+     * Style d'apprentissage préféré (ex: "Visuel", "Auditif", "Kinesthésique").
+     */
+    @Column(name = "style_apprentissage", length = 100)
+    private String styleApprentissage;
 }

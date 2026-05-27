@@ -35,6 +35,7 @@ public class FicheSerieMapper {
                 .trackingId(entity.getTrackingId())
                 .titre(entity.getTitre())
                 .resume(entity.getResume())
+                .contenu(entity.getContenu())
                 .imageUrls(entity.getImageUrls() != null ? new java.util.HashSet<>(entity.getImageUrls())
                         : new java.util.HashSet<>())
                 .videoUrls(entity.getVideoUrls() != null ? new java.util.HashSet<>(entity.getVideoUrls())

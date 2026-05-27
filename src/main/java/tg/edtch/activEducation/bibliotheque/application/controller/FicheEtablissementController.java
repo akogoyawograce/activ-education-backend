@@ -160,6 +160,16 @@ public class FicheEtablissementController {
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }
 
+    @GetMapping("/niveau/{niveau}")
+    @Operation(summary = "Lister les établissements par niveau d'études")
+    public ResponseEntity<Page<FicheEtablissementResponse>> listerParNiveau(
+            @PathVariable String niveau,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(etablissementService.listerParNiveau(niveau,
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
+    }
+
     @GetMapping("/villes")
     @Operation(summary = "Lister toutes les villes contenant des établissements")
     public ResponseEntity<List<String>> getVilles() {

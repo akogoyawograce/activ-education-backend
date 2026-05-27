@@ -37,6 +37,8 @@ public interface FicheEtablissementService {
 
         Page<FicheEtablissementResponse> listerParType(String type, Pageable pageable);
 
+        Page<FicheEtablissementResponse> listerParNiveau(String niveau, Pageable pageable);
+
         List<String> obtenirToutesLesVilles();
 
         Page<FicheEtablissementResponse> rechercher(String motCle, Pageable pageable);
