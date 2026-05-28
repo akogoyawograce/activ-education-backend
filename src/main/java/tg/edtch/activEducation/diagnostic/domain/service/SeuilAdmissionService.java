@@ -20,6 +20,8 @@ public interface SeuilAdmissionService {
      */
     List<SeuilAdmissionResponse> getSeuilsParFiliere(UUID filiereTrackingId);
 
+    List<SeuilAdmissionResponse> listerSeuils();
+
     SeuilAdmissionResponse modifierSeuil(UUID trackingId, SeuilAdmissionRequest request);
 
     void supprimerSeuil(UUID trackingId);

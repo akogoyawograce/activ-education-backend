@@ -59,4 +59,7 @@ public class EleveRequest {
     private List<String> matieresPreferees;
 
     private String styleApprentissage;
+
+    /** Métier souhaité par l'élève. */
+    private String metierSouhaite;
 }

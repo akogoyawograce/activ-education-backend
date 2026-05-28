@@ -129,20 +129,23 @@ public class SecurityConfig {
                                                 .hasRole("ADMIN")
 
                                                 // Diagnostique Settings (Admin)
-                                                .requestMatchers(HttpMethod.POST, "/api/v1/diagnostic/questions/**",
-                                                                "/api/v1/diagnostic/quiz/**",
-                                                                "/api/v1/diagnostic/score-matrices/**",
-                                                                "/api/v1/diagnostic/seuils/**")
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/quiz/**",
+                                                                "/api/v1/questions/**",
+                                                                "/api/v1/reponses/**",
+                                                                "/api/v1/score-matrices/**",
+                                                                "/api/v1/seuils-admission/**")
                                                 .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.PUT, "/api/v1/diagnostic/questions/**",
-                                                                "/api/v1/diagnostic/quiz/**",
-                                                                "/api/v1/diagnostic/score-matrices/**",
-                                                                "/api/v1/diagnostic/seuils/**")
+                                                .requestMatchers(HttpMethod.PUT, "/api/v1/quiz/**",
+                                                                "/api/v1/questions/**",
+                                                                "/api/v1/reponses/**",
+                                                                "/api/v1/score-matrices/**",
+                                                                "/api/v1/seuils-admission/**")
                                                 .hasRole("ADMIN")
-                                                .requestMatchers(HttpMethod.DELETE, "/api/v1/diagnostic/questions/**",
-                                                                "/api/v1/diagnostic/quiz/**",
-                                                                "/api/v1/diagnostic/score-matrices/**",
-                                                                "/api/v1/diagnostic/seuils/**")
+                                                .requestMatchers(HttpMethod.DELETE, "/api/v1/quiz/**",
+                                                                "/api/v1/questions/**",
+                                                                "/api/v1/reponses/**",
+                                                                "/api/v1/score-matrices/**",
+                                                                "/api/v1/seuils-admission/**")
                                                 .hasRole("ADMIN")
 
                                                 // Tout le reste nécessite d'être authentifié
@@ -181,7 +184,7 @@ public class SecurityConfig {
                 CorsConfiguration configuration = new CorsConfiguration();
                 // Spécifiez allowedOrigins si nécessaire, ex: List.of("http://localhost:3000")
                 configuration.setAllowedOriginPatterns(List.of("*"));
-                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
                 configuration.setAllowCredentials(true);
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

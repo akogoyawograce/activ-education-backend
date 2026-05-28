@@ -41,6 +41,14 @@ public class SeuilAdmissionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(seuilAdmissionService.creerSeuil(request));
     }
 
+    // GET /api/v1/seuils-admission
+    @GetMapping("/seuils-admission")
+    @Operation(summary = "Lister tous les seuils d'admission")
+    @ApiResponse(responseCode = "200", description = "Liste de tous les seuils")
+    public ResponseEntity<List<SeuilAdmissionResponse>> listerSeuils() {
+        return ResponseEntity.ok(seuilAdmissionService.listerSeuils());
+    }
+
     // GET /api/v1/seuils-admission/{trackingId}
     @GetMapping("/seuils-admission/{trackingId}")
     @Operation(summary = "Récupérer un seuil par UUID")

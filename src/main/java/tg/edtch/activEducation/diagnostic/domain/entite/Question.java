@@ -50,6 +50,24 @@ public class Question extends BaseEntity {
     @Column(name = "niveau_cible", length = 100)
     private String niveauCible;
 
+    /** Domaine de la question (ex: "Sciences", "Lettres", "Technique", "Arts", "Sport"). */
+    @Column(name = "domaine", length = 100)
+    private String domaine;
+
+    /** Difficulté de la question (1 = facile, 5 = très difficile). */
+    @Column(name = "difficulte")
+    @Builder.Default
+    private Integer difficulte = 1;
+
+    /** Mots-clés CSV pour identification (ex: "mathematiques,algebre,geometrie"). */
+    @Column(name = "tags", columnDefinition = "TEXT")
+    private String tags;
+
+    /** Type de question : RIASEC, CONNAISSANCE, INTERET, PERSONNALITE. */
+    @Column(name = "type_question", length = 50)
+    @Builder.Default
+    private String typeQuestion = "RIASEC";
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "quiz_id", nullable = false)
     private Quiz quiz;
@@ -62,5 +80,9 @@ public class Question extends BaseEntity {
     protected void onPrePersist() {
         if (this.trackingId == null)
             this.trackingId = UUID.randomUUID();
+        if (this.difficulte == null)
+            this.difficulte = 1;
+        if (this.typeQuestion == null)
+            this.typeQuestion = "RIASEC";
     }
 }

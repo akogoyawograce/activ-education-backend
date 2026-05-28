@@ -39,6 +39,7 @@ public class EleveMapper {
                 .typeApprenant(request.getTypeApprenant())
                 .matieresPreferees(listToCsv(request.getMatieresPreferees()))
                 .styleApprentissage(request.getStyleApprentissage())
+                .metierSouhaite(request.getMetierSouhaite())
                 .estActif(true)
                 .build();
     }
@@ -62,6 +63,7 @@ public class EleveMapper {
                 .typeApprenant(eleve.getTypeApprenant())
                 .matieresPreferees(csvToList(eleve.getMatieresPreferees()))
                 .styleApprentissage(eleve.getStyleApprentissage())
+                .metierSouhaite(eleve.getMetierSouhaite())
                 .actif(eleve.getEstActif())
                 .createdAt(eleve.getCreatedAt())
                 .build();
@@ -91,6 +93,8 @@ public class EleveMapper {
             eleve.setMatieresPreferees(listToCsv(request.getMatieresPreferees()));
         if (request.getStyleApprentissage() != null)
             eleve.setStyleApprentissage(request.getStyleApprentissage());
+        if (request.getMetierSouhaite() != null)
+            eleve.setMetierSouhaite(request.getMetierSouhaite());
     }
 
     // ─── Helpers CSV ↔ List ─────────────────────────────────────────────────

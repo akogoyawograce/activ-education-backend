@@ -38,6 +38,7 @@ public class RendezVousController {
     // POST /api/v1/rendez-vous
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Planifier un rendez-vous", description = "Crée un rendez-vous PLANIFIÉ entre un élève et un conseiller (identifiés par leur UUID). La date doit être dans le futur.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Rendez-vous planifié", content = @Content(schema = @Schema(implementation = RendezVousResponse.class))),
@@ -50,6 +51,7 @@ public class RendezVousController {
 
     // GET /api/v1/rendez-vous/{trackingId}
     @GetMapping("/{trackingId}")
+    @PreAuthorize("@security.isRdvParticipant(#trackingId) or hasRole('ADMIN')")
     @Operation(summary = "Récupérer un rendez-vous par UUID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Rendez-vous trouvé", content = @Content(schema = @Schema(implementation = RendezVousResponse.class))),
@@ -70,6 +72,7 @@ public class RendezVousController {
 
     // GET /api/v1/rendez-vous/conseiller/{conseillerTrackingId}
     @GetMapping("/conseiller/{conseillerTrackingId}")
+    @PreAuthorize("@security.isOwner(#conseillerTrackingId) or hasRole('ADMIN')")
     @Operation(summary = "Rendez-vous d'un conseiller", description = "Triés par date décroissante.")
     @ApiResponse(responseCode = "200", description = "Liste des RDV du conseiller")
     public ResponseEntity<List<RendezVousResponse>> getRendezVousConseiller(
@@ -91,6 +94,7 @@ public class RendezVousController {
 
     // GET /api/v1/rendez-vous/conseiller/{conseillerTrackingId}/pagine
     @GetMapping("/conseiller/{conseillerTrackingId}/pagine")
+    @PreAuthorize("@security.isOwner(#conseillerTrackingId) or hasRole('ADMIN')")
     @Operation(summary = "Rendez-vous d'un conseiller (paginés)")
     @ApiResponse(responseCode = "200", description = "Page de RDV")
     public ResponseEntity<Page<RendezVousResponse>> getRendezVousConseillerPagine(
@@ -113,6 +117,7 @@ public class RendezVousController {
 
     // GET /api/v1/rendez-vous/conseiller/{conseillerTrackingId}/statut/{statut}
     @GetMapping("/conseiller/{conseillerTrackingId}/statut/{statut}")
+    @PreAuthorize("@security.isOwner(#conseillerTrackingId) or hasRole('ADMIN')")
     @Operation(summary = "RDV d'un conseiller filtrés par statut")
     @ApiResponse(responseCode = "200", description = "RDV filtrés")
     public ResponseEntity<List<RendezVousResponse>> getConseillerParStatut(
@@ -123,6 +128,7 @@ public class RendezVousController {
 
     // PUT /api/v1/rendez-vous/{trackingId}
     @PutMapping("/{trackingId}")
+    @PreAuthorize("@security.isRdvParticipant(#trackingId) or hasRole('ADMIN')")
     @Operation(summary = "Modifier un rendez-vous", description = "Modification possible uniquement si le statut est PLANIFIÉ.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Rendez-vous mis à jour", content = @Content(schema = @Schema(implementation = RendezVousResponse.class))),
@@ -136,6 +142,7 @@ public class RendezVousController {
 
     // PATCH /api/v1/rendez-vous/{trackingId}/terminer
     @PatchMapping("/{trackingId}/terminer")
+    @PreAuthorize("@security.isRdvParticipant(#trackingId) or hasRole('ADMIN')")
     @Operation(summary = "Marquer un rendez-vous comme terminé", description = "Transition : PLANIFIE → TERMINE")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "RDV marqué comme terminé", content = @Content(schema = @Schema(implementation = RendezVousResponse.class))),
@@ -147,6 +154,7 @@ public class RendezVousController {
 
     // PATCH /api/v1/rendez-vous/{trackingId}/annuler
     @PatchMapping("/{trackingId}/annuler")
+    @PreAuthorize("@security.isRdvParticipant(#trackingId) or hasRole('ADMIN')")
     @Operation(summary = "Annuler un rendez-vous", description = "Transition : PLANIFIE → ANNULE. Un RDV TERMINÉ ne peut pas être annulé.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "RDV annulé", content = @Content(schema = @Schema(implementation = RendezVousResponse.class))),

@@ -26,4 +26,16 @@ public class QuestionRequest {
 
     /** Niveau scolaire cible pour filtrage. */
     private String niveauCible;
+
+    /** Domaine thématique (ex: "Sciences", "Lettres", "Technique"). */
+    private String domaine;
+
+    /** Difficulté (1-5). */
+    private Integer difficulte;
+
+    /** Mots-clés CSV. */
+    private String tags;
+
+    /** Type de question : RIASEC, CONNAISSANCE, INTERET, PERSONNALITE. */
+    private String typeQuestion;
 }

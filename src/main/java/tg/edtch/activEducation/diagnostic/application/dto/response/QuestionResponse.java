@@ -30,5 +30,10 @@ public class QuestionResponse {
     /** Nombre d'options de réponse disponibles. */
     private Integer nombreReponses;
 
+    private String domaine;
+    private Integer difficulte;
+    private String tags;
+    private String typeQuestion;
+
     private LocalDateTime createdAt;
 }

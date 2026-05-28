@@ -74,4 +74,10 @@ public class Eleve extends Utilisateur {
      */
     @Column(name = "style_apprentissage", length = 100)
     private String styleApprentissage;
+
+    /**
+     * Métier souhaité par l'élève (ex: "Médecin", "Ingénieur", "Avocat").
+     */
+    @Column(name = "metier_souhaite", length = 200)
+    private String metierSouhaite;
 }

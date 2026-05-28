@@ -50,6 +50,9 @@ public class EleveResponse {
     /** Style d'apprentissage préféré. */
     private String styleApprentissage;
 
+    /** Métier souhaité par l'élève. */
+    private String metierSouhaite;
+
     /** Date de création du compte. */
     private LocalDateTime createdAt;
 }

@@ -47,6 +47,15 @@ public class SeuilAdmissionServiceImpl implements SeuilAdmissionService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<SeuilAdmissionResponse> listerSeuils() {
+        return seuilAdmissionRepository.findAll()
+                .stream()
+                .map(seuilAdmissionMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<SeuilAdmissionResponse> getSeuilsParFiliere(UUID filiereTrackingId) {
         return seuilAdmissionRepository.findByFiliereTrackingId(filiereTrackingId)
                 .stream()

@@ -4,11 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import tg.edtch.activEducation.accompagnement.domain.entite.RendezVous;
+import tg.edtch.activEducation.accompagnement.repository.RendezVousRepository;
 import tg.edtch.activEducation.profil.domain.entite.Parent;
 import tg.edtch.activEducation.profil.repository.ParentRepository;
 import tg.edtch.activEducation.shared.security.userdetails.CustomUserDetails;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -23,6 +26,7 @@ import java.util.UUID;
 public class CustomSecurityExpressionRoot {
 
     private final ParentRepository parentRepository;
+    private final RendezVousRepository rendezVousRepository;
 
     /**
      * Vérifie si l'utilisateur connecté est le propriétaire de la ressource.
@@ -76,6 +80,22 @@ public class CustomSecurityExpressionRoot {
         }
 
         return false;
+    }
+
+    /**
+     * Vérifie si l'utilisateur connecté est un participant (élève ou conseiller)
+     * du rendez-vous identifié par rdvTrackingId.
+     */
+    public boolean isRdvParticipant(UUID rdvTrackingId) {
+        CustomUserDetails userDetails = getCurrentUser();
+        if (userDetails == null) return false;
+
+        Optional<RendezVous> rdv = rendezVousRepository.findByTrackingId(rdvTrackingId);
+        if (rdv.isEmpty()) return false;
+
+        UUID currentTrackingId = userDetails.getTrackingId();
+        return currentTrackingId.equals(rdv.get().getEleve().getTrackingId())
+            || currentTrackingId.equals(rdv.get().getConseiller().getTrackingId());
     }
 
     private CustomUserDetails getCurrentUser() {
