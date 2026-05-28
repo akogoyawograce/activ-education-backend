@@ -35,8 +35,6 @@ public class ConseillerRequest {
     @Size(max = 20)
     private String telephone;
 
-    @NotBlank(message = "Le mot de passe est obligatoire")
-    @Size(min = 8, message = "Le mot de passe doit contenir au moins 8 caractères")
     private String motDePasse;
 
     /**
