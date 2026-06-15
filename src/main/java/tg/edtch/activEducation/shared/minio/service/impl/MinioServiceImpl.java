@@ -55,8 +55,7 @@ public class MinioServiceImpl implements MinioService {
             ensureBucketExists(videosBucket);
             ensureBucketExists(documentsBucket);
 
-            // Forcer la configuration d'accès public pour le bucket d'images existants
-            setBucketPublicReadAccess(imagesBucket);
+            // Public access removed — downloads go through authenticated /files/download endpoint
 
             log.info("Successfully initialized all buckets (images, videos, documents)");
         } catch (Exception e) {
@@ -77,7 +76,7 @@ public class MinioServiceImpl implements MinioService {
             String bucketName = getBucketName(fileType);
             ensureBucketExists(bucketName);
 
-            String fileName = customFileName != null ? customFileName : generateFileName(file.getOriginalFilename());
+            String fileName = generateFileName(file.getOriginalFilename());
             String contentType = detectContentType(file);
 
             PutObjectArgs putObjectArgs = PutObjectArgs.builder()
@@ -371,47 +370,11 @@ public class MinioServiceImpl implements MinioService {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
                 log.info("Created bucket: {}", bucketName);
 
-                // Configure public access for image buckets
-                if (bucketName.equals(minioProperties.getBucket().getImages())) {
-                    setBucketPublicReadAccess(bucketName);
-                    log.info("Configured public read access for bucket: {}", bucketName);
-                }
+                // Public bucket access removed — all access goes through authenticated download endpoints
             }
         } catch (Exception e) {
             log.error("Error ensuring bucket exists: {}", e.getMessage(), e);
             throw new MinioException("Failed to ensure bucket exists: " + e.getMessage(), e);
-        }
-    }
-
-    private void setBucketPublicReadAccess(String bucketName) {
-        try {
-            // Policy JSON pour permettre l'accès public en lecture
-            String policy = String.format("""
-                    {
-                      "Version": "2012-10-17",
-                      "Statement": [
-                        {
-                          "Effect": "Allow",
-                          "Principal": "*",
-                          "Action": "s3:GetObject",
-                          "Resource": "arn:aws:s3:::%s/*"
-                        }
-                      ]
-                    }
-                    """, bucketName);
-
-            SetBucketPolicyArgs policyArgs = SetBucketPolicyArgs.builder()
-                    .bucket(bucketName)
-                    .config(policy)
-                    .build();
-
-            minioClient.setBucketPolicy(policyArgs);
-            log.info("Successfully set public read policy for bucket: {}", bucketName);
-
-        } catch (Exception e) {
-            log.warn("Could not set public policy for bucket {}: {}. Images may not be directly accessible.",
-                    bucketName, e.getMessage());
-            // Ne pas lancer d'exception car le bucket fonctionne quand même
         }
     }
 

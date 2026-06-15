@@ -12,6 +12,7 @@ import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.service.PdfProcessingService;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -33,20 +34,22 @@ public class MinioController {
     private final PdfProcessingService pdfProcessingService;
 
     @PostMapping(value = "/upload/{fileType}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('CONSEILLER')")
     @Operation(summary = "Upload un fichier", description = "Upload un fichier vers MinIO selon le type spécifié")
     @ApiResponse(responseCode = "200", description = "Fichier uploadé avec succès")
     @ApiResponse(responseCode = "400", description = "Type de fichier invalide ou fichier corrompu")
     public ResponseEntity<FileUploadResponse> uploadFile(
             @Parameter(description = "Type de fichier (IMAGE, VIDEO, DOCUMENT, PDF)", required = true) @PathVariable FileType fileType,
             @Parameter(description = "Fichier à uploader", required = true) @RequestParam("file") MultipartFile file,
-            @Parameter(description = "Nom personnalisé pour le fichier (optionnel)") @RequestParam(value = "customFileName", required = false) String customFileName) {
+            @Parameter(hidden = true) @RequestParam(value = "customFileName", required = false) String customFileName) {
 
         log.info("Uploading file: {} of type: {}", file.getOriginalFilename(), fileType);
-        FileUploadResponse response = minioService.uploadFile(file, fileType, customFileName);
+        FileUploadResponse response = minioService.uploadFile(file, fileType);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping(value = "/upload/multiple/{fileType}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Upload plusieurs fichiers", description = "Upload plusieurs fichiers vers MinIO selon le type spécifié")
     @ApiResponse(responseCode = "200", description = "Fichiers uploadés avec succès")
     @ApiResponse(responseCode = "400", description = "Type de fichier invalide ou fichiers corrompus")
@@ -96,6 +99,7 @@ public class MinioController {
     }
 
     @DeleteMapping("/{fileType}/{fileName}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Supprimer un fichier", description = "Supprime un fichier de MinIO")
     @ApiResponse(responseCode = "200", description = "Fichier supprimé avec succès")
     @ApiResponse(responseCode = "404", description = "Fichier non trouvé")
@@ -114,6 +118,7 @@ public class MinioController {
     }
 
     @GetMapping("/metadata/{fileType}/{fileName}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Obtenir les métadonnées d'un fichier", description = "Récupère les métadonnées d'un fichier")
     @ApiResponse(responseCode = "200", description = "Métadonnées récupérées avec succès")
     @ApiResponse(responseCode = "404", description = "Fichier non trouvé")
@@ -127,6 +132,7 @@ public class MinioController {
     }
 
     @GetMapping("/list/{fileType}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Lister les fichiers", description = "Liste tous les fichiers d'un type donné")
     @ApiResponse(responseCode = "200", description = "Liste des fichiers récupérée avec succès")
     public ResponseEntity<List<FileMetadata>> listFiles(
@@ -150,6 +156,7 @@ public class MinioController {
     }
 
     @GetMapping("/url/{fileType}/{fileName}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Obtenir l'URL d'un fichier", description = "Récupère l'URL publique d'un fichier")
     @ApiResponse(responseCode = "200", description = "URL récupérée avec succès")
     @ApiResponse(responseCode = "404", description = "Fichier non trouvé")
@@ -163,6 +170,7 @@ public class MinioController {
     }
 
     @GetMapping("/presigned-url/{fileType}/{fileName}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Générer une URL pré-signée", description = "Génère une URL pré-signée temporaire pour accéder au fichier")
     @ApiResponse(responseCode = "200", description = "URL pré-signée générée avec succès")
     @ApiResponse(responseCode = "404", description = "Fichier non trouvé")
@@ -178,6 +186,7 @@ public class MinioController {
     }
 
     @GetMapping("/pdf/thumbnail/{fileName}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Générer un thumbnail PDF", description = "Génère une image thumbnail de la première page d'un PDF")
     @ApiResponse(responseCode = "200", description = "Thumbnail généré avec succès")
     @ApiResponse(responseCode = "404", description = "Fichier PDF non trouvé")
@@ -206,6 +215,7 @@ public class MinioController {
     }
 
     @GetMapping("/pdf/text/{fileName}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Extraire le texte d'un PDF", description = "Extrait tout le texte contenu dans un fichier PDF")
     @ApiResponse(responseCode = "200", description = "Texte extrait avec succès")
     @ApiResponse(responseCode = "404", description = "Fichier PDF non trouvé")
