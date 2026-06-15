@@ -36,8 +36,12 @@ public class EntreeFAQServiceImpl implements EntreeFAQService {
             throw new IllegalArgumentException("Une entrée FAQ avec cette question existe déjà.");
         }
         EntreeFAQ faq = faqMapper.toEntity(request);
-        // Génération de l'embedding via Gemini
-        faq.setEmbedding(geminiEmbeddingService.generateEmbedding(request.getQuestion() + " " + request.getReponse()));
+        // Génération de l'embedding via Gemini (peut échouer si clé invalide)
+        try {
+            faq.setEmbedding(geminiEmbeddingService.generateEmbedding(request.getQuestion() + " " + request.getReponse()));
+        } catch (Exception e) {
+            log.warn("Impossible de générer l'embedding pour la FAQ : {}", e.getMessage());
+        }
         EntreeFAQ saved = faqRepository.save(faq);
         log.info("Nouvelle entrée FAQ créée : trackingId={}", saved.getTrackingId());
         return faqMapper.toResponse(saved);
@@ -71,7 +75,11 @@ public class EntreeFAQServiceImpl implements EntreeFAQService {
         EntreeFAQ faq = findOrThrow(trackingId);
         faqMapper.updateFromRequest(request, faq);
         // Regénération de l'embedding suite à la modification
-        faq.setEmbedding(geminiEmbeddingService.generateEmbedding(request.getQuestion() + " " + request.getReponse()));
+        try {
+            faq.setEmbedding(geminiEmbeddingService.generateEmbedding(request.getQuestion() + " " + request.getReponse()));
+        } catch (Exception e) {
+            log.warn("Impossible de régénérer l'embedding pour la FAQ : {}", e.getMessage());
+        }
         EntreeFAQ saved = faqRepository.save(faq);
         log.info("Entrée FAQ modifiée : trackingId={}", trackingId);
         return faqMapper.toResponse(saved);
@@ -95,8 +103,14 @@ public class EntreeFAQServiceImpl implements EntreeFAQService {
     public tg.edtch.activEducation.bibliotheque.application.dto.response.RechercheIAResponse rechercherParIA(
             String questionUser, int limite) {
         // 1. Recherche les entrées par similarité
-        float[] queryEmbedding = geminiEmbeddingService.generateEmbedding(questionUser);
-        List<EntreeFAQ> faqs = faqRepository.rechercherParSimilarite(queryEmbedding, limite);
+        List<EntreeFAQ> faqs;
+        try {
+            float[] queryEmbedding = geminiEmbeddingService.generateEmbedding(questionUser);
+            faqs = faqRepository.rechercherParSimilarite(queryEmbedding, limite);
+        } catch (Exception e) {
+            log.warn("Impossible de faire la recherche sémantique : {}", e.getMessage());
+            faqs = List.of();
+        }
 
         List<EntreeFAQResponse> sources = faqs.stream()
                 .map(faqMapper::toResponse)

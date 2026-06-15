@@ -53,6 +53,9 @@ public class EleveResponse {
     /** Métier souhaité par l'élève. */
     private String metierSouhaite;
 
+    /** URL de la photo de profil. */
+    private String photoUrl;
+
     /** Date de création du compte. */
     private LocalDateTime createdAt;
 }

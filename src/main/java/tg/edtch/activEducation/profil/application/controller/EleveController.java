@@ -19,6 +19,8 @@ import tg.edtch.activEducation.profil.domain.service.EleveService;
 import tg.edtch.activEducation.profil.application.dto.request.EleveRequest;
 import tg.edtch.activEducation.profil.application.dto.response.EleveResponse;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.UUID;
 
 /**
@@ -110,6 +112,21 @@ public class EleveController {
                         @Parameter(description = "Identifiant public (UUID) de l'élève", required = true) @PathVariable UUID trackingId,
                         @Valid @RequestBody EleveRequest request) {
                 return ResponseEntity.ok(eleveService.modifierEleve(trackingId, request));
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // DELETE /api/v1/eleves/{trackingId}
+        // ─────────────────────────────────────────────────────────────────────────
+        // ─────────────────────────────────────────────────────────────────────────
+        // PATCH /api/v1/eleves/{trackingId}/photo
+        // ─────────────────────────────────────────────────────────────────────────
+        @PatchMapping("/{trackingId}/photo")
+        @org.springframework.security.access.prepost.PreAuthorize("@security.isOwner(#trackingId) or hasRole('ADMIN')")
+        @Operation(summary = "Uploader une photo de profil", description = "Upload une image et l'associe comme photo de profil de l'élève.")
+        public ResponseEntity<EleveResponse> uploadPhoto(
+                        @Parameter(description = "Identifiant public (UUID) de l'élève", required = true) @PathVariable UUID trackingId,
+                        @Parameter(description = "Fichier image", required = true) @RequestParam("file") MultipartFile file) {
+                return ResponseEntity.ok(eleveService.uploadPhoto(trackingId, file));
         }
 
         // ─────────────────────────────────────────────────────────────────────────

@@ -64,6 +64,7 @@ public class EleveMapper {
                 .matieresPreferees(csvToList(eleve.getMatieresPreferees()))
                 .styleApprentissage(eleve.getStyleApprentissage())
                 .metierSouhaite(eleve.getMetierSouhaite())
+                .photoUrl(eleve.getPhotoUrl())
                 .actif(eleve.getEstActif())
                 .createdAt(eleve.getCreatedAt())
                 .build();

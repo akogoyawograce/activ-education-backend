@@ -70,6 +70,9 @@ public class SecurityConfig {
                                                                 "/api/v1/bibliotheque/faq/**")
                                                 .permitAll()
 
+                                                // Error dispatch (évite 401 sur les erreurs de validation)
+                                                .requestMatchers("/error").permitAll()
+
                                                 // Santé Actuator
                                                 .requestMatchers("/actuator/health").permitAll()
 

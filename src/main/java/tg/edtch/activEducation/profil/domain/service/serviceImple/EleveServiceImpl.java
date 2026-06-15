@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import tg.edtch.activEducation.profil.domain.service.EleveService;
 import tg.edtch.activEducation.profil.application.dto.request.EleveRequest;
 import tg.edtch.activEducation.profil.application.dto.response.EleveResponse;
@@ -18,6 +19,9 @@ import tg.edtch.activEducation.profil.domain.enums.RoleNom;
 import tg.edtch.activEducation.profil.repository.EleveRepository;
 import tg.edtch.activEducation.profil.repository.RoleRepository;
 import tg.edtch.activEducation.profil.repository.UtilisateurRepository;
+import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
+import tg.edtch.activEducation.shared.minio.service.MinioService;
+import tg.edtch.activEducation.shared.minio.enums.FileType;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -38,6 +42,7 @@ public class EleveServiceImpl implements EleveService {
     private final RoleRepository roleRepository;
     private final EleveMapper eleveMapper;
     private final PasswordEncoder passwordEncoder;
+    private final MinioService minioService;
 
     @Override
     public EleveResponse inscrireEleve(EleveRequest request) {
@@ -107,6 +112,16 @@ public class EleveServiceImpl implements EleveService {
 
         Eleve saved = eleveRepository.save(eleve);
         log.info("Élève modifié : trackingId={}", trackingId);
+        return eleveMapper.toResponse(saved);
+    }
+
+    @Override
+    public EleveResponse uploadPhoto(UUID trackingId, MultipartFile file) {
+        Eleve eleve = findOrThrow(trackingId);
+        FileUploadResponse upload = minioService.uploadFile(file, FileType.IMAGE);
+        eleve.setPhotoUrl(upload.getFileUrl());
+        Eleve saved = eleveRepository.save(eleve);
+        log.info("Photo de profil uploadée : trackingId={} url={}", trackingId, upload.getFileUrl());
         return eleveMapper.toResponse(saved);
     }
 

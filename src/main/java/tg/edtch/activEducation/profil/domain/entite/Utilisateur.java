@@ -58,6 +58,9 @@ public abstract class Utilisateur extends BaseEntity {
     @Column(name = "telephone", length = 20)
     private String telephone;
 
+    @Column(name = "photo_url", length = 500)
+    private String photoUrl;
+
     @Column(name = "date_inscription", updatable = false)
     private LocalDateTime dateInscription;
 

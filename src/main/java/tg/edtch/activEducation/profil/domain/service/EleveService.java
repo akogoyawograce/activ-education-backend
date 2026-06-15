@@ -2,6 +2,7 @@ package tg.edtch.activEducation.profil.domain.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 import tg.edtch.activEducation.profil.application.dto.request.EleveRequest;
 import tg.edtch.activEducation.profil.application.dto.response.EleveResponse;
 
@@ -44,6 +45,12 @@ public interface EleveService {
      * L'email est non modifiable (contrainte de sécurité).
      */
     EleveResponse modifierEleve(UUID trackingId, EleveRequest request);
+
+    /**
+     * Upload une photo de profil pour un élève.
+     * L'image est stockée dans MinIO et l'URL est enregistrée sur le profil.
+     */
+    EleveResponse uploadPhoto(UUID trackingId, MultipartFile file);
 
     /**
      * Désactive logiquement le compte d'un élève (soft-delete : estActif = false).
