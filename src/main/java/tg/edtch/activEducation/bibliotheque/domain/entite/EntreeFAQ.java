@@ -3,9 +3,7 @@ package tg.edtch.activEducation.bibliotheque.domain.entite;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.Array;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+
 import tg.edtch.activEducation.shared.util.BaseEntity;
 
 import java.util.UUID;
@@ -52,9 +50,7 @@ public class EntreeFAQ extends BaseEntity {
     @Builder.Default
     private Long nbVues = 0L;
 
-    @Column(name = "embedding", columnDefinition = "vector(768)")
-    @JdbcTypeCode(SqlTypes.VECTOR)
-    @Array(length = 768)
+    @Column(name = "embedding")
     private float[] embedding;
 
     @PrePersist

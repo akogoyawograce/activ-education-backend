@@ -106,6 +106,16 @@ public class SecurityConfig {
                                                                 "/api/v1/parents/*/enfants/*")
                                                 .authenticated()
 
+                                                // Documents : un élève peut gérer ses propres documents (vérifié par @PreAuthorize)
+                                                .requestMatchers(HttpMethod.GET, "/api/v1/eleves/*/documents",
+                                                                "/api/v1/eleves/*/documents/**")
+                                                .authenticated()
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/eleves/*/documents",
+                                                                "/api/v1/eleves/*/documents/**")
+                                                .authenticated()
+                                                .requestMatchers(HttpMethod.DELETE, "/api/v1/eleves/*/documents/**")
+                                                .authenticated()
+
                                                 // Règles Administrateurs Globales appliquées ici (les autres rôles
                                                 // seront gérés via @PreAuthorize pour une granularité fine)
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/eleves/**",
