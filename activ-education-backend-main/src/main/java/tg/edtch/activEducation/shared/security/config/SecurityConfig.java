@@ -83,6 +83,9 @@ public class SecurityConfig {
                                                 // Santé Actuator
                                                 .requestMatchers("/actuator/health").permitAll()
 
+                                                // Téléchargement fichiers (photos profil, etc.)
+                                                .requestMatchers("/files/download/**").permitAll()
+
                                                 // Swagger & OpenApi (dev)
                                                 .requestMatchers("/api-docs/**", "/v3/api-docs/**",
                                                                 "/swagger-ui/**", "/swagger-ui.html")

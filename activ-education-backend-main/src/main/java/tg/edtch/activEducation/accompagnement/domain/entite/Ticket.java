@@ -5,6 +5,7 @@ import lombok.*;
 import tg.edtch.activEducation.shared.util.BaseEntity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "tickets")
@@ -18,6 +19,9 @@ public class Ticket extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(updatable = false, nullable = false, unique = true, length = 36)
+    private UUID trackingId = UUID.randomUUID();
 
     @Column(name = "sujet", nullable = false, length = 255)
     private String sujet;
@@ -47,4 +51,17 @@ public class Ticket extends BaseEntity {
 
     @Column(name = "categorie", length = 50)
     private String categorie;
+
+    @PrePersist
+    protected void onPrePersist() {
+        if (this.trackingId == null) {
+            this.trackingId = UUID.randomUUID();
+        }
+        if (this.dateOuverture == null) {
+            this.dateOuverture = LocalDateTime.now();
+        }
+        if (this.dateDerniereActivite == null) {
+            this.dateDerniereActivite = LocalDateTime.now();
+        }
+    }
 }

@@ -42,6 +42,9 @@ public class Quiz extends BaseEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "domaine", length = 100)
+    private String domaine;
+
     @Column(name = "est_actif", nullable = false)
     @Builder.Default
     private Boolean estActif = true;
