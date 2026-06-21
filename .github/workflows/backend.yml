@@ -1,0 +1,54 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'activ-education-backend-main/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'activ-education-backend-main/**'
+
+defaults:
+  run:
+    working-directory: activ-education-backend-main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: activ_education
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: abalakata
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready -U postgres -d activ_education
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+          cache: maven
+
+      - name: Build and test
+        run: ./mvnw clean install
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: activ_education
+          DB_USER: postgres
+          DB_PASSWORD: abalakata
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-test-secret-key-that-is-at-least-32-bytes-long-for-hs256' }}
