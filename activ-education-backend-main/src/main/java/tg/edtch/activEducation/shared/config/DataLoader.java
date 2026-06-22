@@ -11,6 +11,8 @@ import tg.edtch.activEducation.profil.domain.entite.Role;
 import tg.edtch.activEducation.profil.domain.enums.RoleNom;
 import tg.edtch.activEducation.profil.repository.AdministrateurRepository;
 import tg.edtch.activEducation.profil.repository.RoleRepository;
+import tg.edtch.activEducation.shared.util.ParametreApplication;
+import tg.edtch.activEducation.shared.util.ParametreApplicationRepository;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -24,6 +26,7 @@ public class DataLoader implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final AdministrateurRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ParametreApplicationRepository parametreRepository;
 
     @Override
     @Transactional
@@ -34,6 +37,30 @@ public class DataLoader implements CommandLineRunner {
         initialiserRole(RoleNom.ROLE_ADMIN);
 
         creerAdminParDefaut();
+        initialiserParametres();
+    }
+
+    private void initialiserParametres() {
+        creerParametreSiAbsent("quiz.poids_academique", "60",
+                "Poids des notes académiques dans le calcul (0-100)", "RECOMMENDATION");
+        creerParametreSiAbsent("quiz.poids_quiz", "40",
+                "Poids du quiz d'orientation dans le calcul (0-100)", "RECOMMENDATION");
+        creerParametreSiAbsent("quiz.seuil_recommandation", "0.6",
+                "Seuil minimum de similarité pour recommander une filière", "RECOMMENDATION");
+        creerParametreSiAbsent("quiz.nombre_recommandations", "5",
+                "Nombre maximum de recommandations à afficher", "RECOMMENDATION");
+    }
+
+    private void creerParametreSiAbsent(String cle, String valeur, String description, String categorie) {
+        if (parametreRepository.findByCle(cle).isEmpty()) {
+            parametreRepository.save(ParametreApplication.builder()
+                    .cle(cle)
+                    .valeur(valeur)
+                    .description(description)
+                    .categorie(categorie)
+                    .build());
+            log.info("Paramètre initialisé : {} = {}", cle, valeur);
+        }
     }
 
     private void initialiserRole(RoleNom nomRole) {
