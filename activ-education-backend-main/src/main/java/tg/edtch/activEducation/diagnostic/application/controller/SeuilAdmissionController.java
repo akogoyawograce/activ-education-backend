@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import tg.edtch.activEducation.diagnostic.application.dto.request.SeuilAdmissionRequest;
 import tg.edtch.activEducation.diagnostic.application.dto.response.SeuilAdmissionResponse;
 import tg.edtch.activEducation.diagnostic.domain.service.SeuilAdmissionService;
+import tg.edtch.activEducation.profil.domain.service.OcrService;
 
 import java.util.List;
 import java.util.UUID;
@@ -89,5 +90,12 @@ public class SeuilAdmissionController {
     public ResponseEntity<Void> supprimerSeuil(@PathVariable UUID trackingId) {
         seuilAdmissionService.supprimerSeuil(trackingId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/notes/match-seuils")
+    @Operation(summary = "Vérifier quelles filières correspondent aux notes fournies")
+    public ResponseEntity<List<SeuilAdmissionResponse>> matchSeuils(
+            @RequestBody List<OcrService.NoteExtraite> notes) {
+        return ResponseEntity.ok(seuilAdmissionService.getMatchingFilieres(notes));
     }
 }

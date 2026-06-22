@@ -3,6 +3,8 @@ package tg.edtch.activEducation.diagnostic.domain.service;
 import tg.edtch.activEducation.diagnostic.application.dto.request.SeuilAdmissionRequest;
 import tg.edtch.activEducation.diagnostic.application.dto.response.SeuilAdmissionResponse;
 
+import tg.edtch.activEducation.profil.domain.service.OcrService;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -25,4 +27,6 @@ public interface SeuilAdmissionService {
     SeuilAdmissionResponse modifierSeuil(UUID trackingId, SeuilAdmissionRequest request);
 
     void supprimerSeuil(UUID trackingId);
+
+    List<SeuilAdmissionResponse> getMatchingFilieres(List<OcrService.NoteExtraite> notes);
 }
