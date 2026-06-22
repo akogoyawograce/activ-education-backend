@@ -55,4 +55,19 @@ public class StatsController {
     public ResponseEntity<Map<String, Long>> getQuizParDomaine() {
         return ResponseEntity.ok(statsService.getQuizParDomaine());
     }
+
+    @GetMapping("/type-apprenant")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Répartition des élèves par type d'apprenant (collégien, lycéen, etc.)")
+    public ResponseEntity<Map<String, Long>> getTypeApprenant() {
+        return ResponseEntity.ok(statsService.getTypeApprenantDistribution());
+    }
+
+    @GetMapping("/fiches")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Dernières fiches modifiées")
+    public ResponseEntity<List<Map<String, Object>>> getFichesRecentes(
+            @RequestParam(defaultValue = "10") int limite) {
+        return ResponseEntity.ok(statsService.getFichesModifieesRecentes(limite));
+    }
 }

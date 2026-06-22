@@ -2,6 +2,7 @@ package tg.edtch.activEducation.shared.security.auth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import tg.edtch.activEducation.shared.util.AuditLogService;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -44,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
     private final StringRedisTemplate redisTemplate;
     private final PasswordEncoder passwordEncoder;
     private final TotpService totpService;
+    private final AuditLogService auditLogService;
 
     private static final String OTP_PREFIX = "otp:";
     private static final String TOTP_CHALLENGE_PREFIX = "totp_challenge:";
@@ -69,12 +71,17 @@ public class AuthServiceImpl implements AuthService {
             redisTemplate.opsForValue().set(challengeKey, String.valueOf(userDetails.getId()),
                     300, TimeUnit.SECONDS);
 
+            auditLogService.log(request.getEmail(), "", "CONNEXION", "/api/v1/auth/login",
+                    "2FA required", deviceInfo, null);
+
             return TokenResponse.builder()
                     .requires2fa(true)
                     .challengeToken(challengeToken)
                     .build();
         }
 
+        auditLogService.log(request.getEmail(), "", "CONNEXION", "/api/v1/auth/login",
+                "", deviceInfo, null);
         return generateTokens(userDetails, deviceInfo);
     }
 

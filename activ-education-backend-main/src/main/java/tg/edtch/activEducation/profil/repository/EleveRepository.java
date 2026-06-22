@@ -32,4 +32,7 @@ public interface EleveRepository extends JpaRepository<Eleve, Long> {
 
     @Query("SELECT CAST(e.dateInscription AS date), COUNT(e) FROM Eleve e WHERE e.dateInscription >= :depuis GROUP BY CAST(e.dateInscription AS date) ORDER BY CAST(e.dateInscription AS date)")
     List<Object[]> compterInscriptionsParJour(@Param("depuis") LocalDateTime depuis);
+
+    @Query("SELECT e.typeApprenant, COUNT(e) FROM Eleve e GROUP BY e.typeApprenant")
+    List<Object[]> countByTypeApprenant();
 }

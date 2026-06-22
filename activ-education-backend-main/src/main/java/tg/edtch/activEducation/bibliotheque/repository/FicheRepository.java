@@ -16,6 +16,9 @@ import java.util.UUID;
 @Repository
 public interface FicheRepository extends JpaRepository<Fiche, Long> {
 
+        @Query("SELECT f FROM Fiche f ORDER BY f.updatedAt DESC")
+        List<Fiche> findTopByOrderByUpdatedAtDesc(Pageable pageable);
+
         /** trackingId reste UUID (identifiant public, pas la PK). */
         Optional<Fiche> findByTrackingId(UUID trackingId);
 
