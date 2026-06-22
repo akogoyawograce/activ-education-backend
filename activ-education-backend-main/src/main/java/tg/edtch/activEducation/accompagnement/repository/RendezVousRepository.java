@@ -10,6 +10,7 @@ import tg.edtch.activEducation.accompagnement.domain.entite.RendezVous;
 import tg.edtch.activEducation.accompagnement.domain.entite.RendezVous.StatutRendezVous;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,4 +48,9 @@ public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
 
     @Query("SELECT FUNCTION('YEAR', r.dateHeurePrevue), FUNCTION('MONTH', r.dateHeurePrevue), COUNT(r) FROM RendezVous r WHERE r.dateHeurePrevue >= :depuis GROUP BY FUNCTION('YEAR', r.dateHeurePrevue), FUNCTION('MONTH', r.dateHeurePrevue) ORDER BY FUNCTION('YEAR', r.dateHeurePrevue), FUNCTION('MONTH', r.dateHeurePrevue)")
     List<Object[]> compterRDVParsMois(@Param("depuis") LocalDate depuis);
+
+    List<RendezVous> findByStatutAndDateHeurePrevueBetween(
+            RendezVous.StatutRendezVous statut,
+            LocalDateTime start,
+            LocalDateTime end);
 }
