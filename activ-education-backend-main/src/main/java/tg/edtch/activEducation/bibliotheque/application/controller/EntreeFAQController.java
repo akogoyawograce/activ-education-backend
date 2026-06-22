@@ -105,4 +105,12 @@ public class EntreeFAQController {
         faqService.supprimerEntree(trackingId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{trackingId}/voter")
+    @Operation(summary = "Voter 'utile' ou 'pas utile' sur une entrée FAQ")
+    public ResponseEntity<EntreeFAQResponse> voter(
+            @PathVariable UUID trackingId,
+            @RequestParam boolean utile) {
+        return ResponseEntity.ok(faqService.voter(trackingId, utile));
+    }
 }

@@ -20,6 +20,8 @@ public class EntreeFAQResponse {
     private String categorie;
     private Boolean estPublie;
     private Long nbVues;
+    private Long nbUtile;
+    private Long nbPasUtile;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

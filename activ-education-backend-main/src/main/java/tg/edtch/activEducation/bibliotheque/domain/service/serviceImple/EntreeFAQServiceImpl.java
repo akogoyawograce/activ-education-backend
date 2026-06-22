@@ -93,6 +93,17 @@ public class EntreeFAQServiceImpl implements EntreeFAQService {
     }
 
     @Override
+    public EntreeFAQResponse voter(UUID trackingId, boolean utile) {
+        EntreeFAQ faq = findOrThrow(trackingId);
+        if (utile) {
+            faq.setNbUtile(faq.getNbUtile() + 1);
+        } else {
+            faq.setNbPasUtile(faq.getNbPasUtile() + 1);
+        }
+        return faqMapper.toResponse(faqRepository.save(faq));
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<String> listerCategories() {
         return faqRepository.findAllCategories();

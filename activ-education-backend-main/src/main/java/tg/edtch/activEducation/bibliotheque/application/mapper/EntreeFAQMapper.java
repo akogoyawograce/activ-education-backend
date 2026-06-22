@@ -29,6 +29,8 @@ public class EntreeFAQMapper {
                 .categorie(entity.getCategorie())
                 .estPublie(entity.getEstPublie())
                 .nbVues(entity.getNbVues())
+                .nbUtile(entity.getNbUtile())
+                .nbPasUtile(entity.getNbPasUtile())
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();

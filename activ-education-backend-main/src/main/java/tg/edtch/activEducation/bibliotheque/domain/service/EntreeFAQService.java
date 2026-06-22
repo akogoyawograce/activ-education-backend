@@ -23,6 +23,8 @@ public interface EntreeFAQService {
 
     List<String> listerCategories();
 
+    EntreeFAQResponse voter(UUID trackingId, boolean utile);
+
     tg.edtch.activEducation.bibliotheque.application.dto.response.RechercheIAResponse rechercherParIA(
             String questionUser, int limite);
 }

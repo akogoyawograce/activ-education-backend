@@ -50,6 +50,14 @@ public class EntreeFAQ extends BaseEntity {
     @Builder.Default
     private Long nbVues = 0L;
 
+    @Column(name = "nb_utile")
+    @Builder.Default
+    private Long nbUtile = 0L;
+
+    @Column(name = "nb_pas_utile")
+    @Builder.Default
+    private Long nbPasUtile = 0L;
+
     @Column(name = "embedding")
     private float[] embedding;
 
