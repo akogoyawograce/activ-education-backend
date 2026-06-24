@@ -12,7 +12,7 @@ import tg.edtch.activEducation.bibliotheque.domain.entite.FicheMetier;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheSerie;
 import tg.edtch.activEducation.bibliotheque.domain.service.RechercheGlobaleService;
 import tg.edtch.activEducation.bibliotheque.repository.FicheRepository;
-import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
+import tg.edtch.activEducation.shared.ai.service.AIEmbeddingService;
 
 import java.util.Comparator;
 import java.util.List;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 /**
  * Implémentation du service de recherche sémantique globale.
  * Pipeline RAG :
- * 1. Phrase utilisateur → vecteur via Gemini Embedding.
+ * 1. Phrase utilisateur → vecteur via OpenAI Embedding.
  * 2. Recherche par similarité cosinus via pgvector sur toutes les fiches.
  * 3. Mapping polymorphe via instanceof pour identifier chaque type de fiche.
  */
@@ -32,14 +32,14 @@ import java.util.stream.Collectors;
 public class RechercheGlobaleServiceImpl implements RechercheGlobaleService {
 
     private final FicheRepository ficheRepository;
-    private final GeminiEmbeddingService geminiEmbeddingService;
+    private final AIEmbeddingService aiEmbeddingService;
 
     @Override
     public List<RechercheGlobaleResponse> rechercherFichesParPhrase(String phrase, int limite) {
         log.debug("Recherche globale sémantique pour phrase='{}', limite={}", phrase, limite);
 
         // 1. Convertir la phrase de l'utilisateur en vecteur
-        float[] vecteurRequete = geminiEmbeddingService.generateEmbedding(phrase);
+        float[] vecteurRequete = aiEmbeddingService.generateEmbedding(phrase);
 
         // 2. Requête native pgvector → liste d'IDs ordonnés par pertinence
         List<Long> ids = ficheRepository.rechercherIdsParSimilariteGlobale(vecteurRequete, limite);

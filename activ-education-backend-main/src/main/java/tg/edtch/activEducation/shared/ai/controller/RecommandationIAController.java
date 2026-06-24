@@ -14,7 +14,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/eleves/{trackingId}/recommandation-ia")
 @RequiredArgsConstructor
-@Tag(name = "Recommandation IA", description = "Recommandations personnalisées par IA Gemini")
+@Tag(name = "Recommandation IA", description = "Recommandations personnalisées par IA OpenAI")
 public class RecommandationIAController {
 
     private final RecommandationIAService recommandationIAService;

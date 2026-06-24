@@ -68,7 +68,7 @@ services:
       # Configuration de la taille maximale de la requête entière (ex: 500 MB)
       SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 500MB
       # Variables pour la Base de données
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: activ_education

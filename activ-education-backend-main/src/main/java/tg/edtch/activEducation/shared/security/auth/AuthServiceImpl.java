@@ -80,9 +80,9 @@ public class AuthServiceImpl implements AuthService {
                     .build();
         }
 
-        auditLogService.log(request.getEmail(), "", "CONNEXION", "/api/v1/auth/login",
-                "", deviceInfo, null);
-        return generateTokens(userDetails, deviceInfo);
+            auditLogService.log(request.getEmail(), "", "CONNEXION", "/api/v1/auth/login",
+                    "", null, deviceInfo);
+            return generateTokens(userDetails, deviceInfo);
     }
 
     @Override

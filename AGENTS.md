@@ -154,9 +154,63 @@ Full details in `activ-education-fronted-main/seed/AGENTS.md`. Deployed DB start
 - **Flutter**: 3 files (widget smoke, model serialization, API integration)
 - **Backoffice**: no test framework
 
+## Session log (ongoing)
+
+### Session 4 — Gemini → OpenAI migration
+- Remplacé Gemini par OpenAI (interface `GeminiEmbeddingService` → `AIEmbeddingService`)
+- Créé `OpenAIEmbeddingServiceImpl` avec `text-embedding-3-small` (768 dims, compatible pgvector) et `gpt-4o-mini` pour chat/vision
+- Supprimé `GeminiEmbeddingServiceImpl.java`
+- Mis à jour `application.properties`, `application-dev.properties`, `docker-compose.yml` (`GEMINI_API_KEY` → `OPENAI_API_KEY`)
+- Corrigé port DB dans `application-dev.properties` : 5432 → 5433 (Docker)
+- Nettoyé volume PostgreSQL (incompatibilité 15→16) et relancé les services Docker
+- Backend démarré avec Spring Boot 4.0.5, health UP, 171 endpoints, Swagger OK
+- Clé OpenAI configurée : `sk-proj-d...` (valide, 112 modèles)
+- OCR : utilise désormais OpenAI Vision au lieu de Gemini Vision
+- FAQ RAG : utilise OpenAI Chat au lieu de Gemini
+
+### Session 1 — CDC gaps + responsive + adaptive quiz
+- Tous les écrans Flutter conformes multi-tailles : Flexible/Wrap/TextOverflow.ellipsis sur 14 screens
+- Nouveaux dashboards : `DashboardDecrocheur` (orange, parcours pas à pas, ressources réinsertion), `DashboardReconversion` (financements CPF/VAE, bilan compétences)
+- Routing par `typeApprenant` : `PROFESSIONNEL` → reconversion, `AUTRE` → décrocheur, autres → bachelier
+- API Gemini intégrée : `getRecommandationIA()`, plus de fake matchs
+- Quiz adaptatif : re-tri des questions par domaine sous-testé + `prochaineQuestionTrackingId`
+- Stats endpoints backend : distribution type-apprenant, fiches modifiées récentes, KPIs
+- Audit logs : `AuditLog` entity + filter auto-log POST/PUT/DELETE + `AdminLogsController`
+- Backoffice connecté aux vraies API : AdminDashboard, LogsPage, SuperAdminDashboard
+- FAQ feedback : vote Utile/Pas utile avec compteur (Flutter + backoffice)
+- OCR→Seuils matching : normalisation accents/tirets dans `SeuilAdmissionService`
+- Rappels RDV SMS : `@EnableScheduling` + CRON 8h00 quotidien
+- Poids quiz configurables : `ParametreApplication` entity + `ParametreController`
+- Import/Export CSV : `CsvController` + boutons backoffice
+- Graphe inter-fiches : `LienInterFiche` entity + CRUD controller
+- Nouvelles entités (ddl-auto) : `audit_logs`, `parametres_application`, `liens_inter_fiches`
+
+### Session 2 — Flutter run + fixes mobiles
+- Backend health check `GET /actuator/health` → 200
+- `flutter run` sur moto g pure (Android 720p) : RenderFlex overflow 11px dans `bottom_nav.dart:44`
+- `flutter run` sur Chrome : `Dart compiler exited unexpectedly` (instable)
+- `PlatformException(already_active)` dans `profile_screen.dart:617` (image_picker)
+- **Corrections** :
+  - `bottom_nav.dart` : `Expanded` sur chaque `_NavItem` au lieu de `FittedBox` → répartition égale, zéro overflow, fonctionne sur tous les écrans
+  - `profile_screen.dart` : `try-catch` autour de `picker.pickImage()` avec fallback SnackBar pour l'erreur `already_active`
+- `flutter analyze` : 0 erreur sur les fichiers modifiés
+
+### Session 3 — Fix crash ficheDetail route + pagination quiz
+- Backend health check `GET /actuator/health` → 200
+- `resultats_screen.dart` : compilation error `class-in-class` — la méthode `_loadResultats()` n'était pas fermée (brace manquant après `catch`), ce qui imbriquait tout le code suivant. Rajouté `  }` pour fermer le corps de méthode.
+- Crash `String is not a subtype of Map<String, dynamic>?` dans le routeur `ficheDetail` (`main.dart:133`) : `dashboard_reconversion.dart` passait `metier.trackingId` (String) comme arguments alors que le handler attendait `Map`. Handler rendu robuste avec vérification `raw is Map` avant cast ; fallback vers écran d'erreur.
+- `diagnostic_enfant_screen.dart:653` : arguments `{'ficheId': ..., 'type': 'SERIE'}` corrigés en `{'fiche': rec.serie!}` pour correspondre au handler.
+- `flutter run` sur moto g pure (Android 720p) : RenderFlex overflow 11px dans `bottom_nav.dart:44`
+- `flutter run` sur Chrome : `Dart compiler exited unexpectedly` (instable)
+- `PlatformException(already_active)` dans `profile_screen.dart:617` (image_picker)
+- **Corrections** :
+  - `bottom_nav.dart` : `Expanded` sur chaque `_NavItem` au lieu de `FittedBox` → répartition égale, zéro overflow, fonctionne sur tous les écrans
+  - `profile_screen.dart` : `try-catch` autour de `picker.pickImage()` avec fallback SnackBar pour l'erreur `already_active`
+- `flutter analyze` : 0 erreur sur les fichiers modifiés
+
 ## Critical gotchas
 
-- `GEMINI_API_KEY` **committed** in `.env` — rotate before deploying
+- `OPENAI_API_KEY` **committed** in `application-dev.properties` — rotate before deploying
 - No CI/CD, no pre-commit hooks
 - Deployed DB is empty — run `seed/*.sh` scripts in order (need JWT from `admin@activeducation.tg`)
 - `GET /api/v1/eleves/{id}/resultats-diagnostic` returns `Page<>` but Flutter calls without pagination
@@ -164,6 +218,10 @@ Full details in `activ-education-fronted-main/seed/AGENTS.md`. Deployed DB start
 - Backoffice admin pages (quiz editor, FAQ moderation, stats) are partially stubs/mock data
 - `matieresPreferees` stored as CSV in `TEXT` column, parsed by `EleveMapper`
 - Login 2FA : si `requires2fa=true`, le client doit appeler `/auth/2fa/validate` avec le challengeToken
-- OCR : nécessite `GEMINI_API_KEY` valide pour l'extraction sur images (PDF utilise PDFBox sans clé)
+- OCR : nécessite `OPENAI_API_KEY` valide pour l'extraction sur images (PDF utilise PDFBox sans clé)
 - Mode maintenance : flag statique en mémoire (pas persistant). À remplacer par flag DB si besoin de persistance
 - Monitoring : nécessite `docker compose -f docker-compose.monitoring.yml up -d` séparément
+- `flutter run` sur Android : `adb reverse tcp:8080 tcp:8080` nécessaire pour que l'app atteigne `localhost:8080`
+- `flutter run` sur Chrome : instable (`Dart compiler exited unexpectedly`)
+- `bottom_nav.dart` : chaque `_NavItem` wrapé dans `Expanded` — ne jamais revenir à `spaceAround` sur la Row directe
+- `profile_screen.dart` : image_picker doit être dans un `try-catch` pour éviter le crash `already_active`

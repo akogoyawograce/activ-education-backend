@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Controller exposant l'endpoint de recherche sémantique globale sur toutes les
  * fiches.
- * Utilise les embeddings Gemini et pgvector pour une recherche en langage
+ * Utilise les embeddings OpenAI et pgvector pour une recherche en langage
  * naturel.
  */
 @RestController
@@ -29,9 +29,9 @@ public class RechercheGlobaleController {
     private final RechercheGlobaleService rechercheGlobaleService;
 
     @GetMapping("/globale")
-    @Operation(summary = "Recherche sémantique globale via l'IA Gemini", description = "Recherche parmi toutes les fiches (Métiers, Filières, Établissements, Séries) "
+    @Operation(summary = "Recherche sémantique globale via l'IA OpenAI", description = "Recherche parmi toutes les fiches (Métiers, Filières, Établissements, Séries) "
             +
-            "via une phrase en langage naturel. Utilise l'embedding Gemini + pgvector.")
+            "via une phrase en langage naturel. Utilise l'embedding OpenAI + pgvector.")
     public ResponseEntity<List<RechercheGlobaleResponse>> rechercherGlobalement(
             @Parameter(description = "Phrase de recherche en langage naturel", required = true) @RequestParam String phrase,
             @Parameter(description = "Nombre maximum de résultats (1-20)") @RequestParam(defaultValue = "10") int limite) {

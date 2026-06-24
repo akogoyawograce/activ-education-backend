@@ -23,7 +23,7 @@ import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
 import tg.edtch.activEducation.bibliotheque.domain.service.RechercheOrphelineService;
 import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
-import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
+import tg.edtch.activEducation.shared.ai.service.AIEmbeddingService;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
@@ -42,7 +42,7 @@ public class FicheMetierServiceImpl implements FicheMetierService {
     private final FicheFiliereRepository filiereRepository;
     private final FicheMetierMapper metierMapper;
     private final MinioService minioService;
-    private final GeminiEmbeddingService geminiEmbeddingService;
+    private final AIEmbeddingService aiEmbeddingService;
     private final HistoriqueService historiqueService;
     private final RechercheOrphelineService orphelineService;
 
@@ -57,7 +57,7 @@ public class FicheMetierServiceImpl implements FicheMetierService {
             String texte = (metier.getTitre() != null ? metier.getTitre() : "") + " "
                     + (metier.getResume() != null ? metier.getResume() : "") + " "
                     + (metier.getContenu() != null ? metier.getContenu() : "");
-            metier.setEmbedding(geminiEmbeddingService.generateEmbedding(texte.trim()));
+            metier.setEmbedding(aiEmbeddingService.generateEmbedding(texte.trim()));
         } catch (Exception e) {
             log.warn("Impossible de générer l'embedding pour FicheMetier: {}", e.getMessage());
         }

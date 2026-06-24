@@ -14,7 +14,7 @@ import tg.edtch.activEducation.bibliotheque.domain.service.EntreeFAQService;
 import tg.edtch.activEducation.bibliotheque.repository.EntreeFAQRepository;
 
 import java.util.List;
-import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
+import tg.edtch.activEducation.shared.ai.service.AIEmbeddingService;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -28,7 +28,7 @@ public class EntreeFAQServiceImpl implements EntreeFAQService {
 
     private final EntreeFAQRepository faqRepository;
     private final EntreeFAQMapper faqMapper;
-    private final GeminiEmbeddingService geminiEmbeddingService;
+    private final AIEmbeddingService aiEmbeddingService;
 
     @Override
     public EntreeFAQResponse creerEntree(EntreeFAQRequest request) {
@@ -36,9 +36,9 @@ public class EntreeFAQServiceImpl implements EntreeFAQService {
             throw new IllegalArgumentException("Une entrée FAQ avec cette question existe déjà.");
         }
         EntreeFAQ faq = faqMapper.toEntity(request);
-        // Génération de l'embedding via Gemini (peut échouer si clé invalide)
+        // Génération de l'embedding via OpenAI (peut échouer si clé invalide)
         try {
-            faq.setEmbedding(geminiEmbeddingService.generateEmbedding(request.getQuestion() + " " + request.getReponse()));
+            faq.setEmbedding(aiEmbeddingService.generateEmbedding(request.getQuestion() + " " + request.getReponse()));
         } catch (Exception e) {
             log.warn("Impossible de générer l'embedding pour la FAQ : {}", e.getMessage());
         }
@@ -76,7 +76,7 @@ public class EntreeFAQServiceImpl implements EntreeFAQService {
         faqMapper.updateFromRequest(request, faq);
         // Regénération de l'embedding suite à la modification
         try {
-            faq.setEmbedding(geminiEmbeddingService.generateEmbedding(request.getQuestion() + " " + request.getReponse()));
+            faq.setEmbedding(aiEmbeddingService.generateEmbedding(request.getQuestion() + " " + request.getReponse()));
         } catch (Exception e) {
             log.warn("Impossible de régénérer l'embedding pour la FAQ : {}", e.getMessage());
         }
@@ -116,7 +116,7 @@ public class EntreeFAQServiceImpl implements EntreeFAQService {
         // 1. Recherche les entrées par similarité
         List<EntreeFAQ> faqs;
         try {
-            float[] queryEmbedding = geminiEmbeddingService.generateEmbedding(questionUser);
+            float[] queryEmbedding = aiEmbeddingService.generateEmbedding(questionUser);
             faqs = faqRepository.rechercherParSimilarite(queryEmbedding, limite);
         } catch (Exception e) {
             log.warn("Impossible de faire la recherche sémantique : {}", e.getMessage());
@@ -135,7 +135,7 @@ public class EntreeFAQServiceImpl implements EntreeFAQService {
         // 3. Appel de l'IA pour synthétiser
         String reponseIA = "Désolé, je n'ai trouvé aucune information à ce sujet.";
         if (!contextes.isEmpty()) {
-            reponseIA = geminiEmbeddingService.generateAnswer(questionUser, contextes);
+            reponseIA = aiEmbeddingService.generateAnswer(questionUser, contextes);
         }
 
         return tg.edtch.activEducation.bibliotheque.application.dto.response.RechercheIAResponse.builder()

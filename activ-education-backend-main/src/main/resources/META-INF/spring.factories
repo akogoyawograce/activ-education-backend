@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+tg.edtch.activEducation.shared.config.DotenvEnvironmentPostProcessor

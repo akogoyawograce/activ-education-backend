@@ -9,6 +9,7 @@ import tg.edtch.activEducation.bibliotheque.repository.FicheEtablissementReposit
 import tg.edtch.activEducation.bibliotheque.repository.FicheRepository;
 import tg.edtch.activEducation.profil.repository.EleveRepository;
 import tg.edtch.activEducation.profil.repository.ConseillerRepository;
+import tg.edtch.activEducation.profil.repository.ParentRepository;
 import tg.edtch.activEducation.diagnostic.repository.QuizRepository;
 import tg.edtch.activEducation.diagnostic.repository.ResultatDiagnosticRepository;
 import tg.edtch.activEducation.accompagnement.repository.RendezVousRepository;
@@ -29,11 +30,13 @@ public class StatsService {
     private final RendezVousRepository rendezVousRepository;
     private final FicheEtablissementRepository etablissementRepository;
     private final FicheRepository ficheRepository;
+    private final ParentRepository parentRepository;
 
     @SuppressWarnings("unused")
     public Map<String, Long> getKPIs() {
         return Map.of(
                 "totalEleves", eleveRepository.count(),
+                "totalParents", parentRepository.count(),
                 "totalConseillers", conseillerRepository.count(),
                 "totalQuiz", quizRepository.count(),
                 "totalResultats", resultatDiagnosticRepository.count(),

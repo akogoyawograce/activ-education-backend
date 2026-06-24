@@ -1,12 +1,8 @@
 package tg.edtch.activEducation.shared.security.auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.ArgumentCaptor;
 import tg.edtch.activEducation.shared.security.auth.dto.ForgotPasswordRequest;
 import tg.edtch.activEducation.shared.security.auth.dto.LoginRequest;
 import tg.edtch.activEducation.shared.security.auth.dto.OtpResponse;
@@ -17,26 +13,23 @@ import tg.edtch.activEducation.shared.security.auth.dto.TokenResponse;
 import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.Mockito.*;
 
-@WebMvcTest(AuthController.class)
 class AuthControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockitoBean
     private AuthService authService;
+    private AuthController controller;
+
+    @BeforeEach
+    void setUp() {
+        authService = mock(AuthService.class);
+        controller = new AuthController(authService);
+    }
 
     @Test
-    void login_shouldReturn200() throws Exception {
-        LoginRequest request = new LoginRequest("test@test.com", "password");
+    void login_shouldReturnTokenResponse() {
         TokenResponse response = TokenResponse.builder()
                 .accessToken("token")
                 .refreshToken("refresh")
@@ -45,53 +38,53 @@ class AuthControllerTest {
                 .roles(List.of("ROLE_ELEVE"))
                 .expiresInMs(900000L)
                 .build();
-
         when(authService.login(any(LoginRequest.class), anyString())).thenReturn(response);
 
-        mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").value("token"));
+        jakarta.servlet.http.HttpServletRequest mockRequest = mock(jakarta.servlet.http.HttpServletRequest.class);
+        when(mockRequest.getHeader("User-Agent")).thenReturn("test-agent");
+
+        LoginRequest request = new LoginRequest("test@test.com", "password123");
+        var result = controller.login(request, mockRequest);
+
+        assertEquals(200, result.getStatusCode().value());
+        assertEquals("token", result.getBody().getAccessToken());
+        verify(authService).login(eq(request), eq("test-agent"));
     }
 
     @Test
-    void forgotPassword_shouldReturn200() throws Exception {
-        ForgotPasswordRequest request = new ForgotPasswordRequest("test@test.com");
+    void forgotPassword_shouldReturn200() {
+        doNothing().when(authService).forgotPassword("test@test.com");
 
-        mockMvc.perform(post("/api/v1/auth/forgot-password")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").isString());
+        var result = controller.forgotPassword(new ForgotPasswordRequest("test@test.com"));
+
+        assertEquals(200, result.getStatusCode().value());
+        verify(authService).forgotPassword("test@test.com");
     }
 
     @Test
-    void verifyOtp_shouldReturn200() throws Exception {
-        OtpVerifyRequest request = new OtpVerifyRequest("test@test.com", "1234");
-        when(authService.verifyOtp("test@test.com", "1234"))
-                .thenReturn(OtpResponse.builder()
-                        .success(true)
-                        .message("OK")
-                        .resetToken("reset-token")
-                        .build());
+    void verifyOtp_shouldReturnOtpResponse() {
+        OtpResponse mockResponse = OtpResponse.builder()
+                .success(true)
+                .message("OK")
+                .resetToken("reset-token")
+                .build();
+        when(authService.verifyOtp("test@test.com", "1234")).thenReturn(mockResponse);
 
-        mockMvc.perform(post("/api/v1/auth/otp/verify")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
+        var result = controller.verifyOtp(new OtpVerifyRequest("test@test.com", "1234"));
+
+        assertEquals(200, result.getStatusCode().value());
+        assertTrue(result.getBody().isSuccess());
+        assertEquals("reset-token", result.getBody().getResetToken());
     }
 
     @Test
-    void resetPassword_shouldReturn200() throws Exception {
-        ResetPasswordRequest request =
-                new ResetPasswordRequest("test@test.com", "reset-token", "new-password-123");
+    void resetPassword_shouldReturnMessage() {
+        doNothing().when(authService).resetPassword(anyString(), anyString(), anyString());
 
-        mockMvc.perform(post("/api/v1/auth/reset-password")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").isString());
+        var result = controller.resetPassword(
+                new ResetPasswordRequest("test@test.com", "reset-token", "new-password-123"));
+
+        assertEquals(200, result.getStatusCode().value());
+        verify(authService).resetPassword("test@test.com", "reset-token", "new-password-123");
     }
 }

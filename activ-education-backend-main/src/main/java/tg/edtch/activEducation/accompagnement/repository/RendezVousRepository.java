@@ -2,6 +2,7 @@ package tg.edtch.activEducation.accompagnement.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,6 +20,7 @@ import java.util.UUID;
 public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
 
     /** Recherche par identifiant public du rendez-vous. */
+    @EntityGraph(attributePaths = {"eleve", "conseiller"})
     Optional<RendezVous> findByTrackingId(UUID trackingId);
 
     /**

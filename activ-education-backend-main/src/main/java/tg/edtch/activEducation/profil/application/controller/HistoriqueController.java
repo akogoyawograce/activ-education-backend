@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -110,6 +111,7 @@ public class HistoriqueController {
     // ─────────────────────────────────────────────────────────────────────────
     @DeleteMapping("/utilisateurs/{utilisateurTrackingId}/historique")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Purger l'historique d'un utilisateur", description = "⚠️ ADMIN UNIQUEMENT — Supprime définitivement toutes les entrées d'historique d'un utilisateur. Opération irréversible.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Historique purgé"),

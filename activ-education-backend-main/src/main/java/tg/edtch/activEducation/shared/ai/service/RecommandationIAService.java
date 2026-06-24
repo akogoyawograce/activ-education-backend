@@ -35,7 +35,7 @@ public class RecommandationIAService {
     private final FicheFiliereRepository filiereRepository;
     private final FicheMetierRepository metierRepository;
     private final FicheEtablissementRepository etablissementRepository;
-    private final GeminiEmbeddingService geminiService;
+    private final AIEmbeddingService aiService;
 
     public String genererRecommandation(UUID eleveTrackingId) {
         Eleve eleve = eleveRepository.findByTrackingId(eleveTrackingId)
@@ -101,7 +101,7 @@ public class RecommandationIAService {
         String prompt = contexteBuilder.toString() + "\n\n" + profilBuilder.toString() + "\n\nQUESTION : " + question;
 
         try {
-            return geminiService.generateAnswer(question, List.of(
+            return aiService.generateAnswer(question, List.of(
                     profilBuilder.toString(),
                     contexteBuilder.toString()));
         } catch (Exception e) {

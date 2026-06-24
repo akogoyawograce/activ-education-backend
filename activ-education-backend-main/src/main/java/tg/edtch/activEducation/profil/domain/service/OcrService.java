@@ -9,7 +9,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
+import tg.edtch.activEducation.shared.ai.service.AIEmbeddingService;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 public class OcrService {
 
-    private final GeminiEmbeddingService geminiService;
+    private final AIEmbeddingService aiService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final List<String> MATIERES_CONNUES = List.of(
@@ -45,7 +45,7 @@ public class OcrService {
                 texteBrut = extraireTextePdf(file.getBytes());
                 return parserNotesDepuisTexte(texteBrut);
             } else {
-                texteBrut = geminiService.extractTextFromImage(file.getBytes(), mimeType);
+                texteBrut = aiService.extractTextFromImage(file.getBytes(), mimeType);
                 return parserNotesDepuisJson(texteBrut);
             }
         } catch (Exception e) {
@@ -114,7 +114,7 @@ public class OcrService {
                 notes.add(new NoteExtraite(matiere, note, coefficient));
             }
         } catch (Exception e) {
-            log.warn("Impossible de parser le JSON Gemini, fallback texte: {}", e.getMessage());
+            log.warn("Impossible de parser le JSON IA, fallback texte: {}", e.getMessage());
             return parserNotesDepuisTexte(jsonStr);
         }
         return notes;

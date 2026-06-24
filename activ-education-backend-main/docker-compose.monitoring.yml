@@ -64,6 +64,26 @@ services:
     networks:
       - activ-education-network
 
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: postgres-exporter
+    environment:
+      DATA_SOURCE_NAME: "postgresql://postgres:abalakata@host.docker.internal:5433/activ_education?sslmode=disable"
+    ports:
+      - "9187:9187"
+    networks:
+      - activ-education-network
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: redis-exporter
+    environment:
+      REDIS_ADDR: "redis://host.docker.internal:6379"
+    ports:
+      - "9121:9121"
+    networks:
+      - activ-education-network
+
 volumes:
   prometheus_data:
   grafana_data:

@@ -20,7 +20,7 @@ import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
 import tg.edtch.activEducation.bibliotheque.domain.service.RechercheOrphelineService;
 import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
-import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
+import tg.edtch.activEducation.shared.ai.service.AIEmbeddingService;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
@@ -39,7 +39,7 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
     private final FicheSerieRepository serieRepository;
     private final FicheFiliereMapper filiereMapper;
     private final MinioService minioService;
-    private final GeminiEmbeddingService geminiEmbeddingService;
+    private final AIEmbeddingService aiEmbeddingService;
     private final HistoriqueService historiqueService;
     private final RechercheOrphelineService orphelineService;
 
@@ -54,7 +54,7 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
             String texte = (filiere.getTitre() != null ? filiere.getTitre() : "") + " "
                     + (filiere.getResume() != null ? filiere.getResume() : "") + " "
                     + (filiere.getContenu() != null ? filiere.getContenu() : "");
-            filiere.setEmbedding(geminiEmbeddingService.generateEmbedding(texte.trim()));
+            filiere.setEmbedding(aiEmbeddingService.generateEmbedding(texte.trim()));
         } catch (Exception e) {
             log.warn("Impossible de générer l'embedding pour FicheFiliere: {}", e.getMessage());
         }

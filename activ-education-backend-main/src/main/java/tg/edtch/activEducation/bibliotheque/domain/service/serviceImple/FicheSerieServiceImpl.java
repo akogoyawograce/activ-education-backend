@@ -15,7 +15,7 @@ import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
 import tg.edtch.activEducation.bibliotheque.domain.service.RechercheOrphelineService;
 import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.bibliotheque.repository.FicheSerieRepository;
-import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
+import tg.edtch.activEducation.shared.ai.service.AIEmbeddingService;
 
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -28,7 +28,7 @@ public class FicheSerieServiceImpl implements FicheSerieService {
 
     private final FicheSerieRepository serieRepository;
     private final FicheSerieMapper serieMapper;
-    private final GeminiEmbeddingService geminiEmbeddingService;
+    private final AIEmbeddingService aiEmbeddingService;
     private final HistoriqueService historiqueService;
     private final RechercheOrphelineService orphelineService;
 
@@ -40,7 +40,7 @@ public class FicheSerieServiceImpl implements FicheSerieService {
             String texte = (serie.getTitre() != null ? serie.getTitre() : "") + " "
                     + (serie.getResume() != null ? serie.getResume() : "") + " "
                     + (serie.getContenu() != null ? serie.getContenu() : "");
-            serie.setEmbedding(geminiEmbeddingService.generateEmbedding(texte.trim()));
+            serie.setEmbedding(aiEmbeddingService.generateEmbedding(texte.trim()));
         } catch (Exception e) {
             log.warn("Impossible de générer l'embedding pour FicheSerie: {}", e.getMessage());
         }

@@ -20,7 +20,7 @@ import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
 import tg.edtch.activEducation.bibliotheque.domain.service.RechercheOrphelineService;
 import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
-import tg.edtch.activEducation.shared.ai.service.GeminiEmbeddingService;
+import tg.edtch.activEducation.shared.ai.service.AIEmbeddingService;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
@@ -40,7 +40,7 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
     private final FicheFiliereRepository filiereRepository;
     private final FicheEtablissementMapper etablissementMapper;
     private final MinioService minioService;
-    private final GeminiEmbeddingService geminiEmbeddingService;
+    private final AIEmbeddingService aiEmbeddingService;
     private final HistoriqueService historiqueService;
     private final RechercheOrphelineService orphelineService;
 
@@ -55,7 +55,7 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
             String texte = (etablissement.getTitre() != null ? etablissement.getTitre() : "") + " "
                     + (etablissement.getResume() != null ? etablissement.getResume() : "") + " "
                     + (etablissement.getContenu() != null ? etablissement.getContenu() : "");
-            etablissement.setEmbedding(geminiEmbeddingService.generateEmbedding(texte.trim()));
+            etablissement.setEmbedding(aiEmbeddingService.generateEmbedding(texte.trim()));
         } catch (Exception e) {
             log.warn("Impossible de générer l'embedding pour FicheEtablissement: {}", e.getMessage());
         }

@@ -12,10 +12,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import tg.edtch.activEducation.profil.domain.entite.Utilisateur;
+import tg.edtch.activEducation.profil.domain.entite.Eleve;
 import tg.edtch.activEducation.profil.repository.UtilisateurRepository;
 import tg.edtch.activEducation.shared.security.auth.dto.*;
 import tg.edtch.activEducation.shared.security.jwt.JwtService;
+import tg.edtch.activEducation.shared.security.totp.TotpService;
 import tg.edtch.activEducation.shared.security.userdetails.CustomUserDetails;
+import tg.edtch.activEducation.shared.util.AuditLogService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,6 +47,10 @@ class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private ValueOperations<String, String> valueOps;
+    @Mock
+    private TotpService totpService;
+    @Mock
+    private AuditLogService auditLogService;
 
     private AuthServiceImpl authService;
 
@@ -51,14 +58,15 @@ class AuthServiceTest {
     void setUp() {
         authService = new AuthServiceImpl(
                 refreshTokenRepository, utilisateurRepository, jwtService,
-                authenticationManager, redisTemplate, passwordEncoder);
+                authenticationManager, redisTemplate, passwordEncoder,
+                totpService, auditLogService);
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOps);
     }
 
     @Test
     void login_shouldReturnTokenResponse() {
         LoginRequest request = new LoginRequest("test@test.com", "password");
-        Utilisateur user = Utilisateur.builder()
+        Utilisateur user = Eleve.builder()
                 .id(1L)
                 .trackingId(UUID.randomUUID())
                 .email("test@test.com")
@@ -73,7 +81,7 @@ class AuthServiceTest {
         when(jwtService.generateAccessToken(any(), any(), any(), anyList()))
                 .thenReturn("access-token");
         when(jwtService.getRefreshTokenExpiration()).thenReturn(604800000L);
-        doReturn("refresh-token").when(jwtService).extractJti(anyString());
+        lenient().doReturn("refresh-token").when(jwtService).extractJti(anyString());
         when(refreshTokenRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
         TokenResponse result = authService.login(request, "device-info");
@@ -86,7 +94,7 @@ class AuthServiceTest {
 
     @Test
     void forgotPassword_shouldStoreOtpInRedis() {
-        Utilisateur user = Utilisateur.builder()
+        Utilisateur user = Eleve.builder()
                 .id(1L)
                 .email("test@test.com")
                 .estActif(true)
@@ -144,7 +152,7 @@ class AuthServiceTest {
 
     @Test
     void resetPassword_shouldUpdatePasswordAndRevokeTokens() {
-        Utilisateur user = Utilisateur.builder()
+        Utilisateur user = Eleve.builder()
                 .id(1L)
                 .email("test@test.com")
                 .estActif(true)

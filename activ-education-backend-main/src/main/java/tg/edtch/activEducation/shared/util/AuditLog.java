@@ -37,7 +37,7 @@ public class AuditLog {
     @Column(columnDefinition = "TEXT")
     private String details;
 
-    @Column(length = 45)
+    @Column(length = 255)
     private String ip;
 
     @Column(name = "user_agent", length = 500)

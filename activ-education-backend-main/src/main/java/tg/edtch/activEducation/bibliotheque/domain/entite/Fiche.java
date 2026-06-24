@@ -98,7 +98,7 @@ public abstract class Fiche extends BaseEntity {
     private Long nbConsultations = 0L;
 
     /**
-     * Vecteur d'embedding (768 dimensions) généré par Gemini pour la recherche
+     * Vecteur d'embedding (768 dimensions) généré par OpenAI pour la recherche
      * sémantique.
      * Permet une recherche par similarité cosinus via pgvector.
      */

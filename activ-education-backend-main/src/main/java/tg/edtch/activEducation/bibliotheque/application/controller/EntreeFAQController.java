@@ -72,10 +72,10 @@ public class EntreeFAQController {
     }
 
     @GetMapping("/recherche-ia")
-    @Operation(summary = "Recherche sémantique + RAG via l'IA Gemini")
+    @Operation(summary = "Recherche sémantique + RAG via l'IA OpenAI")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Recherche effectuée avec succès"),
-            @ApiResponse(responseCode = "500", description = "Erreur avec l'API Gemini", content = @Content)
+            @ApiResponse(responseCode = "500", description = "Erreur avec l'API OpenAI", content = @Content)
     })
     public ResponseEntity<tg.edtch.activEducation.bibliotheque.application.dto.response.RechercheIAResponse> rechercherParIA(
             @RequestParam String question,

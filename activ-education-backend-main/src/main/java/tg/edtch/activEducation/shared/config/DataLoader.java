@@ -49,6 +49,10 @@ public class DataLoader implements CommandLineRunner {
                 "Seuil minimum de similarité pour recommander une filière", "RECOMMENDATION");
         creerParametreSiAbsent("quiz.nombre_recommandations", "5",
                 "Nombre maximum de recommandations à afficher", "RECOMMENDATION");
+        creerParametreSiAbsent("maintenance.enabled", "false",
+                "État du mode maintenance (true/false)", "MAINTENANCE");
+        creerParametreSiAbsent("maintenance.message", "Plateforme en maintenance. Revenez dans quelques instants.",
+                "Message affiché en mode maintenance", "MAINTENANCE");
     }
 
     private void creerParametreSiAbsent(String cle, String valeur, String description, String categorie) {
