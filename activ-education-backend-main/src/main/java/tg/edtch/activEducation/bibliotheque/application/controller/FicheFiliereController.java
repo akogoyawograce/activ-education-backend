@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -33,6 +34,7 @@ public class FicheFiliereController {
 
     /** Création sans fichiers (JSON simple) */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Créer une nouvelle fiche filière (sans médias)")
     public ResponseEntity<FicheFiliereResponse> creerJson(
             @Valid @RequestBody FicheFiliereRequest request) {
@@ -42,6 +44,7 @@ public class FicheFiliereController {
 
     /** Création avec fichiers (multipart) */
     @PostMapping(value = "/avec-medias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Créer une nouvelle fiche filière (avec médias)")
     public ResponseEntity<FicheFiliereResponse> creerAvecMedias(
             @Parameter(description = "Données JSON de la filière", required = true, schema = @Schema(implementation = FicheFiliereRequest.class)) @RequestPart("request") String requestJson,
@@ -58,6 +61,7 @@ public class FicheFiliereController {
     }
 
     @PutMapping(value = "/{trackingId}/medias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Remplacer les médias d'une fiche filière")
     public ResponseEntity<FicheFiliereResponse> remplacerMedias(
             @PathVariable UUID trackingId,
@@ -68,6 +72,7 @@ public class FicheFiliereController {
     }
 
     @PostMapping(value = "/{trackingId}/medias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Ajouter des médias à une fiche filière")
     public ResponseEntity<FicheFiliereResponse> ajouterMedias(
             @PathVariable UUID trackingId,
@@ -115,6 +120,7 @@ public class FicheFiliereController {
     }
 
     @PutMapping("/{trackingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Modifier une fiche filière existante")
     public ResponseEntity<FicheFiliereResponse> modifier(
             @PathVariable UUID trackingId,
@@ -123,6 +129,7 @@ public class FicheFiliereController {
     }
 
     @DeleteMapping("/{trackingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Supprimer une fiche filière")
     public ResponseEntity<Void> supprimer(@PathVariable UUID trackingId) {
         filiereService.supprimerFiliere(trackingId);

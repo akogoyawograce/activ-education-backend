@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -36,6 +37,7 @@ public class FicheEtablissementController {
 
     /** Création sans fichiers (JSON simple) */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Créer une nouvelle fiche établissement (sans médias)")
     public ResponseEntity<FicheEtablissementResponse> creerJson(
             @Valid @RequestBody FicheEtablissementRequest request) {
@@ -45,6 +47,7 @@ public class FicheEtablissementController {
 
     /** Création avec fichiers (multipart) */
     @PostMapping(value = "/avec-medias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Créer une nouvelle fiche établissement (avec médias)")
     public ResponseEntity<FicheEtablissementResponse> creerAvecMedias(
             @Parameter(description = "Données JSON de l'établissement", required = true, schema = @Schema(implementation = FicheEtablissementRequest.class)) @RequestPart("request") String requestJson,
@@ -61,6 +64,7 @@ public class FicheEtablissementController {
     }
 
     @PutMapping(value = "/{trackingId}/medias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Remplacer les médias d'une fiche établissement")
     public ResponseEntity<FicheEtablissementResponse> remplacerMedias(
             @PathVariable UUID trackingId,
@@ -71,6 +75,7 @@ public class FicheEtablissementController {
     }
 
     @PostMapping(value = "/{trackingId}/medias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Ajouter des médias à une fiche établissement")
     public ResponseEntity<FicheEtablissementResponse> ajouterMedias(
             @PathVariable UUID trackingId,
@@ -116,6 +121,7 @@ public class FicheEtablissementController {
     }
 
     @PutMapping("/{trackingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Modifier une fiche établissement existante")
     public ResponseEntity<FicheEtablissementResponse> modifier(
             @PathVariable UUID trackingId,
@@ -124,6 +130,7 @@ public class FicheEtablissementController {
     }
 
     @DeleteMapping("/{trackingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Supprimer une fiche établissement")
     public ResponseEntity<Void> supprimer(@PathVariable UUID trackingId) {
         etablissementService.supprimerEtablissement(trackingId);

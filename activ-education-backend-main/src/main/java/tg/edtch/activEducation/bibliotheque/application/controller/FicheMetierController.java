@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -33,6 +34,7 @@ public class FicheMetierController {
 
     /** Création sans fichiers (JSON simple) */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Créer une nouvelle fiche métier (sans médias)")
     public ResponseEntity<FicheMetierResponse> creerJson(
             @Valid @RequestBody FicheMetierRequest request) {
@@ -42,6 +44,7 @@ public class FicheMetierController {
 
     /** Création avec fichiers (multipart) */
     @PostMapping(value = "/avec-medias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Créer une nouvelle fiche métier (avec médias)")
     public ResponseEntity<FicheMetierResponse> creerAvecMedias(
             @Parameter(description = "Données JSON de la fiche métier", required = true, schema = @Schema(implementation = FicheMetierRequest.class)) @RequestPart("request") String requestJson,
@@ -57,6 +60,7 @@ public class FicheMetierController {
     }
 
     @PutMapping(value = "/{trackingId}/medias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Remplacer les médias d'une fiche métier")
     public ResponseEntity<FicheMetierResponse> remplacerMedias(
             @PathVariable UUID trackingId,
@@ -67,6 +71,7 @@ public class FicheMetierController {
     }
 
     @PostMapping(value = "/{trackingId}/medias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Ajouter des médias à une fiche métier")
     public ResponseEntity<FicheMetierResponse> ajouterMedias(
             @PathVariable UUID trackingId,
@@ -113,6 +118,7 @@ public class FicheMetierController {
     }
 
     @PutMapping("/{trackingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Modifier une fiche métier existante")
     public ResponseEntity<FicheMetierResponse> modifier(
             @PathVariable UUID trackingId,
@@ -121,6 +127,7 @@ public class FicheMetierController {
     }
 
     @DeleteMapping("/{trackingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Supprimer une fiche métier")
     public ResponseEntity<Void> supprimer(@PathVariable UUID trackingId) {
         metierService.supprimerMetier(trackingId);

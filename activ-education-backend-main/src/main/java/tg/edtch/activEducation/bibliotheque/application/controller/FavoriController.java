@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -30,6 +31,7 @@ public class FavoriController {
     private final FavoriService favoriService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Ajouter une fiche aux favoris")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Favori ajouté", content = @Content(schema = @Schema(implementation = FavoriResponse.class))),
@@ -57,6 +59,7 @@ public class FavoriController {
     }
 
     @DeleteMapping("/{trackingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Supprimer un favori")
     public ResponseEntity<Void> supprimer(@PathVariable UUID trackingId) {
         favoriService.supprimerFavori(trackingId);

@@ -25,6 +25,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 @Tag(name = "Résultats Diagnostic", description = "API d'enregistrement et consultation des résultats de diagnostic. Append-only (pas de modification).")
 public class ResultatDiagnosticController {
 

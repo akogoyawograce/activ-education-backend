@@ -134,6 +134,7 @@ public class EleveController {
         // ─────────────────────────────────────────────────────────────────────────
         @DeleteMapping("/{trackingId}")
         @ResponseStatus(HttpStatus.NO_CONTENT)
+        @org.springframework.security.access.prepost.PreAuthorize("@security.isOwner(#trackingId) or hasRole('ADMIN')")
         @Operation(summary = "Désactiver un compte élève", description = "Effectue un soft-delete : le compte est désactivé (estActif = false) mais conservé en base.")
         @ApiResponses({
                         @ApiResponse(responseCode = "204", description = "Compte désactivé avec succès"),

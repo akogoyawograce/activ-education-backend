@@ -80,11 +80,27 @@ public class SecurityConfig {
                                                 // WebSocket Chat (auth via token en query param)
                                                 .requestMatchers("/ws/chat").permitAll()
 
+                                                // Simulateur de parcours
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/simulateur/**")
+                                                .authenticated()
+
+                                                // Assistant Vocal
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/vocal/transcrire",
+                                                                "/api/v1/vocal/chat",
+                                                                "/api/v1/vocal/synthese")
+                                                .authenticated()
+
                                                 // Santé Actuator
                                                 .requestMatchers("/actuator/health").permitAll()
 
                                                 // Téléchargement fichiers (photos profil, etc.)
-                                                .requestMatchers("/files/download/**").permitAll()
+                                                .requestMatchers(HttpMethod.GET, "/files/download/IMAGE/**").permitAll()
+                                                .requestMatchers("/files/download/**").authenticated()
+                                                .requestMatchers("/files/stream/**").authenticated()
+                                                .requestMatchers("/files/metadata/**").authenticated()
+                                                .requestMatchers("/files/pdf/**").authenticated()
+                                                .requestMatchers("/files/presigned-url/**").authenticated()
+                                                .requestMatchers("/files/url/**").authenticated()
 
                                                 // Swagger & OpenApi (dev)
                                                 .requestMatchers("/api-docs/**", "/v3/api-docs/**",
@@ -126,6 +142,10 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.DELETE, "/api/v1/eleves/*/documents/**")
                                                 .authenticated()
 
+                                                // Relevé de notes : l'élève peut uploader son propre relevé (vérifié par @PreAuthorize)
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/eleves/*/releve-notes")
+                                                .authenticated()
+
                                                 // Règles Administrateurs Globales appliquées ici (les autres rôles
                                                 // seront gérés via @PreAuthorize pour une granularité fine)
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/eleves/**",
@@ -150,6 +170,10 @@ public class SecurityConfig {
                                                 .hasRole("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/bibliotheque/analytics/**")
                                                 .hasRole("ADMIN")
+
+                                                // Génération de quiz : tous les utilisateurs authentifiés peuvent lancer un quiz sur une fiche
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/quiz/generate")
+                                                .authenticated()
 
                                                 // Diagnostique Settings (Admin)
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/quiz/**",
@@ -205,10 +229,16 @@ public class SecurityConfig {
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {
                 CorsConfiguration configuration = new CorsConfiguration();
-                // Spécifiez allowedOrigins si nécessaire, ex: List.of("http://localhost:3000")
-                configuration.setAllowedOriginPatterns(List.of("*"));
+                configuration.setAllowedOriginPatterns(List.of(
+                        "http://localhost:*",
+                        "https://localhost:*",
+                        "http://127.0.0.1:*",
+                        "https://*.activeducation.tg",
+                        "capacitor://localhost",
+                        "ionic://localhost"
+                ));
                 configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-                configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+                configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "x-retry-after-refresh"));
                 configuration.setAllowCredentials(true);
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
                 source.registerCorsConfiguration("/**", configuration);

@@ -111,6 +111,7 @@ public class ConseillerController {
     // ─────────────────────────────────────────────────────────────────────────
     @DeleteMapping("/{trackingId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @org.springframework.security.access.prepost.PreAuthorize("@security.isOwner(#trackingId) or hasRole('ADMIN')")
     @Operation(summary = "Désactiver un compte conseiller", description = "Soft-delete : le compte est désactivé (estActif = false) mais conservé en base de données.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Compte désactivé"),

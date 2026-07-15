@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -25,6 +26,7 @@ public class FicheSerieController {
     private final FicheSerieService serieService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Créer une nouvelle fiche série")
     public ResponseEntity<FicheSerieResponse> creer(@Valid @RequestBody FicheSerieRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(serieService.creerSerie(request));
@@ -67,6 +69,7 @@ public class FicheSerieController {
     }
 
     @PutMapping("/{trackingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Modifier une fiche série existante")
     public ResponseEntity<FicheSerieResponse> modifier(
             @PathVariable UUID trackingId,
@@ -75,6 +78,7 @@ public class FicheSerieController {
     }
 
     @DeleteMapping("/{trackingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Supprimer une fiche série")
     public ResponseEntity<Void> supprimer(@PathVariable UUID trackingId) {
         serieService.supprimerSerie(trackingId);

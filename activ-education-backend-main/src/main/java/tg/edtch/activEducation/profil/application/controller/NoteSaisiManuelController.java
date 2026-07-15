@@ -30,6 +30,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
+@PreAuthorize("isAuthenticated()")
 @Tag(name = "Notes Manuelles", description = "API de saisie et gestion des notes manuelles des élèves. Identifiants publics UUID.")
 public class NoteSaisiManuelController {
 

@@ -40,6 +40,7 @@ public class HistoriqueController {
     // ─────────────────────────────────────────────────────────────────────────
     @PostMapping("/utilisateurs/{utilisateurTrackingId}/historique")
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Enregistrer une entrée d'historique", description = "Ajoute un événement dans l'historique d'activité de l'utilisateur identifié par son UUID.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Entrée enregistrée", content = @Content(schema = @Schema(implementation = HistoriqueResponse.class))),

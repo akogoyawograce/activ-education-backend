@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -31,6 +32,7 @@ public class EntreeFAQController {
     private final EntreeFAQService faqService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Créer une nouvelle entrée FAQ")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Entrée FAQ créée", content = @Content(schema = @Schema(implementation = EntreeFAQResponse.class))),
@@ -84,6 +86,7 @@ public class EntreeFAQController {
     }
 
     @PutMapping("/{trackingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Modifier une entrée FAQ existante")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Entrée mise à jour", content = @Content(schema = @Schema(implementation = EntreeFAQResponse.class))),
@@ -96,6 +99,7 @@ public class EntreeFAQController {
     }
 
     @DeleteMapping("/{trackingId}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Supprimer une entrée FAQ")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Entrée supprimée"),
@@ -107,6 +111,7 @@ public class EntreeFAQController {
     }
 
     @PostMapping("/{trackingId}/voter")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Voter 'utile' ou 'pas utile' sur une entrée FAQ")
     public ResponseEntity<EntreeFAQResponse> voter(
             @PathVariable UUID trackingId,

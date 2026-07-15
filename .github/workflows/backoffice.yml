@@ -5,27 +5,26 @@ on:
     branches: [main, develop]
     paths:
       - 'activ-education-fronted-main/backoffice/**'
-      - '.github/workflows/backoffice.yml'
   pull_request:
     branches: [main]
     paths:
       - 'activ-education-fronted-main/backoffice/**'
 
-defaults:
-  run:
-    working-directory: activ-education-fronted-main/backoffice
-
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: activ-education-fronted-main/backoffice
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
+          node-version: '22'
+          cache: 'npm'
           cache-dependency-path: activ-education-fronted-main/backoffice/package-lock.json
 
       - name: Install dependencies

@@ -147,6 +147,7 @@ public class ParentController {
     // ─────────────────────────────────────────────────────────────────────────
     @DeleteMapping("/{trackingId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @org.springframework.security.access.prepost.PreAuthorize("@security.isOwner(#trackingId) or hasRole('ADMIN')")
     @Operation(summary = "Désactiver un compte parent", description = "Soft-delete : estActif = false, données conservées en base.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Compte désactivé"),
