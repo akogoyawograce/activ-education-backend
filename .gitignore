@@ -15,3 +15,30 @@ Thumbs.db
 
 # Separate repo (frontend has its own git)
 activ-education-fronted-main/
+
+# Project artifacts and docs (not part of backend source)
+document/
+maquettes-textuelles/
+models/
+CLAUDE.md
+Caneva*Redation*mémoire*Génie*Logiciel*.pdf
+Image*collée*.png
+PROMPT_CLAUDE*
+RESULTATS_PROTOTYPE*.md
+generate_synthetic_data.py
+instructions_claude.md
+memoire_activ_education.md
+orientation_outcome*.csv
+prompt_claude_memoire.md
+results_prototype*.json
+session-ses*.md
+train_model.py
+dump.rdb
+
+# Backend deployment configs (not for main branch)
+activ-education-backend-main/DEPLOY.md
+activ-education-backend-main/CHANGELOG_SCHEMA.md
+activ-education-backend-main/Dockerfile.prod
+activ-education-backend-main/docker-compose.prod.yml
+activ-education-backend-main/nginx*.conf
+activ-education-backend-main/.env.prod*
