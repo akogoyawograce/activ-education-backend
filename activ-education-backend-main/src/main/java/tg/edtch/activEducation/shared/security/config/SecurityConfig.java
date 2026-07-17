@@ -146,6 +146,12 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/eleves/*/releve-notes")
                                                 .authenticated()
 
+                                                // Bulletins scolaires (Chantier C) : l'élève peut uploader ses propres
+                                                // bulletins. Sécurité fine via @PreAuthorize (isOwner ou ADMIN).
+                                                .requestMatchers(HttpMethod.POST, "/api/v1/eleves/*/bulletins",
+                                                                "/api/v1/eleves/*/bulletins/batch")
+                                                .authenticated()
+
                                                 // Règles Administrateurs Globales appliquées ici (les autres rôles
                                                 // seront gérés via @PreAuthorize pour une granularité fine)
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/eleves/**",
