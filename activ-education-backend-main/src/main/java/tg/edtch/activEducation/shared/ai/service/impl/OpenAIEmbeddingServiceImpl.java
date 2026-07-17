@@ -7,6 +7,10 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.*;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,8 +35,32 @@ public class OpenAIEmbeddingServiceImpl implements AIEmbeddingService {
     @Value("${openai.api.chat.model:gpt-4o-mini}")
     private String chatModel;
 
+    @Value("${openai.api.chat.url:https://api.openai.com/v1/chat/completions}")
+    private String chatUrl;
+
+    @Value("${openai.api.chat.key:}")
+    private String chatApiKey;
+
+    @Value("${groq.api.key:}")
+    private String groqApiKey;
+
+    @Value("${openai.api.whisper.model:whisper-1}")
+    private String whisperModel;
+
+    @Value("${openai.api.tts.model:tts-1}")
+    private String ttsModel;
+
+    @Value("${openai.api.tts.voice:alloy}")
+    private String ttsVoice;
+
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private String chatApiKey() {
+        if (chatApiKey != null && !chatApiKey.isBlank()) return chatApiKey;
+        if (groqApiKey != null && !groqApiKey.isBlank()) return groqApiKey;
+        return openaiApiKey;
+    }
 
     @Override
     public float[] generateEmbedding(String text) {
@@ -72,7 +100,7 @@ public class OpenAIEmbeddingServiceImpl implements AIEmbeddingService {
 
     @Override
     public String generateAnswer(String question, List<String> contextes) {
-        String url = "https://api.openai.com/v1/chat/completions";
+        String url = chatUrl;
 
         try {
             StringBuilder promptBuilder = new StringBuilder();
@@ -93,7 +121,7 @@ public class OpenAIEmbeddingServiceImpl implements AIEmbeddingService {
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(openaiApiKey);
+            headers.setBearerAuth(chatApiKey());
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
 
             var response = restTemplate.postForEntity(url, requestEntity, String.class);
@@ -115,6 +143,58 @@ public class OpenAIEmbeddingServiceImpl implements AIEmbeddingService {
         } catch (Exception e) {
             log.error("Erreur lors de la génération de réponse OpenAI", e);
             throw new RuntimeException("Erreur de génération RAG: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public String generateQuizQuestions(String context, int nombre) {
+        String url = "https://api.openai.com/v1/chat/completions";
+
+        try {
+            String prompt = "Tu es un conseiller d'orientation spécialisé dans la génération de quiz éducatifs. " +
+                    "Génère " + nombre + " questions QCM à partir du contexte suivant.\n\n" +
+                    "CONTEXTE :\n" + context + "\n\n" +
+                    "RÈGLES :\n" +
+                    "- Chaque question doit avoir EXACTEMENT 4 réponses, une seule correcte\n" +
+                    "- Les questions doivent être pédagogiques et pertinentes pour le contexte\n" +
+                    "- La réponse correcte doit être clairement identifiable\n" +
+                    "- Les 3 réponses incorrectes doivent être plausibles mais fausses\n" +
+                    "- Adapte la difficulté au niveau lycée/universitaire\n\n" +
+                    "Retourne UNIQUEMENT du JSON valide (sans balises markdown) :\n" +
+                    "{\"questions\": [{\"question\": \"...\", \"domaine\": \"...\", \"difficulte\": 2, " +
+                    "\"reponses\": [{\"texte\": \"...\", \"correct\": true}, {\"texte\": \"...\", \"correct\": false}, " +
+                    "{\"texte\": \"...\", \"correct\": false}, {\"texte\": \"...\", \"correct\": false}]}]}";
+
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("model", chatModel);
+            payload.put("messages", List.of(Map.of("role", "user", "content", prompt)));
+            payload.put("temperature", 0.7);
+            payload.put("response_format", Map.of("type", "json_object"));
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(openaiApiKey);
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
+
+            var response = restTemplate.postForEntity(url, requestEntity, String.class);
+            JsonNode root = objectMapper.readTree(response.getBody());
+            JsonNode textNode = root.path("choices").get(0).path("message").path("content");
+
+            if (textNode.isMissingNode()) {
+                throw new RuntimeException("Aucune question générée par OpenAI");
+            }
+            return textNode.asText();
+
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            if (e.getStatusCode().value() == 429) {
+                log.warn("Quota OpenAI dépassé (429) pour génération quiz");
+                return "{\"questions\":[]}";
+            }
+            log.error("Erreur HTTP génération quiz: {} - {}", e.getStatusCode(), e.getMessage());
+            throw new RuntimeException("Erreur génération quiz: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Erreur lors de la génération de quiz OpenAI", e);
+            throw new RuntimeException("Erreur génération quiz: " + e.getMessage());
         }
     }
 
@@ -169,6 +249,89 @@ public class OpenAIEmbeddingServiceImpl implements AIEmbeddingService {
         } catch (Exception e) {
             log.error("Erreur OCR OpenAI", e);
             throw new RuntimeException("Erreur OCR: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public String transcribeAudio(byte[] audioData, String filename) {
+        String url = "https://api.openai.com/v1/audio/transcriptions";
+
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.setBearerAuth(openaiApiKey);
+
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            ByteArrayResource audioResource = new ByteArrayResource(audioData) {
+                @Override
+                public String getFilename() {
+                    return filename != null ? filename : "audio.webm";
+                }
+            };
+            body.add("file", audioResource);
+            body.add("model", whisperModel);
+            body.add("language", "fr");
+            body.add("response_format", "json");
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            var response = restTemplate.postForEntity(url, requestEntity, String.class);
+            JsonNode root = objectMapper.readTree(response.getBody());
+            JsonNode textNode = root.path("text");
+
+            if (textNode.isMissingNode()) {
+                throw new RuntimeException("Aucun texte transcrit par Whisper");
+            }
+            String transcribed = textNode.asText();
+            log.info("Whisper a transcrit {} bytes d'audio: '{}'", audioData.length,
+                    transcribed.length() > 100 ? transcribed.substring(0, 100) + "..." : transcribed);
+            return transcribed;
+
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            log.error("Erreur HTTP Whisper: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 429) {
+                return "L'assistant vocal est momentanément indisponible (quota atteint). Veuillez réessayer dans quelques instants.";
+            }
+            throw new RuntimeException("Erreur transcription vocale: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Erreur transcription Whisper", e);
+            throw new RuntimeException("Erreur transcription vocale: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public byte[] generateSpeech(String text) {
+        String url = "https://api.openai.com/v1/audio/speech";
+
+        try {
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("model", ttsModel);
+            payload.put("input", text);
+            payload.put("voice", ttsVoice);
+            payload.put("response_format", "mp3");
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.setBearerAuth(openaiApiKey);
+            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
+
+            var response = restTemplate.postForEntity(url, requestEntity, byte[].class);
+            byte[] audioBytes = response.getBody();
+            if (audioBytes == null || audioBytes.length == 0) {
+                throw new RuntimeException("Aucun audio généré par le TTS");
+            }
+            log.info("TTS généré : {} bytes pour un texte de {} caractères", audioBytes.length, text.length());
+            return audioBytes;
+
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            log.error("Erreur HTTP TTS: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 429) {
+                log.warn("Quota OpenAI TTS dépassé (429)");
+            }
+            throw new RuntimeException("Erreur synthèse vocale: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Erreur TTS OpenAI", e);
+            throw new RuntimeException("Erreur synthèse vocale: " + e.getMessage());
         }
     }
 }

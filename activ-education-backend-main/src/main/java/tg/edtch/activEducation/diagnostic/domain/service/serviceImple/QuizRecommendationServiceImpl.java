@@ -99,7 +99,7 @@ public class QuizRecommendationServiceImpl implements QuizRecommendationService 
         Map<String, Double> poidsDomaines = calculerPoidsDomaines(eleve, notes, dernierResultat.orElse(null));
 
         List<Question> toutesQuestions = questionRepository.findByQuizTrackingIdOrderByOrdreAsc(quizTrackingId);
-        List<Question> filtrees = filtrerQuestions(toutesQuestions, niveauBase, poidsDomaines, nombreQuestions);
+        List<Question> filtrees = filtrerQuestions(toutesQuestions, niveauBase, poidsDomaines, nombreQuestions, eleve.getTypeApprenant());
 
         if (filtrees.size() < nombreQuestions && filtrees.size() < toutesQuestions.size()) {
             Set<UUID> dejaSelectionnees = filtrees.stream().map(Question::getTrackingId).collect(Collectors.toSet());
@@ -115,8 +115,6 @@ public class QuizRecommendationServiceImpl implements QuizRecommendationService 
         if (filtrees.size() > nombreQuestions) {
             filtrees = filtrees.subList(0, nombreQuestions);
         }
-
-        Collections.sort(filtrees, Comparator.comparing(Question::getOrdre, Comparator.nullsLast(Comparator.naturalOrder())));
 
         log.info("Recommandation pour élève {} : {} questions sur {} disponibles (quiz {})",
                 eleveTrackingId, filtrees.size(), toutesQuestions.size(), quizTrackingId);
@@ -191,9 +189,9 @@ public class QuizRecommendationServiceImpl implements QuizRecommendationService 
         return poids;
     }
 
-    List<Question> filtrerQuestions(List<Question> questions, int niveauBase, Map<String, Double> poidsDomaines, int nombre) {
+    List<Question> filtrerQuestions(List<Question> questions, int niveauBase, Map<String, Double> poidsDomaines, int nombre, TypeApprenant typeApprenant) {
         List<Question> eligible = questions.stream()
-                .filter(q -> q.getNiveauCible() == null || correspondNiveau(q.getNiveauCible(), null))
+                .filter(q -> q.getNiveauCible() == null || correspondNiveau(q.getNiveauCible(), typeApprenant))
                 .filter(q -> q.getDifficulte() == null || Math.abs(q.getDifficulte() - niveauBase) <= 1)
                 .collect(Collectors.toList());
 

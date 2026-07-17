@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import tg.edtch.activEducation.profil.application.dto.request.EleveRequest;
 import tg.edtch.activEducation.profil.application.dto.response.EleveResponse;
 import tg.edtch.activEducation.profil.domain.entite.Eleve;
+import tg.edtch.activEducation.profil.domain.enums.NiveauScolaire;
 
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +24,10 @@ public class EleveMapper {
      * Convertit un {@link EleveRequest} en entité {@link Eleve}.
      * Un nouveau {@code trackingId} est généré automatiquement.
      * Le mot de passe brut est passé tel quel — l'encodage est délégué au Service.
+     *
+     * <p>Le champ {@code niveauEtude} du DTO est une String (rétrocompat
+     * client) ; on la parse via {@link NiveauScolaire#parse(String)} pour
+     * obtenir l'enum strict côté entité. Voir {@code CHANGELOG_SCHEMA.md} § 1.</p>
      */
     public Eleve toEntity(EleveRequest request) {
         if (request == null)
@@ -33,7 +38,7 @@ public class EleveMapper {
                 .prenom(request.getPrenom())
                 .email(request.getEmail())
                 .telephone(request.getTelephone())
-                .niveau(request.getNiveauEtude())
+                .niveau(NiveauScolaire.parse(request.getNiveauEtude()))
                 .etablissement(request.getEtablissementActuel())
                 .filiere(request.getFiliere())
                 .typeApprenant(request.getTypeApprenant())
@@ -47,6 +52,10 @@ public class EleveMapper {
     /**
      * Convertit une entité {@link Eleve} en {@link EleveResponse}.
      * Le Long id interne n'est jamais inclus dans la réponse.
+     *
+     * <p>Le champ {@code niveauEtude} de la réponse est la forme canonique
+     * de l'enum ({@code NiveauScolaire.name()}) — ou {@code null} si la valeur
+     * en base n'a pas pu être parsée.</p>
      */
     public EleveResponse toResponse(Eleve eleve) {
         if (eleve == null)
@@ -57,7 +66,7 @@ public class EleveMapper {
                 .prenom(eleve.getPrenom())
                 .email(eleve.getEmail())
                 .telephone(eleve.getTelephone())
-                .niveauEtude(eleve.getNiveau())
+                .niveauEtude(eleve.getNiveau() == null ? null : eleve.getNiveau().name())
                 .etablissementActuel(eleve.getEtablissement())
                 .filiere(eleve.getFiliere())
                 .typeApprenant(eleve.getTypeApprenant())
@@ -74,6 +83,10 @@ public class EleveMapper {
      * Met à jour les champs modifiables d'un {@link Eleve} existant depuis un
      * {@link EleveRequest}.
      * L'email et le trackingId sont intentionnellement exclus (non modifiables).
+     *
+     * <p>Le niveau n'est mis à jour que si la valeur reçue est parsable
+     * (sinon, on laisse l'ancien niveau intact — évite d'écraser une valeur
+     * valide avec {@code null} en cas de libellé exotique).</p>
      */
     public void updateFromRequest(EleveRequest request, Eleve eleve) {
         if (request.getNom() != null)
@@ -82,8 +95,12 @@ public class EleveMapper {
             eleve.setPrenom(request.getPrenom());
         if (request.getTelephone() != null)
             eleve.setTelephone(request.getTelephone());
-        if (request.getNiveauEtude() != null)
-            eleve.setNiveau(request.getNiveauEtude());
+        if (request.getNiveauEtude() != null) {
+            NiveauScolaire parsed = NiveauScolaire.parse(request.getNiveauEtude());
+            if (parsed != null) {
+                eleve.setNiveau(parsed);
+            }
+        }
         if (request.getEtablissementActuel() != null)
             eleve.setEtablissement(request.getEtablissementActuel());
         if (request.getFiliere() != null)

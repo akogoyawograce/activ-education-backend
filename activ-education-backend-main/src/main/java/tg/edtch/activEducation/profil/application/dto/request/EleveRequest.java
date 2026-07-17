@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.constraints.NotNull;
+import tg.edtch.activEducation.profil.domain.enums.NiveauScolaire;
 import tg.edtch.activEducation.profil.domain.enums.TypeApprenant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,8 +42,15 @@ public class EleveRequest {
 
     private String motDePasse;
 
-    /** Niveau scolaire : ex. "Terminale C", "Licence 2". */
-    @Size(max = 100)
+    /**
+     * Niveau scolaire. Accepte une des 7 valeurs canoniques de
+     * {@link NiveauScolaire} (ex. "LYCEE_TLE") ou un libellé historique
+     * ("Terminale", "Licence 2", ...) parsé de manière tolérante.
+     *
+     * <p>Stocker en String dans le DTO pour ne pas casser les anciens clients
+     * qui envoient un libellé libre. La conversion vers l'enum se fait dans
+     * {@code EleveMapper} via {@link NiveauScolaire#parse(String)}.</p>
+     */
     private String niveauEtude;
 
     /** Nom de l'établissement actuel. */

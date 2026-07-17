@@ -3,6 +3,7 @@ package tg.edtch.activEducation.shared.ai.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheEtablissement;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheFiliere;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheMetier;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class RecommandationIAService {
 
     private final EleveRepository eleveRepository;
@@ -41,6 +43,7 @@ public class RecommandationIAService {
         Eleve eleve = eleveRepository.findByTrackingId(eleveTrackingId)
                 .orElseThrow(() -> new RuntimeException("Élève introuvable"));
 
+        boolean profilRempli = false;
         StringBuilder profilBuilder = new StringBuilder();
         profilBuilder.append("Profil de l'élève :\n");
         profilBuilder.append("- Niveau : ").append(eleve.getNiveau() != null ? eleve.getNiveau() : "Non renseigné").append("\n");
@@ -50,25 +53,43 @@ public class RecommandationIAService {
         profilBuilder.append("- Métier souhaité : ").append(eleve.getMetierSouhaite() != null ? eleve.getMetierSouhaite() : "Non renseigné").append("\n");
         profilBuilder.append("- Matières préférées : ").append(eleve.getMatieresPreferees() != null ? eleve.getMatieresPreferees() : "Non renseigné").append("\n");
 
+        boolean aDesNotes = false;
         List<NoteSaisiManuel> notes = noteRepository.findByEleveTrackingIdOrderByAnneeScolaireDesc(eleveTrackingId);
         if (!notes.isEmpty()) {
+            aDesNotes = true;
             profilBuilder.append("\nNotes scolaires :\n");
             for (NoteSaisiManuel note : notes) {
                 profilBuilder.append("- ").append(note.getMatiere()).append(" : ").append(note.getNote()).append("/20\n");
             }
         }
 
+        boolean aDesQuiz = false;
         List<ResultatDiagnostic> resultats = resultatRepository
                 .findByEleveTrackingIdOrderByDatePassageDesc(eleveTrackingId,
                         org.springframework.data.domain.PageRequest.of(0, 5))
                 .getContent();
         if (!resultats.isEmpty()) {
+            aDesQuiz = true;
             profilBuilder.append("\nRésultats de quiz d'orientation :\n");
             for (ResultatDiagnostic r : resultats) {
                 Optional<Quiz> quiz = quizRepository.findByTrackingId(r.getQuiz().getTrackingId());
                 String nomQuiz = quiz.map(Quiz::getTitre).orElse("Quiz inconnu");
                 profilBuilder.append("- ").append(nomQuiz).append(" : score ").append(r.getScoreFinal()).append("\n");
             }
+        }
+
+        profilRempli = eleve.getNiveau() != null || eleve.getFiliere() != null
+                || eleve.getMetierSouhaite() != null || eleve.getMatieresPreferees() != null
+                || aDesNotes || aDesQuiz;
+
+        if (!profilRempli) {
+            return "Je n'ai pas encore assez d'informations sur toi pour te faire une recommandation personnalisée. "
+                    + "Pour obtenir ta recommandation, je te propose de :\n\n"
+                    + "1️⃣ Compléter ton profil (niveau, filière, métier souhaité)\n"
+                    + "2️⃣ Renseigner tes notes scolaires\n"
+                    + "3️⃣ Passer les quiz d'orientation (RIASEC, personnalité)\n\n"
+                    + "Une fois ces informations remplies, reviens ici et je pourrai te générer "
+                    + "une recommandation sur mesure adaptée à ton profil ! 🎯";
         }
 
         List<FicheFiliere> filieres = filiereRepository.findAllByEstPublieTrue(
@@ -97,8 +118,6 @@ public class RecommandationIAService {
                 + "et les établissements où il peut les étudier au Togo. "
                 + "Justifie chaque recommandation en t'appuyant sur son profil, ses notes et ses résultats de quiz. "
                 + "Sois encourageant et concret.";
-
-        String prompt = contexteBuilder.toString() + "\n\n" + profilBuilder.toString() + "\n\nQUESTION : " + question;
 
         try {
             return aiService.generateAnswer(question, List.of(

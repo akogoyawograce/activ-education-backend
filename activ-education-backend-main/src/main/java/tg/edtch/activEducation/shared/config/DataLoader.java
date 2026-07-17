@@ -2,6 +2,7 @@ package tg.edtch.activEducation.shared.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -27,6 +28,12 @@ public class DataLoader implements CommandLineRunner {
     private final AdministrateurRepository adminRepository;
     private final PasswordEncoder passwordEncoder;
     private final ParametreApplicationRepository parametreRepository;
+
+    @Value("${app.admin.default-password:admin123!}")
+    private String defaultPassword;
+
+    @Value("${app.admin.default-email:admin@activeducation.tg}")
+    private String defaultEmail;
 
     @Override
     @Transactional
@@ -79,8 +86,7 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void creerAdminParDefaut() {
-        String adminEmail = "admin@activeducation.tg";
-        String defaultPassword = "admin123!";
+        String adminEmail = defaultEmail;
         
         adminRepository.findByEmail(adminEmail).ifPresentOrElse(
             admin -> {

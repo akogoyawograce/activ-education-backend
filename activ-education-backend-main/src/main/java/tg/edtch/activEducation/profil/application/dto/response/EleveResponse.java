@@ -29,7 +29,12 @@ public class EleveResponse {
     private String email;
     private String telephone;
 
-    /** Niveau scolaire : ex. "Terminale C", "Licence 2". */
+    /**
+     * Niveau scolaire : nom canonique de l'enum
+     * (COLLEGE / LYCEE_2ND / LYCEE_1ERE / LYCEE_TLE / BAC_1 / BAC_2 / BAC_3)
+     * ou libellé historique pour les valeurs non migrables.
+     * Voir {@code CHANGELOG_SCHEMA.md} § 1.
+     */
     private String niveauEtude;
 
     /** Établissement actuel. */

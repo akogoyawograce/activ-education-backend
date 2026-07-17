@@ -1,0 +1,116 @@
+{
+  "n_students": 600,
+  "admis_rate": 0.8816666666666667,
+  "results": [
+    {
+      "model": "logistic_regression",
+      "config": "sans_comportemental",
+      "roc_auc": 0.890993265993266,
+      "f1_admis": 0.9076305220883534,
+      "recall_reoriente": 0.7777777777777778
+    },
+    {
+      "model": "gradient_boosting",
+      "config": "sans_comportemental",
+      "roc_auc": 0.872895622895623,
+      "f1_admis": 0.945054945054945,
+      "recall_reoriente": 0.3333333333333333
+    },
+    {
+      "model": "logistic_regression",
+      "config": "avec_comportemental",
+      "roc_auc": 0.8901515151515151,
+      "f1_admis": 0.9068825910931174,
+      "recall_reoriente": 0.8333333333333334
+    },
+    {
+      "model": "gradient_boosting",
+      "config": "avec_comportemental",
+      "roc_auc": 0.856060606060606,
+      "f1_admis": 0.9416058394160584,
+      "recall_reoriente": 0.2777777777777778
+    }
+  ],
+  "summary_delta_auc": {
+    "logistic_regression": {
+      "sans": 0.890993265993266,
+      "avec": 0.8901515151515151,
+      "delta": -0.0008417508417508657
+    },
+    "gradient_boosting": {
+      "sans": 0.872895622895623,
+      "avec": 0.856060606060606,
+      "delta": -0.01683501683501698
+    }
+  },
+  "importance_top8": {
+    "sans_comportemental": [
+      [
+        "remainder__ecart_notes_seuil",
+        0.24235118128838715
+      ],
+      [
+        "remainder__notes_actuelle",
+        0.19541962726544473
+      ],
+      [
+        "remainder__match_riasec",
+        0.09769802078272861
+      ],
+      [
+        "remainder__moyenne_generale",
+        0.08169796584011814
+      ],
+      [
+        "remainder__riasec_A",
+        0.04934787793688297
+      ],
+      [
+        "remainder__score_60_40",
+        0.04796804905212278
+      ],
+      [
+        "remainder__riasec_S",
+        0.04794678796798352
+      ],
+      [
+        "remainder__notes_n2",
+        0.04349791240789596
+      ]
+    ],
+    "avec_comportemental": [
+      [
+        "remainder__ecart_notes_seuil",
+        0.22940917242792444
+      ],
+      [
+        "remainder__notes_actuelle",
+        0.18965263181887218
+      ],
+      [
+        "remainder__match_riasec",
+        0.11407285824271905
+      ],
+      [
+        "remainder__moyenne_generale",
+        0.07701603399452767
+      ],
+      [
+        "remainder__riasec_A",
+        0.061241414364334744
+      ],
+      [
+        "remainder__riasec_S",
+        0.05742484759478288
+      ],
+      [
+        "remainder__riasec_I",
+        0.042338003921593946
+      ],
+      [
+        "remainder__riasec_E",
+        0.038925110735076804
+      ]
+    ]
+  }
+}

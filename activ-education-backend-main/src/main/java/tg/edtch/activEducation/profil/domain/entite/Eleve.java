@@ -3,6 +3,8 @@ package tg.edtch.activEducation.profil.domain.entite;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import tg.edtch.activEducation.profil.domain.converter.NiveauScolaireConverter;
+import tg.edtch.activEducation.profil.domain.enums.NiveauScolaire;
 import tg.edtch.activEducation.profil.domain.enums.TypeApprenant;
 
 import java.util.ArrayList;
@@ -24,11 +26,20 @@ public class Eleve extends Utilisateur {
 
     /**
      * Niveau scolaire courant.
-     * ATTENTION : Doit être alimenté par une liste déroulante côté Front pour
-     * l'algorithme.
+     *
+     * <p>Stocké en VARCHAR(20) en base (rétrocompatibilité avec les anciens
+     * libellés libres saisis avant la migration) mais mappé côté Java via
+     * l'enum {@link NiveauScolaire} grâce au converter
+     * {@link NiveauScolaireConverter}.</p>
+     *
+     * <p>Le parsing tolérant {@link NiveauScolaire#parse(String)} permet
+     * d'absorber les anciennes valeurs ("Terminale C", "Licence 2", etc.).</p>
+     *
+     * <p>Voir {@code CHANGELOG_SCHEMA.md} § 1.</p>
      */
-    @Column(name = "niveau", length = 100)
-    private String niveau;
+    @Convert(converter = NiveauScolaireConverter.class)
+    @Column(name = "niveau", length = 20)
+    private NiveauScolaire niveau;
 
     /**
      * Type d'apprenant (Ecolier, Collégien, Lycéen, etc.)

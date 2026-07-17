@@ -163,4 +163,15 @@ public class RendezVousController {
     public ResponseEntity<RendezVousResponse> annuler(@PathVariable UUID trackingId) {
         return ResponseEntity.ok(rendezVousService.annuler(trackingId));
     }
+
+    @PostMapping("/{trackingId}/generer-lien-visio")
+    @PreAuthorize("@security.isRdvParticipant(#trackingId) or hasRole('ADMIN')")
+    @Operation(summary = "Générer un lien de visioconférence", description = "Génère et associe un lien Jitsi Meet au rendez-vous planifié.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lien visio généré"),
+            @ApiResponse(responseCode = "409", description = "RDV non modifiable")
+    })
+    public ResponseEntity<RendezVousResponse> genererLienVisio(@PathVariable UUID trackingId) {
+        return ResponseEntity.ok(rendezVousService.genererLienVisio(trackingId));
+    }
 }

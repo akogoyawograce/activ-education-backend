@@ -17,6 +17,7 @@ import tg.edtch.activEducation.profil.domain.entite.Conseiller;
 import tg.edtch.activEducation.profil.domain.entite.Eleve;
 import tg.edtch.activEducation.profil.repository.ConseillerRepository;
 import tg.edtch.activEducation.profil.repository.EleveRepository;
+import tg.edtch.activEducation.shared.visio.VisioService;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -37,6 +38,7 @@ public class RendezVousServiceImpl implements RendezVousService {
     private final EleveRepository eleveRepository;
     private final ConseillerRepository conseillerRepository;
     private final RendezVousMapper rendezVousMapper;
+    private final VisioService visioService;
 
     @Override
     public RendezVousResponse planifier(RendezVousRequest request) {
@@ -49,10 +51,13 @@ public class RendezVousServiceImpl implements RendezVousService {
                         "Conseiller introuvable pour le trackingId : " + request.getConseillerTrackingId()));
 
         RendezVous rdv = rendezVousMapper.toEntity(request, eleve, conseiller);
+        if (rdv.getLienVisio() == null || rdv.getLienVisio().isBlank()) {
+            rdv.setLienVisio(visioService.genererLienVisio());
+        }
         RendezVous saved = rendezVousRepository.save(rdv);
-        log.info("Rendez-vous planifié : élève={} conseiller={} le={} trackingId={}",
+        log.info("Rendez-vous planifié : élève={} conseiller={} le={} trackingId={} lienVisio={}",
                 request.getEleveTrackingId(), request.getConseillerTrackingId(),
-                saved.getDateHeurePrevue(), saved.getTrackingId());
+                saved.getDateHeurePrevue(), saved.getTrackingId(), saved.getLienVisio());
         return rendezVousMapper.toResponse(saved);
     }
 
@@ -143,6 +148,19 @@ public class RendezVousServiceImpl implements RendezVousService {
         rdv.setStatut(StatutRendezVous.ANNULE);
         RendezVous saved = rendezVousRepository.save(rdv);
         log.info("Rendez-vous annulé : trackingId={}", trackingId);
+        return rendezVousMapper.toResponse(saved);
+    }
+
+    @Override
+    public RendezVousResponse genererLienVisio(UUID trackingId) {
+        RendezVous rdv = findOrThrow(trackingId);
+        if (rdv.getStatut() != StatutRendezVous.PLANIFIE) {
+            throw new IllegalStateException(
+                    "Un rendez-vous " + rdv.getStatut() + " ne peut pas recevoir de lien visio.");
+        }
+        rdv.setLienVisio(visioService.genererLienVisio());
+        RendezVous saved = rendezVousRepository.save(rdv);
+        log.info("Lien visio généré pour le rendez-vous : trackingId={} lien={}", trackingId, saved.getLienVisio());
         return rendezVousMapper.toResponse(saved);
     }
 

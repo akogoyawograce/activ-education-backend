@@ -22,6 +22,7 @@ import tg.edtch.activEducation.profil.application.dto.request.HistoriqueRequest;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
 import tg.edtch.activEducation.shared.ai.service.AIEmbeddingService;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.HashSet;
 import java.util.List;
 
 import java.util.NoSuchElementException;
@@ -169,7 +170,7 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
 
     private Set<FicheSerie> resolveSeries(Set<UUID> trackingIds) {
         if (trackingIds == null || trackingIds.isEmpty())
-            return Set.of();
+            return new HashSet<>();
         return trackingIds.stream()
                 .map(tid -> serieRepository.findByTrackingId(tid)
                         .orElseThrow(() -> new NoSuchElementException("Série introuvable : " + tid)))

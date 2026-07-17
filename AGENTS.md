@@ -85,6 +85,10 @@ npm run lint
 2. **Check existing controllers + `SecurityConfig.java`** before creating new endpoints — 133+ endpoints exist
 3. **Do not duplicate routes** — verify exact path isn't already mapped
 
+## Décisions d'architecture (mobile)
+
+- **Fonctionnalité NOTE retirée du mobile** : la saisie manuelle des notes, l'upload OCR de bulletins, et l'analyse des résultats scolaires sont exclus de l'application mobile. Ces fonctionnalités restent disponibles côté backoffice si nécessaire.
+
 ## Key gotchas
 
 - **Secrets committed** in `.env` (OPENAI_API_KEY, JWT_SECRET, GROQ_API_KEY) — rotate before any deploy

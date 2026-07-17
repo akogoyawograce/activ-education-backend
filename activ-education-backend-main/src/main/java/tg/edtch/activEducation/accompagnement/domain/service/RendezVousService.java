@@ -68,4 +68,9 @@ public interface RendezVousService {
      * Annule un rendez-vous (statut → ANNULE).
      */
     RendezVousResponse annuler(UUID trackingId);
+
+    /**
+     * Génère et associe un lien de visioconférence à un RDV PLANIFIÉ.
+     */
+    RendezVousResponse genererLienVisio(UUID trackingId);
 }

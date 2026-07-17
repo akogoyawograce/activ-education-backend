@@ -8,6 +8,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tg.edtch.activEducation.profil.domain.entite.Eleve;
@@ -29,6 +30,7 @@ import java.util.stream.Stream;
 public class CsvController {
 
     private final EleveRepository eleveRepository;
+    private final PasswordEncoder passwordEncoder;
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @GetMapping("/export/eleves")
@@ -51,17 +53,21 @@ public class CsvController {
                 if (email == null || email.isBlank()) continue;
                 if (eleveRepository.findByEmail(email).isPresent()) continue;
 
+                String tempPass = UUID.randomUUID().toString();
                 Eleve eleve = Eleve.builder()
                         .email(email)
+                        .motDePasseHash(passwordEncoder.encode(tempPass))
                         .nom(row.getOrDefault("nom", ""))
                         .prenom(row.getOrDefault("prenom", ""))
                         .telephone(row.get("telephone"))
                         .estActif(true)
                         .dateInscription(LocalDateTime.now())
                         .build();
+                log.info("Import CSV : utilisateur {} créé avec mot de passe temporaire (réinitialisation requise)", email);
                 eleveRepository.save(eleve);
                 imported++;
             }
+            log.info("Import CSV terminé : {} utilisateurs importés sur {}", imported, rows.size());
             return ResponseEntity.ok(Map.of("success", true, "imported", imported, "total", rows.size()));
         } catch (Exception e) {
             log.error("Erreur import CSV", e);

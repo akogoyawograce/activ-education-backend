@@ -63,10 +63,8 @@ services:
     environment:
       # Activation du profil docker
       SPRING_PROFILES_ACTIVE: docker
-      # Configuration de la taille maximale des fichiers uploadés (ex: 500 MB)
-      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 500MB
-      # Configuration de la taille maximale de la requête entière (ex: 500 MB)
-      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 500MB
+      SPRING_SERVLET_MULTIPART_MAX_FILE_SIZE: 20MB
+      SPRING_SERVLET_MULTIPART_MAX_REQUEST_SIZE: 25MB
       # Variables pour la Base de données
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       DB_HOST: db

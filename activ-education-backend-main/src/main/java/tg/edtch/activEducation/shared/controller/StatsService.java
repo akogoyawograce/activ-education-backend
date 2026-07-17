@@ -73,7 +73,7 @@ public class StatsService {
         List<Object[]> raw = eleveRepository.countByTypeApprenant();
         Map<String, Long> result = new LinkedHashMap<>();
         for (Object[] row : raw) {
-            result.put((String) row[0], (Long) row[1]);
+            result.put(row[0] != null ? row[0].toString() : "INCONNU", (Long) row[1]);
         }
         return result;
     }
