@@ -13,6 +13,8 @@ public interface DocumentService {
 
     Page<DocumentResponse> getDocuments(UUID eleveTrackingId, Pageable pageable);
 
+    Page<DocumentResponse> getBulletins(UUID eleveTrackingId, Pageable pageable);
+
     DocumentResponse getDocument(Long documentId);
 
     void deleteDocument(UUID eleveTrackingId, Long documentId);

@@ -15,6 +15,7 @@ import tg.edtch.activEducation.profil.application.dto.response.BulletinUploadRes
 import tg.edtch.activEducation.profil.domain.enums.Periode;
 import tg.edtch.activEducation.profil.domain.enums.TypePeriode;
 import tg.edtch.activEducation.profil.domain.service.BulletinUploadOrchestrator;
+import tg.edtch.activEducation.profil.domain.service.DocumentService;
 
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +41,7 @@ import static org.mockito.Mockito.when;
 class BulletinUploadControllerTest {
 
     @Mock private BulletinUploadOrchestrator orchestrator;
+    @Mock private DocumentService documentService;
 
     private BulletinUploadController controller;
 
@@ -47,7 +49,7 @@ class BulletinUploadControllerTest {
 
     @BeforeEach
     void setUp() {
-        controller = new BulletinUploadController(orchestrator);
+        controller = new BulletinUploadController(orchestrator, documentService);
     }
 
     @Test

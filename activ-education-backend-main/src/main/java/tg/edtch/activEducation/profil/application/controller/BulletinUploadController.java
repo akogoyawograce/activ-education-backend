@@ -5,16 +5,23 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tg.edtch.activEducation.profil.application.dto.request.BulletinUploadRequest;
+import tg.edtch.activEducation.profil.application.dto.request.ValidationNoteRequest;
 import tg.edtch.activEducation.profil.application.dto.response.BulletinUploadResponse;
+import tg.edtch.activEducation.profil.application.dto.response.DocumentResponse;
+import tg.edtch.activEducation.profil.application.dto.response.PreviewBulletinResponse;
 import tg.edtch.activEducation.profil.domain.enums.Periode;
 import tg.edtch.activEducation.profil.domain.enums.TypePeriode;
 import tg.edtch.activEducation.profil.domain.service.BulletinUploadOrchestrator;
+import tg.edtch.activEducation.profil.domain.service.DocumentService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +48,77 @@ import java.util.UUID;
 public class BulletinUploadController {
 
     private final BulletinUploadOrchestrator orchestrator;
+    private final DocumentService documentService;
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET /api/v1/eleves/{eleveTrackingId}/bulletins
+    // ─────────────────────────────────────────────────────────────────────────
+    @GetMapping
+    @PreAuthorize("@security.isOwner(#eleveTrackingId) or @security.isOwnChild(#eleveTrackingId) or @security.isOwnConseiller(#eleveTrackingId) or hasRole('ADMIN')")
+    @Operation(summary = "Lister les bulletins uploadés d'un élève",
+               description = "Retourne les documents de type BULLETIN, paginés. "
+                       + "Accessible à l'élève, son parent, son conseiller, et les admins.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Liste paginée des bulletins"),
+            @ApiResponse(responseCode = "404", description = "Élève introuvable")
+    })
+    public ResponseEntity<Page<DocumentResponse>> getBulletins(
+            @Parameter(description = "UUID public de l'élève", required = true)
+            @PathVariable UUID eleveTrackingId,
+            Pageable pageable) {
+        return ResponseEntity.ok(documentService.getBulletins(eleveTrackingId, pageable));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // POST /api/v1/eleves/{eleveTrackingId}/bulletins/preview
+    // ─────────────────────────────────────────────────────────────────────────
+    @PostMapping("/preview")
+    @PreAuthorize("@security.isOwner(#eleveTrackingId) or hasRole('ADMIN')")
+    @Operation(summary = "Preview OCR : extraire les notes sans sauvegarder",
+               description = "OCR + upload fichier uniquement. Les notes ne sont pas persistées "
+                       + "et la recommandation n'est pas déclenchée. Utile pour validation mobile.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Notes extraites (non persistées)"),
+            @ApiResponse(responseCode = "404", description = "Élève introuvable")
+    })
+    public ResponseEntity<PreviewBulletinResponse> preview(
+            @PathVariable UUID eleveTrackingId,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("anneeScolaire") String anneeScolaire,
+            @RequestParam("periode") Periode periode,
+            @RequestParam("typePeriode") TypePeriode typePeriode,
+            @RequestParam("numeroPeriode") Integer numeroPeriode) {
+
+        BulletinUploadRequest request = BulletinUploadRequest.builder()
+                .file(file)
+                .anneeScolaire(anneeScolaire)
+                .periode(periode)
+                .typePeriode(typePeriode)
+                .numeroPeriode(numeroPeriode)
+                .build();
+
+        return ResponseEntity.ok(orchestrator.orchestrerPreview(eleveTrackingId, request));
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // POST /api/v1/eleves/{eleveTrackingId}/bulletins/confirm
+    // ─────────────────────────────────────────────────────────────────────────
+    @PostMapping("/confirm")
+    @PreAuthorize("@security.isOwner(#eleveTrackingId) or hasRole('ADMIN')")
+    @Operation(summary = "Confirmer les notes validées et déclencher la recommandation",
+               description = "Prend la liste des notes validées par l'élève, les persiste, "
+                       + "et déclenche le moteur 3 signaux.")
+    public ResponseEntity<BulletinUploadResponse> confirm(
+            @PathVariable UUID eleveTrackingId,
+            @RequestParam("documentTrackingId") UUID documentTrackingId,
+            @RequestParam("anneeScolaire") String anneeScolaire,
+            @RequestParam("periode") Periode periode,
+            @RequestParam("semestreOuTrimestre") String semestreOuTrimestre,
+            @Valid @RequestBody List<ValidationNoteRequest> notesValidees) {
+        return ResponseEntity.ok(
+                orchestrator.confirmerNotes(eleveTrackingId, documentTrackingId,
+                        anneeScolaire, periode, semestreOuTrimestre, notesValidees));
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // POST /api/v1/eleves/{eleveTrackingId}/bulletins

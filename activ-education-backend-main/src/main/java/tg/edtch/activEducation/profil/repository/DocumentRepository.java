@@ -17,6 +17,8 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     List<Document> findByEleveIdAndTypeDocument(Long eleveId, Document.TypeDocument typeDocument);
 
+    Page<Document> findByEleveIdAndTypeDocument(Long eleveId, Document.TypeDocument typeDocument, Pageable pageable);
+
     long countByEleveId(Long eleveId);
 
     @Query("SELECT CASE WHEN COUNT(d) > 0 THEN true ELSE false END FROM Document d WHERE d.urlFichier = :url AND d.eleve.id = :eleveId")

@@ -1,7 +1,11 @@
 package tg.edtch.activEducation.profil.domain.service;
 
 import tg.edtch.activEducation.profil.application.dto.request.BulletinUploadRequest;
+import tg.edtch.activEducation.profil.application.dto.request.ValidationNoteRequest;
 import tg.edtch.activEducation.profil.application.dto.response.BulletinUploadResponse;
+import tg.edtch.activEducation.profil.application.dto.response.NoteSaisiManuelResponse;
+import tg.edtch.activEducation.profil.application.dto.response.PreviewBulletinResponse;
+import tg.edtch.activEducation.profil.domain.enums.Periode;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +35,20 @@ public interface BulletinUploadOrchestrator {
      * @throws java.util.NoSuchElementException si l'élève est introuvable
      */
     BulletinUploadResponse orchestrer(UUID eleveTrackingId, BulletinUploadRequest request);
+
+    /**
+     * Phase preview : OCR + upload doc uniquement, sans sauvegarder les notes
+     * ni déclencher la recommandation. L'élève valide d'abord les notes.
+     */
+    PreviewBulletinResponse orchestrerPreview(UUID eleveTrackingId, BulletinUploadRequest request);
+
+    /**
+     * Phase confirm : sauvegarde les notes validées et déclenche la recommandation.
+     */
+    BulletinUploadResponse confirmerNotes(UUID eleveTrackingId, UUID documentTrackingId,
+                                          String anneeScolaire, Periode periode,
+                                          String semestreOuTrimestre,
+                                          List<ValidationNoteRequest> notesValidees);
 
     /**
      * Orchestre l'upload de 1 à 3 bulletins en lot.

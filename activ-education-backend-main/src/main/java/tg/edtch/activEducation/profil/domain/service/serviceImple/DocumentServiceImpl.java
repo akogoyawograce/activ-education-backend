@@ -13,6 +13,8 @@ import tg.edtch.activEducation.profil.domain.entite.Eleve;
 import tg.edtch.activEducation.profil.domain.service.DocumentService;
 import tg.edtch.activEducation.profil.repository.DocumentRepository;
 import tg.edtch.activEducation.profil.repository.EleveRepository;
+
+import java.util.Objects;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
@@ -76,6 +78,16 @@ public class DocumentServiceImpl implements DocumentService {
     public Page<DocumentResponse> getDocuments(UUID eleveTrackingId, Pageable pageable) {
         Eleve eleve = findEleveOrThrow(eleveTrackingId);
         return documentRepository.findByEleveId(eleve.getId(), pageable)
+                .map(this::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<DocumentResponse> getBulletins(UUID eleveTrackingId, Pageable pageable) {
+        Objects.requireNonNull(eleveTrackingId, "eleveTrackingId must not be null");
+        Eleve eleve = findEleveOrThrow(eleveTrackingId);
+        return documentRepository.findByEleveIdAndTypeDocument(
+                        eleve.getId(), Document.TypeDocument.BULLETIN, pageable)
                 .map(this::toResponse);
     }
 

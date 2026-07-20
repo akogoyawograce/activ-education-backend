@@ -8,9 +8,11 @@ import tg.edtch.activEducation.prediction.application.dto.Recommandation3Signaux
 import tg.edtch.activEducation.prediction.application.service.Recommandation3SignauxService;
 import tg.edtch.activEducation.profil.application.dto.request.BulletinUploadRequest;
 import tg.edtch.activEducation.profil.application.dto.request.NoteSaisiManuelRequest;
+import tg.edtch.activEducation.profil.application.dto.request.ValidationNoteRequest;
 import tg.edtch.activEducation.profil.application.dto.response.BulletinUploadResponse;
 import tg.edtch.activEducation.profil.application.dto.response.DocumentResponse;
 import tg.edtch.activEducation.profil.application.dto.response.NoteSaisiManuelResponse;
+import tg.edtch.activEducation.profil.application.dto.response.PreviewBulletinResponse;
 import tg.edtch.activEducation.profil.domain.entite.Eleve;
 import tg.edtch.activEducation.profil.domain.enums.Periode;
 import tg.edtch.activEducation.profil.domain.enums.TypePeriode;
@@ -37,7 +39,9 @@ import java.util.UUID;
  * <p>Limites connues (cf. plan — hors scope) :</p>
  * <ul>
  *   <li>Pas de validation manuelle post-OCR (on fait confiance à l'OCR).</li>
- *   <li>Pas d'OCR multi-page (les bulletins togolais font souvent 2 pages).</li>
+ *   <li>L'OCR multi-page est gérée par {@code OcrService} : les PDF textuels
+ *       sont lus intégralement ; les PDF scannés sont rendus page par page
+ *       en images et soumis à l'IA Vision.</li>
  * </ul>
  */
 @Service
@@ -137,6 +141,82 @@ public class BulletinUploadOrchestratorImpl implements BulletinUploadOrchestrato
                 .periode(request.getPeriode())
                 .anneeScolaire(request.getAnneeScolaire())
                 .semestreOuTrimestre(semestreLabel)
+                .message(message)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public PreviewBulletinResponse orchestrerPreview(UUID eleveTrackingId, BulletinUploadRequest request) {
+        log.info("Preview bulletin : eleve={} annee={} periode={}/{}/T{}",
+                eleveTrackingId, request.getAnneeScolaire(),
+                request.getPeriode(), request.getTypePeriode(), request.getNumeroPeriode());
+
+        Eleve eleve = eleveRepository.findByTrackingId(eleveTrackingId)
+                .orElseThrow(() -> new NoSuchElementException("Élève introuvable : " + eleveTrackingId));
+
+        String semestreLabel = buildSemestreLabel(request);
+        String description = "Bulletin " + request.getAnneeScolaire()
+                + " - " + semestreLabel
+                + " (" + request.getPeriode().getLabel() + ")";
+
+        DocumentResponse document = documentService.uploadDocument(
+                eleveTrackingId, request.getFile(), "BULLETIN", description, null);
+
+        List<OcrService.NoteExtraite> notesExtraites = ocrService.extraireNotes(request.getFile());
+        log.info("Preview OCR : {} notes extraites pour l'élève {}", notesExtraites.size(), eleveTrackingId);
+
+        return PreviewBulletinResponse.builder()
+                .documentTrackingId(UUID.nameUUIDFromBytes(("bulletin-" + document.getId()).getBytes()))
+                .notesExtraites(notesExtraites)
+                .periode(request.getPeriode())
+                .anneeScolaire(request.getAnneeScolaire())
+                .semestreOuTrimestre(semestreLabel)
+                .message(String.format("%d note(s) extraite(s) — valide avant sauvegarde.", notesExtraites.size()))
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public BulletinUploadResponse confirmerNotes(UUID eleveTrackingId, UUID documentTrackingId,
+                                                  String anneeScolaire, Periode periode,
+                                                  String semestreOuTrimestre,
+                                                  List<ValidationNoteRequest> notesValidees) {
+        log.info("Confirmation notes : eleve={} doc={} annee={} periode={} nbNotes={}",
+                eleveTrackingId, documentTrackingId, anneeScolaire, periode, notesValidees.size());
+
+        Eleve eleve = eleveRepository.findByTrackingId(eleveTrackingId)
+                .orElseThrow(() -> new NoSuchElementException("Élève introuvable : " + eleveTrackingId));
+
+        List<NoteSaisiManuelResponse> notesCrees = new ArrayList<>(notesValidees.size());
+        for (ValidationNoteRequest v : notesValidees) {
+            NoteSaisiManuelRequest noteReq = new NoteSaisiManuelRequest();
+            noteReq.setMatiere(v.getMatiere());
+            noteReq.setNote(v.getNote());
+            noteReq.setCoefficient(v.getCoefficient());
+            noteReq.setAnneeScolaire(anneeScolaire);
+            noteReq.setSemestreOuTrimestre(semestreOuTrimestre);
+            notesCrees.add(noteSaisiManuelService.ajouterNote(eleveTrackingId, noteReq));
+        }
+
+        Recommandation3SignauxResponse recommandation = recommandation3SignauxService
+                .recommander(eleveTrackingId);
+
+        String message = String.format(
+                "Notes validées : %d note(s) sauvegardée(s), %d filière(s) recommandée(s).",
+                notesCrees.size(),
+                recommandation.getTop() != null ? recommandation.getTop().size() : 0);
+
+        return BulletinUploadResponse.builder()
+                .trackingId(documentTrackingId)
+                .notesExtraites(notesValidees.stream()
+                        .map(v -> new OcrService.NoteExtraite(v.getMatiere(), v.getNote(), v.getCoefficient()))
+                        .toList())
+                .notesCrees(notesCrees)
+                .recommandation(recommandation)
+                .periode(periode)
+                .anneeScolaire(anneeScolaire)
+                .semestreOuTrimestre(semestreOuTrimestre)
                 .message(message)
                 .build();
     }

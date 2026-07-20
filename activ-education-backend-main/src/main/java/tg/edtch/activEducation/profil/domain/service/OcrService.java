@@ -6,12 +6,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import tg.edtch.activEducation.shared.ai.service.AIEmbeddingService;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +61,22 @@ public class OcrService {
     String extraireTextePdf(byte[] pdfBytes) throws Exception {
         try (PDDocument document = Loader.loadPDF(pdfBytes)) {
             PDFTextStripper stripper = new PDFTextStripper();
-            return stripper.getText(document);
+            String texteBrut = stripper.getText(document);
+            if (texteBrut != null && !texteBrut.isBlank()) {
+                return texteBrut;
+            }
+            log.info("PDF scanné — OCR IA par page ({} pages)", document.getNumberOfPages());
+            PDFRenderer renderer = new PDFRenderer(document);
+            StringBuilder sb = new StringBuilder();
+            for (int page = 0; page < document.getNumberOfPages(); page++) {
+                BufferedImage image = renderer.renderImageWithDPI(page, 150);
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(image, "PNG", baos);
+                byte[] pageBytes = baos.toByteArray();
+                String pageText = aiService.extractTextFromImage(pageBytes, "image/png");
+                sb.append(pageText).append("\n");
+            }
+            return sb.toString();
         }
     }
 
