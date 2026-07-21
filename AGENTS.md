@@ -40,6 +40,7 @@ flutter analyze      # dart analyze lib/ — expect 0 errors
 - 4-second polling for chat (no WebSocket)
 - Android: `adb reverse tcp:8080 tcp:8080` to reach `localhost:8080`
 - `image_picker` must be wrapped in try-catch (`PlatformException(already_active)`)
+- **`bottom_nav.dart`** — each `_NavItem` in `Expanded`, never revert to `spaceAround`
 
 ### Backoffice (workdir: activ-education-fronted-main/backoffice/)
 ```
@@ -103,5 +104,8 @@ npm run lint
 - **ORIA** uses Ollama (`qwen2:0.5b`) locally, falls back to Groq, then OpenAI; Flutter Dio timeout set to 120s
 - **Maintenance mode** — static in-memory flag (not persistent)
 - **Monitoring** — requires `docker compose -f docker-compose.monitoring.yml up -d` separately
-- **Flutter web** unstable (`Dart compiler exited unexpectedly`)
+- **Flutter web** unstable (`Dart compiler exited unexpectedly`) — DDC hot reload ne réinitialise pas les nouveaux champs State, faire F5 plein
+- **`bottom_nav.dart`** — each `_NavItem` in `Expanded`, never revert to `spaceAround`
+- **MinIO 500 bug** — si `files/download` retourne 500 : 1) `MinioExceptionHandler` doit avoir `@Order(HIGHEST_PRECEDENCE)` pour passer avant `GlobalExceptionHandler` 2) l'import du handler doit être la classe custom pas `java.io.FileNotFoundException` 3) `contentLength()` peut NPE si `fileSize` null
+- **Simulateur parcours** — les slots de bulletins sont automatiques selon le niveau (`_slotsPourNiveau()`), la série scolaire est masquée pour collège/supérieur
 - **`bottom_nav.dart`** — each `_NavItem` in `Expanded`, never revert to `spaceAround`
