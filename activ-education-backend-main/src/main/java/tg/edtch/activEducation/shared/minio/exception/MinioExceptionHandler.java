@@ -1,23 +1,26 @@
 package tg.edtch.activEducation.shared.minio.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
-import java.io.FileNotFoundException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @Slf4j
 public class MinioExceptionHandler {
 
-    @ExceptionHandler(FileNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleFileNotFoundException(FileNotFoundException ex) {
+    @ExceptionHandler(tg.edtch.activEducation.shared.minio.exception.FileNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleFileNotFoundException(
+            tg.edtch.activEducation.shared.minio.exception.FileNotFoundException ex) {
         log.error("File not found: {}", ex.getMessage());
         return buildErrorResponse(HttpStatus.NOT_FOUND, "FILE_NOT_FOUND", ex.getMessage());
     }

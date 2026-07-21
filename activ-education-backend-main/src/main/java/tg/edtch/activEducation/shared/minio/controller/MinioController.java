@@ -73,11 +73,14 @@ public class MinioController {
         log.info("Downloading file: {} of type: {}", fileName, fileType);
         FileDownloadResponse response = minioService.downloadFile(fileName, fileType);
 
-        return ResponseEntity.ok()
+        Long fileSize = response.getFileSize();
+        ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(response.getContentType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + response.getFileName() + "\"")
-                .contentLength(response.getFileSize())
-                .body(new InputStreamResource(response.getInputStream()));
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + response.getFileName() + "\"");
+        if (fileSize != null) {
+            builder.contentLength(fileSize);
+        }
+        return builder.body(new InputStreamResource(response.getInputStream()));
     }
 
     @GetMapping("/stream/{fileType}/{fileName}")
@@ -91,11 +94,14 @@ public class MinioController {
         log.info("Streaming file: {} of type: {}", fileName, fileType);
         FileDownloadResponse response = minioService.downloadFile(fileName, fileType);
 
-        return ResponseEntity.ok()
+        ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(response.getContentType()))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + response.getFileName() + "\"")
-                .contentLength(response.getFileSize())
-                .body(new InputStreamResource(response.getInputStream()));
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + response.getFileName() + "\"");
+        Long fileSize = response.getFileSize();
+        if (fileSize != null) {
+            builder.contentLength(fileSize);
+        }
+        return builder.body(new InputStreamResource(response.getInputStream()));
     }
 
     @DeleteMapping("/{fileType}/{fileName}")
