@@ -62,6 +62,8 @@ npm run lint
 - All write endpoints use `@Valid` on DTOs — **validation errors produce 400 at `/error`, caught by JWT filter → 401**
 - Lombok `@SuperBuilder` on abstract `Fiche` hierarchy with `InheritanceType.JOINED`
 - Two-phase pgvector: native SQL for vector search, then JPQL for entity hydration (JOINED loses discriminator in native queries)
+- **Séparation `mentorat/` (API) vs `alumni/Mentorat` (entité)** : `alumni.Mentorat` est l'entité JPA racine (table + repository), `mentorat/` est l'API REST dédiée aux programmes de mentorat (statut, séances). `MentoratService` consomme `alumni.MentoratRepository` — pas de duplication de persistance. Confirmer ce pattern avant tout ajout sur l'un ou l'autre.
+- **⚠️ pgvector NOT installed locally** (DB Docker `:5433`) — `fiches.embedding` is `real[]`, not `vector`. RAG vectoriel désactivé dans `OriaService.rechercherContexteVectoriel` (retourne `null` → fallback mot-clé). Voir `JOURNAL_BORD_IA.md` §4 pour le plan de réactivation.
 - MinIO: 3 buckets (images/videos/documents), upload via `/files/upload/{fileType}`, max 500MB
 - `DataLoader.java` seeds default admin (`admin@activeducation.tg`) on startup
 - AI: **OpenAI** (migrated from Gemini in Session 4) — `AIEmbeddingService` → `OpenAIEmbeddingServiceImpl`
@@ -109,3 +111,51 @@ npm run lint
 - **MinIO 500 bug** — si `files/download` retourne 500 : 1) `MinioExceptionHandler` doit avoir `@Order(HIGHEST_PRECEDENCE)` pour passer avant `GlobalExceptionHandler` 2) l'import du handler doit être la classe custom pas `java.io.FileNotFoundException` 3) `contentLength()` peut NPE si `fileSize` null
 - **Simulateur parcours** — les slots de bulletins sont automatiques selon le niveau (`_slotsPourNiveau()`), la série scolaire est masquée pour collège/supérieur
 - **`bottom_nav.dart`** — each `_NavItem` in `Expanded`, never revert to `spaceAround`
+
+## ML Pipeline : entraînement jusqu'à la fin (workdir: projet racine)
+
+```bash
+# 1. Générer les données synthétiques (Phase 0)
+python3 generate_synthetic_data.py
+
+# 2. Entraîner les modèles (LogisticRegression + GradientBoosting)
+python3 train_model.py          # → models/gb_*.joblib + results_prototype.json
+
+# 3. (Quand ≥ 5000 orientation_outcome réels) Phase 5 :
+JWT=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@activeducation.tg","motDePasse":"abalakata"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))")
+python3 phase5_export_dataset.py --token "$JWT" --out real_dataset.csv
+python3 phase5_train_real.py --csv real_dataset.csv   # → results_phase5.json
+```
+
+- Modèles : `LogisticRegression` (class_weight=balanced) + `GradientBoostingClassifier`
+- Configs : `sans_comportemental` (RIASEC + notes + 60/40) et `avec_comportemental` (+ comportemental)
+- 7 niveaux : COLLEGE → BAC_3, prédiction ADMIS vs REORIENTE par filière
+- Phase 5 nécessite ≥ 5 000 orientation_outcome réels (DB vide actuellement)
+
+## Session 2026-07-25 — Bug Flutter web : ERR_CONNECTION_REFUSED
+
+### Symptôme
+- App Flutter web tente de joindre `http://localhost:8080/api/v1/...` mais toutes les requêtes Dio échouent avec `net::ERR_CONNECTION_REFUSED`
+- Stack traces massives dans la console navigateur lors du chargement de `splash_screen.dart`, `main_scaffold.dart`, `dashboard_bachelier.dart`, `profile_screen.dart`, `login_screen.dart`
+- `LOGIN ERROR: DioException [connection error]` à chaque tentative de POST `/api/v1/auth/login`
+- Endpoints appelés en boucle (probable retry automatique via `_refreshWithLock()`) : `/eleves/{id}`, `/rendez-vous/eleve/{id}`, `/utilisateurs/{id}/messages/non-lus/compteur`, `/eleves/{id}/resultats-diagnostic`, `/eleves/{id}/recommandation-ia`, `/bibliotheque/favoris/utilisateur/{id}`, `/utilisateurs/{id}/historique`, `/eleves/{id}/documents/count`
+
+### Cause racine identifiée
+- Le backend Spring Boot sur `localhost:8080` n'était pas démarré
+- Le JAR compilé existe : `activ-education-backend-main/target/activEducation-0.0.1-SNAPSHOT.jar`
+- Script de lancement disponible : `start-backend.sh` à la racine (exporte `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, etc. puis lance le JAR)
+
+### Fichiers clés
+- `activ-education-fronted-main/activ_education/lib/services/base_service.dart:108` — `dioGet()` (auth interceptor ligne 145, error handler ligne 191)
+- `activ-education-fronted-main/activ_education/lib/services/auth_service.dart:142` — `getEleve()`, `:11` `login()`
+- `activ-education-fronted-main/activ_education/lib/services/api_service.dart` — définitions endpoints (lignes 57, 126, 133, 167, 172, 245)
+- `activ-education-fronted-main/activ_education/lib/main.dart:61` — charge `.env` via dotenv avant `runApp`
+- `activ-education-backend-main/.env` — config backend (DB, JWT_SECRET, OPENAI_API_KEY, GROQ_API_KEY, etc.)
+- `start-backend.sh` — wrapper de lancement avec variables DB
+
+### Workaround temporaire
+- Le frontend ne peut rien faire tant que le backend n'est pas lancé
+- Pas de fallback offline implémenté dans `BaseService`
