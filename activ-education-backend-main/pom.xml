@@ -54,6 +54,16 @@
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+
+		<!-- Flyway : migrations versionnées (sécurise le schéma avant migration Supabase) -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-database-postgresql</artifactId>
+		</dependency>
 		<!-- Support pgvector pour Hibernate -->
 		<dependency>
 			<groupId>org.hibernate.orm</groupId>
