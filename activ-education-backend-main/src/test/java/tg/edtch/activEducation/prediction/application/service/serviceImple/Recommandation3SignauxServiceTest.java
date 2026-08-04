@@ -183,6 +183,37 @@ class Recommandation3SignauxServiceTest {
         assertEquals(0, response.getDecouvertesAjoutees());
     }
 
+    @Test
+    @DisplayName("Élève sans niveau : top vide, PAS de findAll() aveugle")
+    void eleveSansNiveauNeRetournePasToutesLesFilieres() {
+        // Élève SANS niveau (niveau = null) : cas limite où construireProfilEleve
+        // → candidatsPourProfil() peut tomber dans le mode dégradé dangereux
+        // (return ficheFiliereRepository.findAll() = 117 filières).
+        // Comportement attendu : réponse vide ou filtrée — jamais toutes les fiches.
+        Eleve eleve = Eleve.builder()
+                .id(1L).trackingId(UUID.randomUUID()).niveau(null).build();
+        when(eleveRepository.findByTrackingId(any())).thenReturn(Optional.of(eleve));
+        when(notesRepository.findByEleveIdAndEstMoyenneGeneraleTrueOrderByAnneeScolaireDesc(1L))
+                .thenReturn(List.of());
+        when(trajectoireService.calculer(anyList())).thenReturn(
+                new NoteTrajectoireService.Trajectoire(null, null, BigDecimal.ZERO, 0, 0.0));
+        when(riasecRepository.findByEleveTrackingIdOrderByDatePassationDesc(any()))
+                .thenReturn(List.of());
+
+        Recommandation3SignauxResponse response = service.recommander(eleve.getTrackingId());
+
+        // Anti-régression : on n'autorise PAS findAll() (qui retournerait 100+ fiches).
+        // Si l'implémentation change pour appeler findAll(), cette assertion sautera.
+        verify(ficheFiliereRepository, never()).findAll();
+
+        // Top soit vide, soit petit (mode dégradé acceptable : on score quand même)
+        assertNotNull(response.getTop());
+        assertTrue(response.getTop().size() <= 10,
+                "Top doit être borné par topN, pas exploser à findAll() : " + response.getTop().size());
+        assertEquals(0, response.getDecouvertesAjoutees(),
+                "Pas de découvertes sans profil exploitable");
+    }
+
     // ─────────────────────────────────────────────────────────────────────
     // Helpers
     // ─────────────────────────────────────────────────────────────────────

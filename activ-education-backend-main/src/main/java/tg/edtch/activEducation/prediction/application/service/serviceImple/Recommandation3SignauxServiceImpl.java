@@ -216,8 +216,13 @@ public class Recommandation3SignauxServiceImpl implements Recommandation3Signaux
                 ? NiveauScolaire.parse(profil.getNiveau())
                 : null;
         if (niveauActuel == null) {
-            // Pas de niveau : on prend tout (mode dégradé)
-            return ficheFiliereRepository.findAll();
+            // Pas de niveau exploitable : on ne peut pas filtrer les candidats
+            // de manière sensée. Retourner findAll() retournerait 117 résultats
+            // absurdes à l'élève. On préfère un top vide + log pour debug.
+            // Cf. test anti-régression Recommandation3SignauxServiceTest#eleveSansNiveauNeRetournePasToutesLesFilieres.
+            log.warn("Élève {} sans niveau scolaire : recommandation retournée vide (pas de findAll() aveugle)",
+                    profil.getTrackingId());
+            return List.of();
         }
 
         Set<NiveauScolaire> niveauxCibles = niveauxSuivants(niveauActuel);
@@ -227,7 +232,8 @@ public class Recommandation3SignauxServiceImpl implements Recommandation3Signaux
                     .forEach(m -> ficheIds.add(m.getFicheFiliere().getId()));
         }
         if (ficheIds.isEmpty()) {
-            return List.of();
+            log.warn("Aucune liaison niveaux_filieres pour les niveaux cibles {} ; fallback : toutes les filières", niveauxCibles);
+            return ficheFiliereRepository.findAll();
         }
         return ficheFiliereRepository.findAllById(ficheIds);
     }
