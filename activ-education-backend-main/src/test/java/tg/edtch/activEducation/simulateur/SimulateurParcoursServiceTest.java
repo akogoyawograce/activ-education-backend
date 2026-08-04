@@ -21,6 +21,7 @@ import tg.edtch.activEducation.simulateur.domain.dto.ScenarioResult;
 import tg.edtch.activEducation.simulateur.domain.service.SimulateurParcoursService;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -157,6 +158,42 @@ class SimulateurParcoursServiceTest {
         assertNotNull(result.getFilieres());
         assertTrue(result.getFilieres().size() >= 1,
                 "au moins 1 filière doit matcher (Mathématiques avec 15 ≥ 12)");
+    }
+
+    @Test
+    @DisplayName("Une Terminale G2 accède aux filières dont le prérequis est Bac G2")
+    void explorerTerminaleG2() {
+        FicheFiliere comptabilite = FicheFiliere.builder()
+                .trackingId(UUID.randomUUID())
+                .titre("Finance et Comptabilité")
+                .resume("Comptabilité et audit")
+                .domaine("Économie & Gestion")
+                .duree("3 ans")
+                .niveauRequis("Bac B/G2")
+                .estPublie(true)
+                .metiersPrepares(Set.of())
+                .etablissements(Set.of())
+                .build();
+        FicheSerie g2 = FicheSerie.builder()
+                .trackingId(UUID.randomUUID())
+                .titre("Série G2 (Comptabilité)")
+                .filieresAssociees(Set.of())
+                .build();
+
+        when(serieRepository.findByTrackingId(g2.getTrackingId())).thenReturn(java.util.Optional.of(g2));
+        when(filiereRepository.findAllByEstPublieTrue(any()))
+                .thenReturn(new PageImpl<>(List.of(comptabilite)));
+        when(seuilRepository.findAll()).thenReturn(List.of());
+
+        ScenarioRequest scenario = new ScenarioRequest();
+        scenario.setSerieTrackingId(g2.getTrackingId().toString());
+        scenario.setNiveau("Terminale");
+        scenario.setNotesSimulees(java.util.Map.of("Comptabilité", 16.0));
+
+        ScenarioResult result = service.explorer(scenario);
+
+        assertEquals(1, result.getFilieres().size());
+        assertEquals("Finance et Comptabilité", result.getFilieres().get(0).getTitre());
     }
 
     @Test

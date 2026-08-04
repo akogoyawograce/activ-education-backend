@@ -41,7 +41,7 @@ public interface FicheRepository extends JpaRepository<Fiche, Long> {
          * avec les requêtes natives (colonne discriminante 'clazz_' absente).
          */
         @Query(value = "SELECT f.id FROM fiches f WHERE f.est_publie = true AND f.embedding IS NOT NULL ORDER BY f.embedding <=> CAST(:vecteur AS vector) LIMIT :limite", nativeQuery = true)
-        List<Long> rechercherIdsParSimilariteGlobale(@Param("vecteur") float[] vecteur, @Param("limite") int limite);
+        List<Long> rechercherIdsParSimilariteGlobale(@Param("vecteur") String vecteur, @Param("limite") int limite);
 
         /**
          * Étape 2 : Charge les entités polymorphes dans le bon ordre à partir des IDs.

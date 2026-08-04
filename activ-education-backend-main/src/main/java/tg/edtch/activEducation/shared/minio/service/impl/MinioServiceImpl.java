@@ -19,6 +19,7 @@ import tg.edtch.activEducation.shared.minio.service.PdfProcessingService;
 import tg.edtch.activEducation.shared.minio.config.MinioProperties;
 
 import org.apache.tika.Tika;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,9 +31,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import jakarta.annotation.PostConstruct;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 
 @Service
+@ConditionalOnProperty(name = "minio.enabled", havingValue = "true")
 @RequiredArgsConstructor
 @Slf4j
 public class MinioServiceImpl implements MinioService {
@@ -43,7 +46,7 @@ public class MinioServiceImpl implements MinioService {
     private final Tika tika = new Tika();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     public void initializeBuckets() {
         log.info("Initializing MinIO buckets and configuring public access...");
         try {
@@ -55,11 +58,9 @@ public class MinioServiceImpl implements MinioService {
             ensureBucketExists(videosBucket);
             ensureBucketExists(documentsBucket);
 
-            // Public access removed — downloads go through authenticated /files/download endpoint
-
             log.info("Successfully initialized all buckets (images, videos, documents)");
         } catch (Exception e) {
-            log.error("Error initializing MinIO buckets: {}", e.getMessage(), e);
+            log.error("Error initializing MinIO buckets (non-fatal): {}", e.getMessage(), e);
         }
     }
 

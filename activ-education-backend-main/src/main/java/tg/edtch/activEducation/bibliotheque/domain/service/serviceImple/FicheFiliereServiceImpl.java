@@ -11,9 +11,12 @@ import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheFilier
 import tg.edtch.activEducation.bibliotheque.application.mapper.FicheFiliereMapper;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheFiliere;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheSerie;
+import tg.edtch.activEducation.bibliotheque.domain.entite.NiveauFiliere;
 import tg.edtch.activEducation.bibliotheque.domain.service.FicheFiliereService;
 import tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository;
 import tg.edtch.activEducation.bibliotheque.repository.FicheSerieRepository;
+import tg.edtch.activEducation.bibliotheque.domain.repository.NiveauFiliereRepository;
+import tg.edtch.activEducation.profil.domain.enums.NiveauScolaire;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
 import tg.edtch.activEducation.profil.domain.service.HistoriqueService;
@@ -24,6 +27,7 @@ import tg.edtch.activEducation.shared.ai.service.AIEmbeddingService;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -38,6 +42,7 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
 
     private final FicheFiliereRepository filiereRepository;
     private final FicheSerieRepository serieRepository;
+    private final NiveauFiliereRepository niveauFiliereRepository;
     private final FicheFiliereMapper filiereMapper;
     private final MinioService minioService;
     private final AIEmbeddingService aiEmbeddingService;
@@ -60,6 +65,7 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
             log.warn("Impossible de générer l'embedding pour FicheFiliere: {}", e.getMessage());
         }
         FicheFiliere saved = filiereRepository.save(filiere);
+        sauvegarderNiveaux(saved, request.getNiveaux());
         log.info("Fiche filière créée : trackingId={}", saved.getTrackingId());
         return filiereMapper.toResponse(saved);
     }
@@ -126,6 +132,11 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
         Set<FicheSerie> series = resolveSeries(request.getSeriesTrackingIds());
         filiereMapper.updateFromRequest(request, filiere, series);
         FicheFiliere saved = filiereRepository.save(filiere);
+        if (request.getNiveaux() != null) {
+            niveauFiliereRepository.findByFicheFiliereId(saved.getId())
+                    .forEach(nf -> niveauFiliereRepository.delete(nf));
+            sauvegarderNiveaux(saved, request.getNiveaux());
+        }
         log.info("Fiche filière modifiée : trackingId={}", trackingId);
         return filiereMapper.toResponse(saved);
     }
@@ -160,6 +171,31 @@ public class FicheFiliereServiceImpl implements FicheFiliereService {
     @Transactional(readOnly = true)
     public List<String> obtenirTousLesDomaines() {
         return filiereRepository.findAllDomaines();
+    }
+
+    private void sauvegarderNiveaux(FicheFiliere filiere, List<String> codesNiveaux) {
+        if (codesNiveaux == null || codesNiveaux.isEmpty()) {
+            return;
+        }
+        List<NiveauFiliere> entites = codesNiveaux.stream()
+                .map(code -> {
+                    NiveauScolaire ns = NiveauScolaire.parse(code);
+                    if (ns == null) {
+                        log.warn("Niveau non reconnu '{}' ignoré pour la filière {}", code, filiere.getTrackingId());
+                        return null;
+                    }
+                    return NiveauFiliere.builder()
+                            .ficheFiliere(filiere)
+                            .niveau(ns)
+                            .estPrincipal(ns == NiveauScolaire.BAC_1)
+                            .build();
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        if (!entites.isEmpty()) {
+            niveauFiliereRepository.saveAll(entites);
+            log.info("{} niveaux_filieres créés pour {}", entites.size(), filiere.getTrackingId());
+        }
     }
 
     private FicheFiliere findOrThrow(UUID trackingId) {
