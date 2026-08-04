@@ -53,6 +53,14 @@ public class OpenAIEmbeddingServiceImpl implements AIEmbeddingService {
     @Value("${openai.api.tts.voice:alloy}")
     private String ttsVoice;
 
+    // Fallback embeddings (Ollama local) — ajouté 2026-08-03 pour activer le RAG
+    // quand la clé OpenAI est invalide/révoquée.
+    @Value("${ollama.embedding.url:http://localhost:11434}")
+    private String ollamaEmbeddingUrl;
+
+    @Value("${ollama.embedding.model:nomic-embed-text}")
+    private String ollamaEmbeddingModel;
+
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -64,37 +72,93 @@ public class OpenAIEmbeddingServiceImpl implements AIEmbeddingService {
 
     @Override
     public float[] generateEmbedding(String text) {
-        String url = "https://api.openai.com/v1/embeddings";
+        // Décision : si la clé OpenAI est valide, on l'utilise. Sinon fallback Ollama local.
+        boolean openaiKeyValid = openaiApiKey != null
+            && !openaiApiKey.isBlank()
+            && !openaiApiKey.startsWith("REVOKED_");
+
+        if (!openaiKeyValid) {
+            log.info("Clé OpenAI invalide/absente → fallback embeddings Ollama (modèle: {})",
+                ollamaEmbeddingModel);
+            return generateEmbeddingOllama(text);
+        }
 
         try {
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("model", embeddingModel);
-            payload.put("input", text);
-            payload.put("dimensions", 768);
+            return callOpenAIEmbedding(text);
+        } catch (Exception e) {
+            log.warn("Échec OpenAI Embedding, tentative fallback Ollama : {}", e.getMessage());
+            return generateEmbeddingOllama(text);
+        }
+    }
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(openaiApiKey);
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
+    /** Appel direct à OpenAI Embeddings (extrait pour permettre le fallback). */
+    private float[] callOpenAIEmbedding(String text) throws Exception {
+        String url = "https://api.openai.com/v1/embeddings";
 
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", embeddingModel);
+        payload.put("input", text);
+        payload.put("dimensions", 768);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(openaiApiKey);
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
+
+        var response = restTemplate.postForEntity(url, requestEntity, String.class);
+        JsonNode root = objectMapper.readTree(response.getBody());
+        JsonNode valuesNode = root.path("data").get(0).path("embedding");
+
+        if (!valuesNode.isArray()) {
+            log.error("Réponse inattendue de l'API OpenAI Embedding : {}", response.getBody());
+            throw new RuntimeException("Format de réponse invalide de l'API OpenAI");
+        }
+
+        float[] embedding = new float[valuesNode.size()];
+        for (int i = 0; i < valuesNode.size(); i++) {
+            embedding[i] = (float) valuesNode.get(i).asDouble();
+        }
+        return embedding;
+    }
+
+    /**
+     * Fallback embeddings via Ollama local (modèle nomic-embed-text par défaut).
+     * Produit des vecteurs 768-dim compatibles pgvector.
+     *
+     * Référencé JOURNAL_BORD_IA.md (3 août 2026) — pour activer le RAG
+     * ORIA quand OpenAI est inaccessible.
+     */
+    private float[] generateEmbeddingOllama(String text) {
+        String url = ollamaEmbeddingUrl + "/api/embeddings";
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", ollamaEmbeddingModel);
+        payload.put("prompt", text);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
+
+        try {
             var response = restTemplate.postForEntity(url, requestEntity, String.class);
             JsonNode root = objectMapper.readTree(response.getBody());
-            JsonNode valuesNode = root.path("data").get(0).path("embedding");
+            JsonNode valuesNode = root.path("embedding");
 
-            if (valuesNode.isArray()) {
-                float[] embedding = new float[valuesNode.size()];
-                for (int i = 0; i < valuesNode.size(); i++) {
-                    embedding[i] = (float) valuesNode.get(i).asDouble();
-                }
-                return embedding;
-            } else {
-                log.error("Réponse inattendue de l'API OpenAI Embedding : {}", response.getBody());
-                throw new RuntimeException("Format de réponse invalide de l'API OpenAI");
+            if (!valuesNode.isArray()) {
+                log.error("Réponse inattendue de l'API Ollama Embedding : {}", response.getBody());
+                throw new RuntimeException("Format de réponse invalide de l'API Ollama");
             }
 
+            float[] embedding = new float[valuesNode.size()];
+            for (int i = 0; i < valuesNode.size(); i++) {
+                embedding[i] = (float) valuesNode.get(i).asDouble();
+            }
+            log.debug("Embedding Ollama généré : {} dimensions", embedding.length);
+            return embedding;
+
         } catch (Exception e) {
-            log.error("Erreur lors de la génération de l'embedding OpenAI", e);
-            throw new RuntimeException("Erreur de génération d'embedding: " + e.getMessage());
+            log.error("Échec Ollama Embedding : {}", e.getMessage());
+            throw new RuntimeException("Erreur de génération d'embedding Ollama: " + e.getMessage());
         }
     }
 

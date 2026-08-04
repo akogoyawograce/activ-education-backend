@@ -39,10 +39,4 @@ public class OriaController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/session/{sessionId}")
-    @Operation(summary = "Effacer une session ORIA (DB + mémoire)")
-    public ResponseEntity<Void> clearSession(@PathVariable String sessionId) {
-        oriaService.clearSession(sessionId);
-        return ResponseEntity.noContent().build();
-    }
 }

@@ -13,6 +13,7 @@ import tg.edtch.activEducation.bibliotheque.domain.entite.FicheSerie;
 import tg.edtch.activEducation.bibliotheque.domain.service.RechercheGlobaleService;
 import tg.edtch.activEducation.bibliotheque.repository.FicheRepository;
 import tg.edtch.activEducation.shared.ai.service.AIEmbeddingService;
+import tg.edtch.activEducation.shared.util.PgVectorLiteral;
 
 import java.util.Comparator;
 import java.util.List;
@@ -41,8 +42,10 @@ public class RechercheGlobaleServiceImpl implements RechercheGlobaleService {
         // 1. Convertir la phrase de l'utilisateur en vecteur
         float[] vecteurRequete = aiEmbeddingService.generateEmbedding(phrase);
 
-        // 2. Requête native pgvector → liste d'IDs ordonnés par pertinence
-        List<Long> ids = ficheRepository.rechercherIdsParSimilariteGlobale(vecteurRequete, limite);
+        // 2. Requête native pgvector → liste d'IDs ordonnés par pertinence.
+        // Le repo attend un littéral pgvector (String), pas un float[].
+        String vecteurLiteral = PgVectorLiteral.toVectorLiteral(vecteurRequete);
+        List<Long> ids = ficheRepository.rechercherIdsParSimilariteGlobale(vecteurLiteral, limite);
         if (ids.isEmpty()) {
             return List.of();
         }
