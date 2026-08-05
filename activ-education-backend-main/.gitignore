@@ -35,3 +35,7 @@ build/
 .env.prod
 .env.local
 *.env.local
+
+### Logs (runtime artifacts) ###
+*.log
+backend.log
