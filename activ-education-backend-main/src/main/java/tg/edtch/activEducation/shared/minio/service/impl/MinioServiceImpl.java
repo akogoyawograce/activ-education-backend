@@ -167,11 +167,16 @@ public class MinioServiceImpl implements MinioService {
 
             StatObjectResponse stat = minioClient.statObject(statObjectArgs);
 
+            String contentType = stat.contentType();
+            if (contentType == null || contentType.isBlank()) {
+                contentType = "application/octet-stream";
+            }
+
             FileMetadata.FileMetadataBuilder metadataBuilder = FileMetadata.builder()
                     .fileName(fileName)
                     .bucketName(bucketName)
                     .fileSize(stat.size())
-                    .contentType(stat.contentType())
+                    .contentType(contentType)
                     .createdAt(LocalDateTime.ofInstant(stat.lastModified().toInstant(), ZoneId.systemDefault()))
                     .lastModified(LocalDateTime.ofInstant(stat.lastModified().toInstant(), ZoneId.systemDefault()))
                     .etag(stat.etag());

@@ -62,7 +62,7 @@ public class MinioController {
         return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/download/{fileType}/{fileName}")
+    @GetMapping("/download/{fileType}/{fileName:.+}")
     @Operation(summary = "Télécharger un fichier", description = "Télécharge un fichier depuis MinIO")
     @ApiResponse(responseCode = "200", description = "Fichier téléchargé avec succès")
     @ApiResponse(responseCode = "404", description = "Fichier non trouvé")
@@ -73,9 +73,14 @@ public class MinioController {
         log.info("Downloading file: {} of type: {}", fileName, fileType);
         FileDownloadResponse response = minioService.downloadFile(fileName, fileType);
 
+        String contentType = response.getContentType();
+        if (contentType == null || contentType.isBlank()) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+
         Long fileSize = response.getFileSize();
         ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(response.getContentType()))
+                .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + response.getFileName() + "\"");
         if (fileSize != null) {
             builder.contentLength(fileSize);
@@ -83,7 +88,7 @@ public class MinioController {
         return builder.body(new InputStreamResource(response.getInputStream()));
     }
 
-    @GetMapping("/stream/{fileType}/{fileName}")
+    @GetMapping("/stream/{fileType}/{fileName:.+}")
     @Operation(summary = "Streamer un fichier", description = "Streame un fichier depuis MinIO pour lecture directe")
     @ApiResponse(responseCode = "200", description = "Fichier streamé avec succès")
     @ApiResponse(responseCode = "404", description = "Fichier non trouvé")
@@ -94,8 +99,13 @@ public class MinioController {
         log.info("Streaming file: {} of type: {}", fileName, fileType);
         FileDownloadResponse response = minioService.downloadFile(fileName, fileType);
 
+        String contentType = response.getContentType();
+        if (contentType == null || contentType.isBlank()) {
+            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+
         ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(response.getContentType()))
+                .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + response.getFileName() + "\"");
         Long fileSize = response.getFileSize();
         if (fileSize != null) {
