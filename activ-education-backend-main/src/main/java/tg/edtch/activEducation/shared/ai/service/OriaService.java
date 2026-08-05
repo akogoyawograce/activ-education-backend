@@ -125,12 +125,29 @@ public class OriaService {
     public OriaResponse sendMessageAndPersist(OriaRequest request, String userId) {
         String message = request.getMessage().trim();
 
+        // ── DEBUG (a) ── Message brut reçu
+        log.debug("[ORIA-DEBUG] (a) Reçu message brut userId={} message='{}'", userId, message);
+
         String validationError = validateMessage(message);
         if (validationError != null) {
+            log.debug("[ORIA-DEBUG] (a-bis) Validation KO: {}", validationError);
             return buildErrorResponse(validationError);
         }
 
         String sessionId = resolveSessionId(request, userId);
+        // ── DEBUG (b) ── Session ID résolue
+        log.debug("[ORIA-DEBUG] (b) sessionId='{}'", sessionId);
+
+        // ── DEBUG (c.1) ── Historique DB AVANT ajout du nouveau tour
+        // (permet de voir si l'historique est bien récupéré tour par tour)
+        var histoAvant = messageRepository.findBySessionIdOrderByMessageTimestampAsc(sessionId);
+        log.debug("[ORIA-DEBUG] (c.1) Historique DB (tours précédents) taille={} contenu={}",
+            histoAvant.size(),
+            histoAvant.stream()
+                .map(m -> "[" + m.getRole() + " " + m.getMessageTimestamp() + "] " + abreger(m.getContenu(), 80))
+                .collect(Collectors.toList())
+        );
+
         OriaSession session = getOrCreateSession(sessionId, request.getContexteOrientation());
 
         var now = Instant.now();
@@ -141,13 +158,46 @@ public class OriaService {
             session.messages.remove(0);
         }
 
+        // ── DEBUG (c.2) ── Historique RAM après ajout du tour courant
+        // (vérifie que le message courant est bien le dernier)
+        log.debug("[ORIA-DEBUG] (c.2) Historique RAM (post-add) taille={} DERNIER_MSG='{}' role={}",
+            session.messages.size(),
+            abreger(session.messages.get(session.messages.size() - 1).contenu, 100),
+            session.messages.get(session.messages.size() - 1).role
+        );
+
         try {
             var contexte = rechercherContexte(message);
+            // ── DEBUG (d + e) ── Résultat RAG
+            log.debug("[ORIA-DEBUG] (d) RAG result: contexte={}",
+                contexte == null ? "null"
+                    : (contexte.contains("Aucune fiche ne correspond") ? "VIDE (contexteVide)" : "OK longueur=" + contexte.length()));
+            if (contexte != null) {
+                log.debug("[ORIA-DEBUG] (e) Bloc contexte EXACT:\n{}", abreger(contexte, 600));
+            }
+
             String resume = profilOrientationRepository.findByUserId(userId)
                 .map(ProfilOrientation::getResumeParcours)
                 .filter(s -> !s.isBlank())
                 .orElse(null);
+
+            // ── DEBUG (f) ── Profil orientation
+            var profOpt = profilOrientationRepository.findByUserId(userId);
+            log.debug("[ORIA-DEBUG] (f) ProfilOrientation userId={} domainesInteret={} resumeParcours={}",
+                userId,
+                profOpt.map(ProfilOrientation::getDomainesInteret).orElse("(absent)"),
+                resume == null ? "(absent)" : abreger(resume, 150)
+            );
+
+            // ── DEBUG (g) ── Payload complet envoyé au LLM
+            // On reconstruit le payload exact comme dans callOllama/OpenAI/Groq
+            String payloadDebug = buildPayloadForDebug(session, contexte, resume);
+            log.debug("[ORIA-DEBUG] (g) Payload LLM complet (system+historique+user):\n{}", payloadDebug);
+
             String response = callLLM(session, contexte, resume);
+            // ── DEBUG (h) ── Réponse brute du provider
+            log.debug("[ORIA-DEBUG] (h) Provider a répondu: '{}'", response);
+
             var responseTime = Instant.now();
             session.messages.add(new ChatMessage("assistant", response, responseTime));
             saveMessage(sessionId, "assistant", response, responseTime, userId);
@@ -161,7 +211,7 @@ public class OriaService {
 
             return new OriaResponse(response, sessionId, historique);
         } catch (Exception e) {
-            log.error("Erreur ORIA: {}", e.getMessage());
+            log.error("[ORIA-DEBUG] (catch) Erreur ORIA: {}", e.getMessage(), e);
             session.messages.remove(session.messages.size() - 1);
             List<MessageDto> historique = session.messages.stream()
                 .map(m -> new MessageDto(m.role, m.contenu, m.timestamp))
@@ -172,6 +222,26 @@ public class OriaService {
                 sessionId, historique
             );
         }
+    }
+
+    /**
+     * Construit le payload EXACT envoyé au LLM (system + historique + user courant)
+     * pour le debug. NE PAS UTILISER EN PRODUCTION (coût CPU).
+     * Cohérent avec callOllama() / callOpenAI() / callGroq() lignes 306, 351, 395.
+     */
+    private String buildPayloadForDebug(OriaSession session, String contexteRecherche, String resumeParcours) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("--- SYSTEM ---\n")
+          .append(buildSystemPrompt(session.contexteOrientation, resumeParcours));
+        if (contexteRecherche != null) sb.append(contexteRecherche);
+        sb.append("\n--- HISTORIQUE (");
+        sb.append(session.messages.size()).append(" msgs) ---\n");
+        for (ChatMessage msg : session.messages) {
+            sb.append("[").append(msg.role).append("] ")
+              .append(abreger(msg.contenu, 200)).append("\n");
+        }
+        sb.append("--- FIN PAYLOAD ---");
+        return sb.toString();
     }
 
     private void saveMessage(String sessionId, String role, String contenu, Instant timestamp, String userId) {
@@ -468,9 +538,20 @@ public class OriaService {
 
     private String rechercherContexteMotCle(String message) {
         var mots = message.toLowerCase().replaceAll("[^a-zàâçéèêëîïôûùüÿœ ]", " ").trim();
-        if (mots.isBlank()) return contexteVide(message);
+        // ── DEBUG (d.1) ── Requête LIKE générée
+        log.debug("[ORIA-DEBUG] (d.1) rechercherContexteMotCle : motCleNormalisé='{}' (depuis message='{}')",
+            abreger(mots, 200), abreger(message, 80));
+        if (mots.isBlank()) {
+            log.debug("[ORIA-DEBUG] (d.2) Message vide après normalisation → contexte vide");
+            return contexteVide(message);
+        }
         var resultats = ficheRepository.rechercherParMotCle(mots,
             org.springframework.data.domain.PageRequest.of(0, 5));
+        // ── DEBUG (d.3) ── Nombre de résultats RAG
+        log.debug("[ORIA-DEBUG] (d.3) RAG mot-clé : {} résultat(s) → titres={}",
+            resultats.getNumberOfElements(),
+            resultats.getContent().stream().map(f -> f.getTitre()).collect(Collectors.toList())
+        );
         if (resultats.isEmpty()) return contexteVide(message);
         return formaterContexte(resultats.getContent());
     }
