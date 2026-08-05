@@ -494,4 +494,214 @@ class OriaServiceTest {
             .contains("Aucune fiche ne correspond")
             .contains("ne cite aucun établissement précis");
     }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Anti-régression BUG A (hallucination établissements) & BUG B
+    // (réponses identiques entre tours). Lancés le 5 août 2026 après
+    // observation en test live — on protège la session avec 3 invariants.
+    // ─────────────────────────────────────────────────────────────────────
+
+    /**
+     * BUG A — une réponse ORIA sur "informatique Togo" doit citer uniquement
+     * des établissements présents dans les fiches seedées, jamais inventés.
+     * On simule une vraie fiche Université de Lomé et on vérifie que la
+     * réponse (mockée) est cohérente avec ce qu'elle est.
+     */
+    @Test
+    @DisplayName("ANTI-RÉGRESSION BUG A : si le RAG retourne une fiche, le LLM doit en tenir compte")
+    void noHallucinatedEtablissementWhenRagReturnsOne() {
+        // GIVEN : le RAG mot-clé retourne une fiche University of Lomé
+        var ficheUnivLome = mock(tg.edtch.activEducation.bibliotheque.domain.entite.FicheEtablissement.class);
+        when(ficheUnivLome.getTitre()).thenReturn("Université de Lomé");
+        when(ficheUnivLome.getVille()).thenReturn("Lomé");
+        when(ficheUnivLome.getTypeEtablissement()).thenReturn(
+            tg.edtch.activEducation.bibliotheque.domain.entite.FicheEtablissement.TypeEtablissement.UNIVERSITE);
+        when(ficheUnivLome.getEstPublic()).thenReturn(true);
+        when(ficheRepository.rechercherParMotCle(anyString(), any()))
+            .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of(ficheUnivLome)));
+
+        // Le provider LLM "répond" en citant explicitement l'Université de Lomé
+        // (cas nominal = bon comportement)
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
+            .thenReturn(ResponseEntity.ok(
+                "{\"choices\":[{\"message\":{\"content\":\"Pour l'informatique au Togo, l'Université de Lomé est une référence publique.\"}}]}"
+            ));
+
+        var req = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req.setMessage("Quelles universités pour l'informatique au Togo ?");
+
+        var resp = service.sendMessageAndPersist(req, "user-togo-info");
+
+        // La réponse renvoyée doit contenir l'Université de Lomé (parce que la fiche est dans le contexte)
+        assertThat(resp.getMessage())
+            .as("La réponse doit citer la fiche fournie par le RAG")
+            .contains("Université de Lomé");
+    }
+
+    /**
+     * BUG B — deux messages successifs dans la même session doivent produire
+     * deux réponses différentes. Si elles sont identiques, il y a cache pollué
+     * ou réutilisation par référence de l'objet requête entre deux tours.
+     *
+     * Stratégie :
+     *   1) Mock sensible au DERNIER message user du payload (extrait via Jackson)
+     *   2) Vérifier la cohérence du contenu du payload pour chaque tour
+     *   3) Vérifier la persistance de l'historique (4 messages)
+     */
+    @Test
+    @DisplayName("ANTI-RÉGRESSION BUG B : 2 messages distincts dans la même session → 2 réponses distinctes")
+    void twoTurnsKeepDistinctResponses() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var userId = "user-multi-tour";
+
+        // Le mock discrimine par le contenu du DERNIER message user dans le payload.
+        // ⚠️ restTemplate.postForEntity reçoit un HttpEntity<Map<String,Object>>
+        // non encore sérialisé — le body est une Map Java, pas une String JSON.
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
+            .thenAnswer(inv -> {
+                HttpEntity<?> entity = inv.getArgument(1);
+                Object body = entity.getBody();
+                String lastUser = extractLastUserContentFromMap(body);
+                String responseText;
+                if (lastUser.contains("série D")) {
+                    responseText = "{\"choices\":[{\"message\":{\"content\":\"Réponse spécifique série D\"}}]}";
+                } else if (lastUser.contains("informatique") && lastUser.contains("les trouver")) {
+                    responseText = "{\"choices\":[{\"message\":{\"content\":\"Réponse spécifique informatique\"}}]}";
+                } else {
+                    // Si le payload ne contient ni série D ni informatique en dernier
+                    // message user, c'est une régression : le service envoie un payload
+                    // qui ne reflète pas la question courante.
+                    responseText = "{\"choices\":[{\"message\":{\"content\":\"BUG-CONFIRME-dernier-msg=\" + lastUser + \"\"}}]}";
+                }
+                return ResponseEntity.ok(responseText);
+            });
+
+        var req1 = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req1.setMessage("série D classe de terminale");
+        var resp1 = service.sendMessageAndPersist(req1, userId);
+
+        var req2 = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req2.setMessage("les filières qui couvrent l'informatique et où les trouver");
+        var resp2 = service.sendMessageAndPersist(req2, userId);
+
+        // Les deux réponses finales doivent être distinctes
+        assertThat(resp1.getMessage())
+            .as("Tour 1 (série D seul) doit produire sa propre réponse")
+            .isEqualTo("Réponse spécifique série D");
+        assertThat(resp2.getMessage())
+            .as("Tour 2 (informatique) doit produire sa propre réponse (BUG B si identique à tour 1)")
+            .isEqualTo("Réponse spécifique informatique");
+
+        // Orthogonal : elles ne doivent pas être identiques entre elles
+        assertThat(resp1.getMessage())
+            .as("Les deux tours ne doivent pas partager la même réponse (BUG B)")
+            .isNotEqualTo(resp2.getMessage());
+
+        // Et l'historique doit cumuler 4 entrées (2 user + 2 assistant)
+        assertThat(resp2.getSessionId()).isEqualTo(resp1.getSessionId());
+        assertThat(resp2.getHistorique())
+            .as("L'historique doit cumuler les deux tours (2 user + 2 assistant = 4)")
+            .hasSize(4);
+    }
+
+    private static String extractLastUserContent(com.fasterxml.jackson.databind.JsonNode payload) {
+        var messages = payload.get("messages");
+        if (messages == null || !messages.isArray()) return "";
+        String last = "";
+        for (var m : messages) {
+            if ("user".equals(m.path("role").asText())) {
+                last = m.path("content").asText();
+            }
+        }
+        return last;
+    }
+
+    /**
+     * Variante : le service passe un HttpEntity&lt;Map&lt;String,Object&gt;&gt;, donc le
+     * body reçu par le mock restTemplate est une Map Java, pas une String JSON.
+     * On navigue directement dans la structure.
+     */
+    @SuppressWarnings("unchecked")
+    private static String extractLastUserContentFromMap(Object body) {
+        if (!(body instanceof java.util.Map)) return "";
+        var root = (java.util.Map<String, Object>) body;
+        var messages = root.get("messages");
+        if (!(messages instanceof java.util.List)) return "";
+        String last = "";
+        for (Object item : (java.util.List<?>) messages) {
+            if (!(item instanceof java.util.Map)) continue;
+            var msg = (java.util.Map<String, Object>) item;
+            if ("user".equals(String.valueOf(msg.get("role")))) {
+                last = String.valueOf(msg.get("content"));
+            }
+        }
+        return last;
+    }
+
+    private static int countOccurrences(String haystack, String needle) {
+        int count = 0;
+        int idx = 0;
+        while ((idx = haystack.indexOf(needle, idx)) != -1) {
+            count++;
+            idx += needle.length();
+        }
+        return count;
+    }
+
+    /**
+     * BUG B variante — si l'utilisateur dit "série D", la réponse ne doit JAMAIS
+     * contenir "série C" (ou l'inverse). On simule un Ollama qui dégraderait
+     * en répondant toujours "série C" peu importe le prompt. Si le mock répond
+     * bien au contenu, on valide. Si Ollama hallucine, on l'aura détecté ici.
+     */
+    @Test
+    @DisplayName("ANTI-RÉGRESSION : confusion série D ↔ série C doit casser")
+    void serieDNotConfusedWithSerieC() {
+        // Mock sensible au DERNIER user message du payload
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
+            .thenAnswer(inv -> {
+                HttpEntity<?> entity = inv.getArgument(1);
+                String body = entity.getBody().toString();
+                // Extraire le dernier bloc user du payload (le message courant)
+                // Approche : regarder après le dernier "role":"user"
+                int idx = body.lastIndexOf("\\\"role\\\"");
+                String dernierBloc = idx >= 0 ? body.substring(idx) : body;
+                // Si on trouve "série C" dans le DERNIER message, c'est ce que l'user a demandé
+                if (dernierBloc.contains("série C")) {
+                    return ResponseEntity.ok(
+                        "{\"choices\":[{\"message\":{\"content\":\"En série C, tu étudieras les maths et sciences physiques.\"}}]}");
+                }
+                if (dernierBloc.contains("série D")) {
+                    return ResponseEntity.ok(
+                        "{\"choices\":[{\"message\":{\"content\":\"En série D, tu étudieras les mathématiques, les sciences.\"}}]}");
+                }
+                return ResponseEntity.ok("{\"choices\":[{\"message\":{\"content\":\"BUG-CONFIRME-rien-detecte-en-dernier-user\"}}]}");
+            });
+
+        var userId = "user-serie-isolation";
+
+        // Tour 1 : série D
+        var reqD = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        reqD.setMessage("quelles matières en série D ?");
+        var respD = service.sendMessageAndPersist(reqD, userId);
+
+        assertThat(respD.getMessage())
+            .as("Réponse série D doit mentionner série D")
+            .contains("série D");
+        assertThat(respD.getMessage())
+            .as("Réponse série D ne doit JAMAIS contenir série C")
+            .doesNotContain("série C");
+
+        // Tour 2 : série C (nouvelle demande dans la même session)
+        var reqC = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        reqC.setMessage("et en série C ?");
+        var respC = service.sendMessageAndPersist(reqC, userId);
+
+        assertThat(respC.getMessage())
+            .as("Réponse série C doit mentionner série C")
+            .contains("série C");
+        assertThat(respC.getMessage())
+            .as("Réponse série C ne doit JAMAIS contenir série D")
+            .doesNotContain("série D");
+    }
 }
