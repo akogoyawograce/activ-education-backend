@@ -401,4 +401,97 @@ class OriaServiceTest {
         // Sessions distinctes : pas de mélange d'historique
         assertThat(respA.getSessionId()).isNotEqualTo(respB.getSessionId());
     }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Correctifs hallucination établissements togolais (5 août 2026)
+    // Cf. JOURNAL_BORD_IA.md + plan floating-strolling-oasis.md
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("Ordre des providers : OpenAI > Groq > Ollama (clé OpenAI valide, Ollama jamais appelé)")
+    void providersAreTriedInReliabilityOrder() {
+        // Une clé OpenAI valide est injectée pour vérifier le nouvel ordre de priorité.
+        ReflectionTestUtils.setField(service, "openaiApiKey", "sk-test-valid");
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
+            .thenReturn(ResponseEntity.ok(
+                "{\"choices\":[{\"message\":{\"content\":\"Réponse OpenAI\"}}]}"
+            ));
+
+        var req = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req.setMessage("Question test");
+
+        var resp = service.sendMessage(req, "user-order");
+
+        // Le LLM a bien répondu (depuis OpenAI, par capture d'URL)
+        assertThat(resp.getMessage()).isEqualTo("Réponse OpenAI");
+
+        // Vérifier qu'OpenAI a été appelé et qu'Ollama ne l'a pas été.
+        // On capture l'URL appelée pour discriminer Ollama (mock-ollama:11434) d'OpenAI (api.openai.com).
+        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(restTemplate, atLeastOnce()).postForEntity(urlCaptor.capture(), any(), eq(String.class));
+        boolean openaiCalled = urlCaptor.getAllValues().stream()
+            .anyMatch(u -> u.contains("api.openai.com"));
+        boolean ollamaCalled = urlCaptor.getAllValues().stream()
+            .anyMatch(u -> u.contains("11434"));
+        assertThat(openaiCalled)
+            .as("OpenAI doit être appelé en priorité")
+            .isTrue();
+        assertThat(ollamaCalled)
+            .as("Ollama ne doit PAS être appelé quand OpenAI répond")
+            .isFalse();
+    }
+
+    @Test
+    @DisplayName("Ordre des providers : clé OpenAI 'REVOKED_*' est skippée → Ollama tenté directement")
+    void revokedApiKeyIsSkipped() {
+        // Clé révoquée (placeholder actuel : OPENAI_API_KEY=REVOKED_REPLACE_ME)
+        ReflectionTestUtils.setField(service, "openaiApiKey", "REVOKED_REPLACE_ME");
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
+            .thenReturn(ResponseEntity.ok(
+                "{\"choices\":[{\"message\":{\"content\":\"Réponse Ollama\"}}]}"
+            ));
+
+        var req = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req.setMessage("Question test");
+
+        var resp = service.sendMessage(req, "user-revoked");
+
+        // Ollama a répondu (puisque OpenAI révoqué + Groq vide)
+        assertThat(resp.getMessage()).isEqualTo("Réponse Ollama");
+
+        // Vérifier qu'on est tombé directement sur Ollama sans appeler OpenAI
+        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
+        verify(restTemplate, atLeastOnce()).postForEntity(urlCaptor.capture(), any(), eq(String.class));
+        boolean openaiCalled = urlCaptor.getAllValues().stream()
+            .anyMatch(u -> u.contains("api.openai.com"));
+        assertThat(openaiCalled)
+            .as("OpenAI révoqué ne doit PAS déclencher d'appel HTTP 401")
+            .isFalse();
+    }
+
+    @Test
+    @DisplayName("RAG : aucun résultat → message 'Aucune fiche' injecté au LLM (anti-hallucination)")
+    void emptyKeywordContextInjectsExplicitSignal() {
+        // Ollama unique provider (setUp), aucune fiche trouvée par le mot-clé
+        when(ficheRepository.rechercherParMotCle(anyString(), any()))
+            .thenReturn(org.springframework.data.domain.Page.empty());
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
+            .thenReturn(ResponseEntity.ok(
+                "{\"choices\":[{\"message\":{\"content\":\"Je n'ai pas d'info\"}}]}"
+            ));
+
+        var req = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req.setMessage("universités à Cotonou");
+
+        var resp = service.sendMessage(req, "user-empty-rag");
+
+        // Le prompt envoyé à Ollama doit contenir le signal explicite "Aucune fiche"
+        ArgumentCaptor<HttpEntity> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).postForEntity(anyString(), entityCaptor.capture(), eq(String.class));
+        String payload = entityCaptor.getValue().getBody().toString();
+        assertThat(payload)
+            .as("Le prompt doit signaler au LLM qu'aucune fiche n'a été trouvée")
+            .contains("Aucune fiche ne correspond")
+            .contains("ne cite aucun établissement précis");
+    }
 }

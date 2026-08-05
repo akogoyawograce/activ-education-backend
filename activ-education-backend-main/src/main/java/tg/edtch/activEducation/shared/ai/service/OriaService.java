@@ -24,6 +24,7 @@ import tg.edtch.activEducation.shared.ai.repository.ProfilOrientationRepository;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -274,22 +275,36 @@ public class OriaService {
     }
 
     private String callLLM(OriaSession session, String contexteRecherche, String resumeParcours) {
-        try {
-            return callOllama(session, contexteRecherche, resumeParcours);
-        } catch (Exception e) {
-            log.warn("Ollama a échoué, fallback: {}", e.getMessage());
+        // Ordre de fiabilité décroissante : OpenAI > Groq > Ollama (dev/fallback).
+        // Ollama (qwen2:0.5b) est trop petit pour ce use-case (cf. JOURNAL_BORD_IA.md 3 août).
+        List<Supplier<String>> providers = new ArrayList<>();
+        if (hasValidKey(openaiApiKey)) {
+            providers.add(() -> callOpenAI(session, contexteRecherche, resumeParcours));
         }
-        if (openaiApiKey != null && !openaiApiKey.isBlank()) {
+        if (hasValidKey(groqApiKey)) {
+            providers.add(() -> callGroq(session, contexteRecherche, resumeParcours));
+        }
+        // Ollama est toujours tenté en dernier recours (dev local sans clé, ou panne réseau).
+        providers.add(() -> callOllama(session, contexteRecherche, resumeParcours));
+
+        Exception lastError = null;
+        for (Supplier<String> provider : providers) {
             try {
-                return callOpenAI(session, contexteRecherche, resumeParcours);
+                return provider.get();
             } catch (Exception e) {
-                log.warn("OpenAI a échoué, fallback: {}", e.getMessage());
+                log.warn("Provider LLM a échoué, tentative suivante: {}", e.getMessage());
+                lastError = e;
             }
         }
-        if (groqApiKey != null && !groqApiKey.isBlank()) {
-            return callGroq(session, contexteRecherche, resumeParcours);
-        }
-        throw new RuntimeException("Aucun provider LLM disponible");
+        throw new RuntimeException("Aucun provider LLM disponible", lastError);
+    }
+
+    /**
+     * Détecte une clé API révoquée (placeholder) pour éviter un appel HTTP 401 inutile.
+     * Cohérent avec {@code OpenAIEmbeddingServiceImpl.hasValidOpenAiKey()} ligne 78.
+     */
+    private boolean hasValidKey(String key) {
+        return key != null && !key.isBlank() && !key.startsWith("REVOKED_");
     }
 
     private String callOllama(OriaSession session, String contexteRecherche) {
@@ -453,11 +468,26 @@ public class OriaService {
 
     private String rechercherContexteMotCle(String message) {
         var mots = message.toLowerCase().replaceAll("[^a-zàâçéèêëîïôûùüÿœ ]", " ").trim();
-        if (mots.isBlank()) return null;
+        if (mots.isBlank()) return contexteVide(message);
         var resultats = ficheRepository.rechercherParMotCle(mots,
             org.springframework.data.domain.PageRequest.of(0, 5));
-        if (resultats.isEmpty()) return null;
+        if (resultats.isEmpty()) return contexteVide(message);
         return formaterContexte(resultats.getContent());
+    }
+
+    /**
+     * Construit un bloc de contexte explicitement vide pour signaler au LLM
+     * qu'aucune fiche ne correspond. Sans ce signal, le modèle (surtout Ollama
+     * qwen2:0.5b) tend à inventer des établissements hors du Togo pour répondre
+     * quand même. Avec ce signal + la règle 5b du prompt système, il est
+     * contraint de dire "je n'ai pas l'information".
+     */
+    private String contexteVide(String message) {
+        return "\n\n--- INFORMATIONS DE LA BASE DE DONNÉES ---\n" +
+               "Aucune fiche ne correspond à « " + abreger(message, 80) + " » dans la base togolaise.\n" +
+               "Si tu réponds, signale clairement que tu n'as pas d'information vérifiée\n" +
+               "et ne cite aucun établissement précis.\n" +
+               "--- FIN DES INFORMATIONS ---\n";
     }
 
     private String formaterContexte(List<Fiche> fiches) {
@@ -525,6 +555,11 @@ public class OriaService {
               .append("université propose réellement une filière donnée, dis-le clairement plutôt que d'affirmer une \n")
               .append("information non vérifiée. Distingue explicitement ce que tu sais avec certitude de ce qui est une \n")
               .append("estimation ou une piste à vérifier. \n\n")
+              .append("5b. Si la section « INFORMATIONS DE LA BASE DE DONNÉES » ne contient pas l'établissement ou la filière \n")
+              .append("demandé(e), tu dois : répondre explicitement que tu n'as pas d'information vérifiée sur ce sujet dans \n")
+              .append("ta base, NE JAMAIS inventer un nom d'établissement (surtout pas hors du Togo si la question porte sur \n")
+              .append("le Togo), NE JAMAIS inventer un chiffre, une adresse, un site web ou un fait précis. Préfère « je \n")
+              .append("n'ai pas d'information vérifiée » à un nom inventé, même si l'utilisateur insiste. \n\n")
               .append("6. Format : réponses courtes et claires par défaut, listes à puces pour énumérer des filières/établissements, \n")
               .append("pas de blocs de texte denses. Une seule langue par réponse — jamais de mélange de caractères ou de mots \n")
               .append("d'une autre langue (ex. chinois, anglais) sauf si l'utilisateur écrit lui-même dans cette langue. \n\n")

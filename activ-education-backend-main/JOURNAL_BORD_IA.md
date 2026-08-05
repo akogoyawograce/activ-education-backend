@@ -281,3 +281,40 @@ Fichiers créés mais non commités (en attente des credentials) :
 
 **Note** : la première migration Flyway utile (V2) sera probablement liée à Supabase (changement de schéma, ajout de tables auth, etc.).
 
+---
+
+### Date : 5 Août 2026
+
+#### 1. Anti-hallucination ORIA sur les établissements togolais
+
+**Problème** : ORIA a renvoyé à un élève une liste d'établissements contenant `University of Cotonou (UCC)` (Bénin) et `Université de la Nouvelle-Calédonie (UNCN)` alors que la question portait sur les universités au Togo. Hallucination LLM, pas un bug HTTP.
+
+**Causes** :
+1. **Ordre des providers incohérent** : `callLLM()` tentait Ollama (`qwen2:0.5b`) en premier, qui est notoirement faible. La fiabilité décroissante aurait dû être OpenAI > Groq > Ollama.
+2. **Prompt trop permissif** : `buildSystemPrompt()` disait "zone de compétence principale Togo" mais autorisait l'international sur demande explicite, sans règle stricte anti-invention quand la base BDD est vide.
+3. **`rechercherContexteMotCle()` silencieuse** : renvoyait `null` si aucune fiche → le LLM recevait le prompt sans aucun signal "pas de contexte dispo", ce qui poussait le modèle à inventer.
+
+**Correctifs appliqués** dans `OriaService.java` :
+1. **`callLLM()` réordonné** : boucle `List<Supplier<String>>` qui tente OpenAI puis Groq puis Ollama (dernier recours). Helper `hasValidKey()` qui détecte le préfixe `REVOKED_` — cohérent avec `OpenAIEmbeddingServiceImpl.java:78`. Évite un appel HTTP 401 quand la clé est `REVOKED_REPLACE_ME`.
+2. **Règle 5b ajoutée au prompt** : « Si la section "INFORMATIONS DE LA BASE DE DONNÉES" ne contient pas l'établissement/filière demandé, NE JAMAIS inventer un nom (surtout pas hors du Togo si la question porte sur le Togo). Répondre explicitement "je n'ai pas d'information vérifiée" plutôt que d'inventer. »
+3. **`rechercherContexteMotCle()` → `contexteVide(message)`** : retourne un bloc de contexte `"Aucune fiche ne correspond à « <question> » dans la base togolaise [...] ne cite aucun établissement précis"` quand la recherche est vide, plutôt que `null`.
+
+**Tests ajoutés** (3 dans `OriaServiceTest`) :
+- `providersAreTriedInReliabilityOrder` : clé OpenAI valide → Ollama jamais appelé (ArgumentCaptor sur URL).
+- `revokedApiKeyIsSkipped` : clé `OPENAI_API_KEY=REVOKED_REPLACE_ME` → pas d'appel HTTP 401, on tombe direct sur Ollama.
+- `emptyKeywordContextInjectsExplicitSignal` : page BDD vide → le payload Ollama contient `Aucune fiche ne correspond` et `ne cite aucun établissement précis`.
+
+**Vérifications** :
+- ✅ `mvnw -o test -Dtest='OriaServiceTest'` → 16 tests verts (12 anciens + 3 nouveaux, 1 skipped préexistant).
+- ✅ `mvnw -o test` (suite complète) → 95/95 verts, aucune régression.
+
+**Hors scope (sprint dédié)** :
+- **`FicheRepository.rechercherParMotCle()` — filtre géographique en base** : nécessite ajouter un champ `pays` ou `estTogolais` sur l'entité `Fiche`, ce qui implique migration Flyway V2 + retrait de `ddl-auto=update`. À traiter dans un sprint "filtre géographique RAG".
+
+**Fichiers modifiés** :
+- `shared/ai/service/OriaService.java`
+- `shared/ai/service/impl/OpenAIEmbeddingServiceImpl.java` (référence au pattern `REVOKED_`, pas modifié)
+- `src/test/java/.../shared/ai/service/OriaServiceTest.java`
+
+**Note transférée de la session 3 août** : ce correctif ferme le point identifié au §1 du journal précédent (cartographie comportementale d'ORIA en environnement dégradé). L'environnement reste dégradé (clés révoquées → Ollama seul), mais le comportement est désormais borné par la règle 5b du prompt.
+
