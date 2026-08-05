@@ -42,3 +42,7 @@ activ-education-backend-main/Dockerfile.prod
 activ-education-backend-main/docker-compose.prod.yml
 activ-education-backend-main/nginx*.conf
 activ-education-backend-main/.env.prod*
+
+# Logs
+*.log
+backend.log
