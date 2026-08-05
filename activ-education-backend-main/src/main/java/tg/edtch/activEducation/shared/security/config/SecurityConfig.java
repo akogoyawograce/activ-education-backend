@@ -23,6 +23,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import tg.edtch.activEducation.shared.security.filter.JwtAuthenticationFilter;
 import tg.edtch.activEducation.shared.security.filter.RateLimitingFilter;
+import tg.edtch.activEducation.shared.security.filter.SupabaseJwtAuthenticationFilter;
 import tg.edtch.activEducation.shared.security.userdetails.UtilisateurDetailsService;
 
 import java.util.List;
@@ -34,6 +35,7 @@ import java.util.List;
 public class SecurityConfig {
 
         private final JwtAuthenticationFilter jwtAuthFilter;
+        private final SupabaseJwtAuthenticationFilter supabaseJwtAuthFilter;
         private final RateLimitingFilter rateLimitingFilter;
         private final UtilisateurDetailsService userDetailsService;
 
@@ -151,6 +153,8 @@ public class SecurityConfig {
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/eleves/*/bulletins")
                                                 .authenticated()
                                                 .requestMatchers(HttpMethod.POST, "/api/v1/eleves/*/bulletins",
+                                                                "/api/v1/eleves/*/bulletins/preview",
+                                                                "/api/v1/eleves/*/bulletins/confirm",
                                                                 "/api/v1/eleves/*/bulletins/batch")
                                                 .authenticated()
 
@@ -206,6 +210,7 @@ public class SecurityConfig {
                                                 // Tout le reste nécessite d'être authentifié
                                                 .anyRequest().authenticated())
                                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                                .addFilterAfter(supabaseJwtAuthFilter, JwtAuthenticationFilter.class)
                                 .addFilterBefore(rateLimitingFilter, JwtAuthenticationFilter.class)
                                 .exceptionHandling(ex -> ex
                                                 .authenticationEntryPoint((request, response, authException) -> response
