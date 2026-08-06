@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import tg.edtch.activEducation.bibliotheque.domain.entite.Fiche;
+import tg.edtch.activEducation.bibliotheque.domain.entite.FicheEtablissement;
+import tg.edtch.activEducation.bibliotheque.domain.entite.FicheFiliere;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,11 +26,72 @@ public interface FicheRepository extends JpaRepository<Fiche, Long> {
 
         Page<Fiche> findAllByEstPublieTrue(Pageable pageable);
 
-        @Query("SELECT f FROM Fiche f WHERE f.estPublie = true AND " +
-                        "(LOWER(f.titre) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
-                        " LOWER(f.resume) LIKE LOWER(CONCAT('%', :terme, '%')) OR " +
-                        " LOWER(f.contenu) LIKE LOWER(CONCAT('%', :terme, '%')))")
-        Page<Fiche> rechercherParMotCle(@Param("terme") String terme, Pageable pageable);
+        /**
+         * Recherche par mot-clé étendue aux colonnes des sous-classes JOINED
+         * (ville, type_etablissement, domaine filière) avec normalisation
+         * d'accents via l'extension PostgreSQL unaccent (créée au démarrage
+         * si absente — cf. migration V0).
+         *
+         * Avant le 6 août 2026, la requête ne touchait que titre/resume/contenu
+         * de la table parente — d'où 0 résultat sur 'Lomé' (ville) ou 'informatique'
+         * (domaine filière). Cf. JOURNAL_BORD_IA.md 6 août §2.
+         *
+         * Étape 1 : retourne les IDs matchant (en SQL natif avec unaccent).
+         * Étape 2 : réhydrate les entités polymorphes via trouverParIdsOrdonnes
+         * (même pattern que rechercherIdsParSimilariteGlobale pour contourner
+         * le bug Hibernate JOINED + SQL natif où la colonne 'clazz_' manque).
+         */
+        @Query(value = "SELECT DISTINCT f.id FROM fiches f " +
+                        "LEFT JOIN fiches_etablissement fe ON fe.id = f.id " +
+                        "LEFT JOIN fiches_filiere ff ON ff.id = f.id " +
+                        "WHERE f.est_publie = true AND " +
+                        "(unaccent(LOWER(f.titre)) LIKE unaccent(LOWER(CONCAT('%', :terme, '%'))) OR " +
+                        " unaccent(LOWER(f.resume)) LIKE unaccent(LOWER(CONCAT('%', :terme, '%'))) OR " +
+                        " unaccent(LOWER(f.contenu)) LIKE unaccent(LOWER(CONCAT('%', :terme, '%'))) OR " +
+                        " unaccent(LOWER(fe.ville)) LIKE unaccent(LOWER(CONCAT('%', :terme, '%'))) OR " +
+                        " unaccent(LOWER(fe.type_etablissement)) LIKE unaccent(LOWER(CONCAT('%', :terme, '%'))) OR " +
+                        " unaccent(LOWER(ff.domaine)) LIKE unaccent(LOWER(CONCAT('%', :terme, '%'))))",
+                countQuery = "SELECT COUNT(DISTINCT f.id) FROM fiches f " +
+                        "LEFT JOIN fiches_etablissement fe ON fe.id = f.id " +
+                        "LEFT JOIN fiches_filiere ff ON ff.id = f.id " +
+                        "WHERE f.est_publie = true AND " +
+                        "(unaccent(LOWER(f.titre)) LIKE unaccent(LOWER(CONCAT('%', :terme, '%'))) OR " +
+                        " unaccent(LOWER(f.resume)) LIKE unaccent(LOWER(CONCAT('%', :terme, '%'))) OR " +
+                        " unaccent(LOWER(f.contenu)) LIKE unaccent(LOWER(CONCAT('%', :terme, '%'))) OR " +
+                        " unaccent(LOWER(fe.ville)) LIKE unaccent(LOWER(CONCAT('%', :terme, '%'))) OR " +
+                        " unaccent(LOWER(fe.type_etablissement)) LIKE unaccent(LOWER(CONCAT('%', :terme, '%'))) OR " +
+                        " unaccent(LOWER(ff.domaine)) LIKE unaccent(LOWER(CONCAT('%', :terme, '%'))))",
+                nativeQuery = true)
+        List<Long> rechercherIdsParMotCle(@Param("terme") String terme);
+
+        /**
+         * Helper compatible avec l'ancienne signature (Pageable, utilisée par
+         * OriaService) : applique la recherche et réhydrate via
+         * trouverParIdsOrdonnes. Le Pageable sert uniquement à limiter.
+         *
+         * ⚠️ trouverParIdsOrdonnes a une ORDER BY CASE WHEN :ids.get(N) fixe
+         * pour N=0..9. Si on a moins de 10 IDs, on contourne avec un findAllById
+         * simple (ordre moins pertinent mais pas d'IndexOutOfBounds).
+         */
+        default Page<Fiche> rechercherParMotCle(String terme, Pageable pageable) {
+                if (terme == null || terme.isBlank()) {
+                        return new org.springframework.data.domain.PageImpl<>(java.util.List.of(), pageable, 0);
+                }
+                var ids = rechercherIdsParMotCle(terme);
+                if (ids.isEmpty()) {
+                        return new org.springframework.data.domain.PageImpl<>(java.util.List.of(), pageable, 0);
+                }
+                int limit = Math.min(ids.size(), pageable.getPageSize());
+                var idsLimites = ids.subList(0, limit);
+                java.util.List<Fiche> fiches;
+                if (idsLimites.size() < 10) {
+                    // Pas assez d'IDs pour le ORDER BY CASE de trouverParIdsOrdonnes
+                    fiches = findAllById(idsLimites);
+                } else {
+                    fiches = trouverParIdsOrdonnes(idsLimites);
+                }
+                return new org.springframework.data.domain.PageImpl<>(fiches, pageable, ids.size());
+        }
 
         @Modifying
         @Query("UPDATE Fiche f SET f.nbConsultations = f.nbConsultations + 1 WHERE f.id = :id")

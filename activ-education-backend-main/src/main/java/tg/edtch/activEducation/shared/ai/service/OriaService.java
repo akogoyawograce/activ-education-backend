@@ -545,15 +545,45 @@ public class OriaService {
             log.debug("[ORIA-DEBUG] (d.2) Message vide après normalisation → contexte vide");
             return contexteVide(message);
         }
-        var resultats = ficheRepository.rechercherParMotCle(mots,
-            org.springframework.data.domain.PageRequest.of(0, 5));
-        // ── DEBUG (d.3) ── Nombre de résultats RAG
+
+        // Split en mots individuels ≥ 3 chars : permet à LIKE '%lome%' de matcher
+        // un titre 'American Institute of Commonwealth (AIC-Togo)' qui ne contient
+        // pas la phrase entière 'quelles écoles se trouvent à lomé'. Le repository
+        // recherche sur titre+resume+contenu ; un seul mot suffit. Cf. JOURNAL_BORD_IA.md
+        // 6 août 2026 §2.
+        var motsCles = java.util.Arrays.stream(mots.split("\\s+"))
+            .filter(m -> m.length() >= 3)
+            // Stop words français minimaux — évite de chercher 'est', 'les', 'des'
+            .filter(m -> !java.util.Set.of("est", "les", "des", "une", "pour", "avec", "dans", "sur", "que", "qui", "quoi", "comment", "moi", "toi", "nous", "vous", "fait", "faire", "etre", "sont", "peut", "tout", "tous", "cette", "mon", "ton", "son", "mes", "tes", "ses", "leur", "leurs").contains(m))
+            .distinct()
+            .toList();
+        log.debug("[ORIA-DEBUG] (d.1b) Mots-clés après split={}", motsCles);
+
+        if (motsCles.isEmpty()) {
+            log.debug("[ORIA-DEBUG] (d.2b) Aucun mot-clé significatif → contexte vide");
+            return contexteVide(message);
+        }
+
+        // Agrège les résultats de chaque mot-clé, déduplique par fiche.id, garde les 5 premiers.
+        // On ne fait pas un OR SQL car le repository ne le supporte pas nativement — N requêtes
+        // de 5 résultats coûtent moins cher qu'un LIKE %X%Y%Z%.
+        java.util.LinkedHashMap<Long, Fiche> agregat = new java.util.LinkedHashMap<>();
+        for (var mot : motsCles) {
+            var res = ficheRepository.rechercherParMotCle(mot,
+                org.springframework.data.domain.PageRequest.of(0, 5));
+            for (var fiche : res.getContent()) {
+                agregat.putIfAbsent(fiche.getId(), fiche);
+                if (agregat.size() >= 5) break;
+            }
+            if (agregat.size() >= 5) break;
+        }
+        var resultats = new java.util.ArrayList<>(agregat.values());
         log.debug("[ORIA-DEBUG] (d.3) RAG mot-clé : {} résultat(s) → titres={}",
-            resultats.getNumberOfElements(),
-            resultats.getContent().stream().map(f -> f.getTitre()).collect(Collectors.toList())
+            resultats.size(),
+            resultats.stream().map(f -> f.getTitre()).collect(Collectors.toList())
         );
         if (resultats.isEmpty()) return contexteVide(message);
-        return formaterContexte(resultats.getContent());
+        return formaterContexte(resultats);
     }
 
     /**
