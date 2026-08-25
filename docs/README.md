@@ -9,10 +9,11 @@
 
 ```
 docs/
-├── memoire/          # Documentation pour la rédaction du mémoire de Licence Pro
-├── projet/           # Documentation technique et fonctionnelle du projet
-├── rapports/         # Rapports de sessions, audits, diagnostics
-└── README.md         # ← ce fichier (index)
+├── README.md         # ← ce fichier (index)
+├── memoire/          # 8 documents pour la rédaction du mémoire
+├── projet/           # 4 documents techniques du projet
+├── rapports/         # 4 rapports de sessions et résultats
+└── prompts-ia/       # 4 prompts et instructions pour l'IA (Claude, Copilot)
 ```
 
 ---
@@ -55,13 +56,25 @@ docs/
 
 ---
 
-## 📕 `docs/rapports/` — Rapports et comptes-rendus
+## 📕 `docs/rapports/` — Rapports de session et résultats
 
-*(à compléter avec les rapports de session, audits, diagnostics)*
+| # | Fichier | Contenu |
+|---|---------|---------|
+| 01 | `01-resultats-prototype.md` | Résultats du prototype |
+| 02 | `02-session-ses-104b.md` | Notes de session 104b (juillet 2026) |
+| 03 | `03-rapport-session-2026-07-17.md` | Rapport de session 17 juillet 2026 |
+| 04 | `04-recap-session-2026-08-06.md` | Récap session 6 août 2026 |
 
-| Fichier | Contenu |
-|---------|---------|
-| *(vide)* | Rapports de session, audits dette technique, bilans |
+---
+
+## 🤖 `docs/prompts-ia/` — Prompts et instructions pour l'IA
+
+| # | Fichier | Rôle |
+|---|---------|------|
+| 01 | `01-prompt-claude-module-prediction.md` | Prompt pour le module prédiction (Phase 5) |
+| 02 | `02-prompt-claude-memoire.md` | Prompt de rédaction du mémoire |
+| 03 | `03-instructions-claude.md` | Personnalisation Claude (mémoire stage) |
+| 04 | `04-collecte-donnees-entrainement.md` | Données d'entraînement (consignes) |
 
 ---
 
@@ -113,8 +126,25 @@ docs/
 |-----------|-----------|--------|
 | Mémoire | 8 | ~87 pages |
 | Projet | 4 | ~50 pages |
-| **Total organisé** | **12** | **~137 pages** |
+| Rapports | 4 | ~40 pages |
+| Prompts IA | 4 | ~15 pages |
+| **Total organisé** | **20** | **~192 pages** |
 
 ---
 
-> ✅ **Nettoyage effectué** : tous les doublons ont été supprimés. La source de vérité est désormais **`docs/`**.
+## ✅ Nettoyage effectué (2026-08-25)
+
+**Phase 1** : Création de `docs/` avec 12 documents numérotés + index
+**Phase 2** : Suppression des doublons racine + `document/`
+**Phase 3** : Réorganisation finale de la racine — 12 fichiers .md → **3 fichiers essentiels** :
+- `AGENTS.md`, `CLAUDE.md` (instructions IA lues au démarrage)
+- `memoire_activ_education.md` (mémoire en rédaction)
+
+**Déplacements** :
+- `RAPPORT_SESSION_*`, `RECAP_SESSION_*`, `RESULTATS_PROTOTYPE.md`, `session-ses_104b.md` → `docs/rapports/`
+- `prompt_claude_memoire.md`, `instructions_claude.md`, `PROMPT_CLAUDE_CODE_*`, `collecte_donnees_entrainement.md` → `docs/prompts-ia/`
+- 2 doublons racine (`Plan structuré...`, `Rapport de collecte...`) → supprimés (versions identiques dans `donnée/`)
+
+---
+
+> 🎯 **Source de vérité** : `docs/`. Les 3 fichiers à la racine sont les seuls justifiés (instructions IA + mémoire en cours).
