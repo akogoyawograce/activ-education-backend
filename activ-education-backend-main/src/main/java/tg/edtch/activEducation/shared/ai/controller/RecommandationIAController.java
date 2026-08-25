@@ -8,9 +8,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tg.edtch.activEducation.prediction.application.dto.Recommandation3SignauxResponse;
 import tg.edtch.activEducation.prediction.application.service.Recommandation3SignauxService;
+import tg.edtch.activEducation.shared.ai.domain.dto.RecommandationIAResponse;
 import tg.edtch.activEducation.shared.ai.service.RecommandationIAService;
 
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -22,13 +22,20 @@ public class RecommandationIAController {
     private final RecommandationIAService recommandationIAService;
     private final Recommandation3SignauxService recommandation3SignauxService;
 
+    /**
+     * v1 : recommandation textuelle par IA (OpenAI/Groq/Ollama).
+     *
+     * <p>Retourne désormais un objet typé avec un champ {@code type}
+     * valant {@code OK}, {@code PROFIL_INCOMPLET} ou {@code ERREUR_LLM}.
+     * Le frontend peut afficher un bandeau dédié selon le type
+     * (cf. {@link RecommandationIAResponse}).</p>
+     */
     @GetMapping
     @Operation(summary = "v1 : Générer une recommandation textuelle par IA (OpenAI/Groq/Ollama)")
     @PreAuthorize("@security.isOwner(#trackingId) or hasRole('ADMIN')")
-    public ResponseEntity<Map<String, String>> generer(
+    public RecommandationIAResponse generer(
             @PathVariable UUID trackingId) {
-        String recommandation = recommandationIAService.genererRecommandation(trackingId);
-        return ResponseEntity.ok(Map.of("recommandation", recommandation));
+        return recommandationIAService.genererRecommandation(trackingId);
     }
 
     /**

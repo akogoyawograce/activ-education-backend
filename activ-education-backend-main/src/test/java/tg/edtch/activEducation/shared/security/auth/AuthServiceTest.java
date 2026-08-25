@@ -15,6 +15,7 @@ import tg.edtch.activEducation.profil.domain.entite.Utilisateur;
 import tg.edtch.activEducation.profil.domain.entite.Eleve;
 import tg.edtch.activEducation.profil.repository.UtilisateurRepository;
 import tg.edtch.activEducation.shared.security.auth.dto.*;
+import tg.edtch.activEducation.shared.email.EmailService;
 import tg.edtch.activEducation.shared.security.jwt.JwtService;
 import tg.edtch.activEducation.shared.security.totp.TotpService;
 import tg.edtch.activEducation.shared.security.userdetails.CustomUserDetails;
@@ -51,6 +52,8 @@ class AuthServiceTest {
     private TotpService totpService;
     @Mock
     private AuditLogService auditLogService;
+    @Mock
+    private EmailService emailService;
 
     private AuthServiceImpl authService;
 
@@ -59,7 +62,7 @@ class AuthServiceTest {
         authService = new AuthServiceImpl(
                 refreshTokenRepository, utilisateurRepository, jwtService,
                 authenticationManager, redisTemplate, passwordEncoder,
-                totpService, auditLogService);
+                totpService, auditLogService, emailService);
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOps);
     }
 
@@ -106,6 +109,7 @@ class AuthServiceTest {
         authService.forgotPassword("test@test.com");
 
         verify(valueOps).set(eq("otp:test@test.com"), anyString(), eq(300L), eq(TimeUnit.SECONDS));
+        verify(emailService).envoyerCodeOtp(eq("test@test.com"), anyString(), eq("la réinitialisation de votre mot de passe"));
     }
 
     @Test

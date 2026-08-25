@@ -90,7 +90,7 @@ public class SupabaseStorageServiceImpl implements MinioService {
     public FileDownloadResponse downloadFile(String fileName, FileType fileType) {
         try {
             String bucketId = getBucketId(fileType);
-            String url = storageUrl + "/object/authenticated/" + bucketId + "/" + fileName;
+            String url = storageUrl + "/object/" + bucketId + "/" + fileName;
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("apikey", anonKey);
@@ -143,7 +143,7 @@ public class SupabaseStorageServiceImpl implements MinioService {
     public FileMetadata getFileMetadata(String fileName, FileType fileType) {
         try {
             String bucketId = getBucketId(fileType);
-            String url = storageUrl + "/object/info/public/" + bucketId + "/" + fileName;
+            String url = storageUrl + "/object/info/" + bucketId + "/" + fileName;
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("apikey", anonKey);
@@ -225,7 +225,7 @@ public class SupabaseStorageServiceImpl implements MinioService {
     public boolean fileExists(String fileName, FileType fileType) {
         try {
             String bucketId = getBucketId(fileType);
-            String url = storageUrl + "/object/info/public/" + bucketId + "/" + fileName;
+            String url = storageUrl + "/object/info/" + bucketId + "/" + fileName;
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("apikey", anonKey);
@@ -264,7 +264,7 @@ public class SupabaseStorageServiceImpl implements MinioService {
     public byte[] getFileContentAsBytes(String fileName, FileType fileType) {
         try {
             String bucketId = getBucketId(fileType);
-            String url = storageUrl + "/object/authenticated/" + bucketId + "/" + fileName;
+            String url = storageUrl + "/object/" + bucketId + "/" + fileName;
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("apikey", anonKey);

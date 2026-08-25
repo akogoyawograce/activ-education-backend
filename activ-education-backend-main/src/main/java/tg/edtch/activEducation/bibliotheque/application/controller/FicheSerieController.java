@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tg.edtch.activEducation.bibliotheque.application.dto.request.FicheSerieRequest;
 import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheSerieResponse;
+import tg.edtch.activEducation.bibliotheque.domain.service.FicheExplorerPersonnaliseeService;
 import tg.edtch.activEducation.bibliotheque.domain.service.FicheSerieService;
 
 import java.util.UUID;
@@ -24,6 +25,7 @@ import java.util.UUID;
 public class FicheSerieController {
 
     private final FicheSerieService serieService;
+    private final FicheExplorerPersonnaliseeService explorerPersonnaliseService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
@@ -41,10 +43,15 @@ public class FicheSerieController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister toutes les fiches séries (paginé)")
+    @Operation(summary = "Lister toutes les fiches séries (paginé) — personnalisé si eleveTrackingId fourni")
     public ResponseEntity<Page<FicheSerieResponse>> lister(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) UUID eleveTrackingId) {
+        if (eleveTrackingId != null) {
+            return ResponseEntity.ok(explorerPersonnaliseService
+                    .listerSeriesPersonnalisees(eleveTrackingId, PageRequest.of(page, size)));
+        }
         return ResponseEntity
                 .ok(serieService.listerToutes(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }

@@ -61,6 +61,16 @@ public class OpenAIEmbeddingServiceImpl implements AIEmbeddingService {
     @Value("${ollama.embedding.model:nomic-embed-text}")
     private String ollamaEmbeddingModel;
 
+    // Fallback chat (Ollama local) — ajouté 2026-08-06 pour que les
+    // endpoints qui dépendent de generateAnswer() (RecommandationIAService,
+    // ORIA via callOpenAI Groq fallback) restent fonctionnels quand la clé
+    // OpenAI est révoquée. Cohérent avec le pattern embeddings ci-dessus.
+    @Value("${ollama.chat.url:http://localhost:11434}")
+    private String ollamaChatUrl;
+
+    @Value("${ollama.chat.model:qwen2:0.5b}")
+    private String ollamaChatModel;
+
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -164,49 +174,125 @@ public class OpenAIEmbeddingServiceImpl implements AIEmbeddingService {
 
     @Override
     public String generateAnswer(String question, List<String> contextes) {
-        String url = chatUrl;
+        String prompt = buildPrompt(question, contextes);
+
+        // Décision : si la clé OpenAI est valide, on l'utilise. Sinon fallback Ollama local.
+        boolean openaiKeyValid = openaiApiKey != null
+            && !openaiApiKey.isBlank()
+            && !openaiApiKey.startsWith("REVOKED_");
+
+        if (!openaiKeyValid) {
+            log.info("Clé OpenAI invalide/absente → fallback chat Ollama (modèle: {})",
+                ollamaChatModel);
+            return callOllamaChat(prompt);
+        }
 
         try {
-            StringBuilder promptBuilder = new StringBuilder();
-            promptBuilder.append("Tu es le conseiller d'un établissement scolaire. ")
-                    .append("Réponds à la question de l'élève en te basant UNIQUEMENT sur le contexte suivant. ")
-                    .append("Si l'information ne s'y trouve pas, dis simplement que tu ne sais pas.\n\n")
-                    .append("CONTEXTE :\n");
-
-            for (int i = 0; i < contextes.size(); i++) {
-                promptBuilder.append("[").append(i + 1).append("] ").append(contextes.get(i)).append("\n");
-            }
-            promptBuilder.append("\nQUESTION : ").append(question);
-
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("model", chatModel);
-            payload.put("messages", List.of(Map.of("role", "user", "content", promptBuilder.toString())));
-            payload.put("temperature", 0.7);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setBearerAuth(chatApiKey());
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
-
-            var response = restTemplate.postForEntity(url, requestEntity, String.class);
-            JsonNode root = objectMapper.readTree(response.getBody());
-            JsonNode textNode = root.path("choices").get(0).path("message").path("content");
-
-            if (textNode.isMissingNode()) {
-                throw new RuntimeException("Aucun texte retourné par OpenAI");
-            }
-            return textNode.asText();
-
+            return callOpenAIChat(prompt);
         } catch (org.springframework.web.client.HttpClientErrorException e) {
+            // 429 = quota : on remonte le message dédié (l'appelant peut afficher
+            // un bandeau spécifique), pas de fallback Ollama (Ollama ne fixera
+            // pas le quota).
             if (e.getStatusCode().value() == 429) {
                 log.warn("Quota OpenAI dépassé (429). Modèle: {}", chatModel);
-                return "Notre assistant IA est momentanément indisponible (quota atteint). Veuillez réessayer dans quelques instants ou demain.";
+                throw new RuntimeException(
+                    "Notre assistant IA est momentanément indisponible (quota atteint). Veuillez réessayer dans quelques instants ou demain.");
             }
-            log.error("Erreur HTTP lors de la génération OpenAI: {} - {}", e.getStatusCode(), e.getMessage());
-            throw new RuntimeException("Erreur de génération RAG: " + e.getMessage());
+            // 4xx/5xx autre (401 clé révoquée en cours de route, 500 serveur, etc.) :
+            // fallback Ollama pour ne pas bloquer l'utilisateur.
+            log.warn("Échec OpenAI Chat ({}), tentative fallback Ollama : {}",
+                e.getStatusCode(), e.getMessage());
+            try {
+                return callOllamaChat(prompt);
+            } catch (Exception ollamaEx) {
+                log.error("Échec Ollama Chat après échec OpenAI : {}", ollamaEx.getMessage());
+                throw new RuntimeException("Erreur de génération RAG: " + e.getMessage());
+            }
         } catch (Exception e) {
-            log.error("Erreur lors de la génération de réponse OpenAI", e);
-            throw new RuntimeException("Erreur de génération RAG: " + e.getMessage());
+            // Erreur réseau / parsing / inattendue : fallback Ollama.
+            log.warn("Échec OpenAI Chat ({}), tentative fallback Ollama", e.getClass().getSimpleName());
+            try {
+                return callOllamaChat(prompt);
+            } catch (Exception ollamaEx) {
+                log.error("Échec Ollama Chat après échec OpenAI : {}", ollamaEx.getMessage());
+                throw new RuntimeException("Erreur de génération RAG: " + e.getMessage());
+            }
+        }
+    }
+
+    /** Construit le prompt utilisé pour OpenAI ET Ollama (même format). */
+    private String buildPrompt(String question, List<String> contextes) {
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("Tu es le conseiller d'un établissement scolaire. ")
+                .append("Réponds à la question de l'élève en te basant UNIQUEMENT sur le contexte suivant. ")
+                .append("Si l'information ne s'y trouve pas, dis simplement que tu ne sais pas.\n\n")
+                .append("CONTEXTE :\n");
+
+        for (int i = 0; i < contextes.size(); i++) {
+            promptBuilder.append("[").append(i + 1).append("] ").append(contextes.get(i)).append("\n");
+        }
+        promptBuilder.append("\nQUESTION : ").append(question);
+        return promptBuilder.toString();
+    }
+
+    /** Appel direct à OpenAI Chat (extrait pour permettre le fallback Ollama). */
+    private String callOpenAIChat(String prompt) throws Exception {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", chatModel);
+        payload.put("messages", List.of(Map.of("role", "user", "content", prompt)));
+        payload.put("temperature", 0.7);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(chatApiKey());
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
+
+        var response = restTemplate.postForEntity(chatUrl, requestEntity, String.class);
+        JsonNode root = objectMapper.readTree(response.getBody());
+        JsonNode textNode = root.path("choices").get(0).path("message").path("content");
+
+        if (textNode.isMissingNode()) {
+            throw new RuntimeException("Aucun texte retourné par OpenAI");
+        }
+        return textNode.asText();
+    }
+
+    /**
+     * Fallback chat via Ollama local (modèle {@code ollamaChatModel}, ex:
+     * {@code qwen2:0.5b}). Format Ollama : {@code POST /api/generate}
+     * avec {@code {"model":..., "prompt":..., "stream":false}}.
+     *
+     * <p>Référencé JOURNAL_BORD_IA.md (6 août 2026) — bug widget "Ma recommandation"
+     * : la clé OpenAI étant révoquée, generateAnswer() remontait une exception
+     * catchée par RecommandationIAService qui renvoyait un message générique
+     * sans tenter Ollama.</p>
+     */
+    private String callOllamaChat(String prompt) {
+        String url = ollamaChatUrl + "/api/generate";
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("model", ollamaChatModel);
+        payload.put("prompt", prompt);
+        payload.put("stream", false);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
+
+        try {
+            var response = restTemplate.postForEntity(url, requestEntity, String.class);
+            JsonNode root = objectMapper.readTree(response.getBody());
+            JsonNode textNode = root.path("response");
+
+            if (textNode.isMissingNode() || textNode.asText().isBlank()) {
+                log.error("Réponse inattendue de l'API Ollama Chat : {}", response.getBody());
+                throw new RuntimeException("Format de réponse invalide de l'API Ollama");
+            }
+            log.debug("Réponse Ollama Chat générée : {} caractères", textNode.asText().length());
+            return textNode.asText();
+        } catch (Exception e) {
+            log.error("Échec Ollama Chat : {}", e.getMessage());
+            throw new RuntimeException("Erreur de génération Ollama Chat: " + e.getMessage());
         }
     }
 

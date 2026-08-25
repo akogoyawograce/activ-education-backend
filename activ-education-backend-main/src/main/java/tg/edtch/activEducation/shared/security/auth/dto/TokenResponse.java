@@ -21,4 +21,6 @@ public class TokenResponse {
     private long expiresInMs;
     private boolean requires2fa;
     private String challengeToken;
+    /** "TOTP" ou "EMAIL" quand requires2fa=true (null = TOTP pour rétrocompatibilité). */
+    private String type2fa;
 }

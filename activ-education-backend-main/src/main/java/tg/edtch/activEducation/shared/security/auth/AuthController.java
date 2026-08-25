@@ -11,6 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import tg.edtch.activEducation.profil.domain.entite.Utilisateur;
+import tg.edtch.activEducation.shared.security.auth.dto.ChangementEmailRequest;
+import tg.edtch.activEducation.shared.security.auth.dto.EnvoyerOtpRequest;
 import tg.edtch.activEducation.shared.security.auth.dto.ForgotPasswordRequest;
 import tg.edtch.activEducation.shared.security.auth.dto.LoginRequest;
 import tg.edtch.activEducation.shared.security.auth.dto.OtpResponse;
@@ -87,6 +89,39 @@ public class AuthController {
         authService.forgotPassword(request.getEmail());
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Si un compte existe avec cet email, un code vous a été envoyé");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/otp/envoyer")
+    @Operation(summary = "Envoyer un code OTP à une adresse email (changement d'email, 2FA)")
+    public ResponseEntity<Map<String, Object>> envoyerCode(@Valid @RequestBody EnvoyerOtpRequest request) {
+        authService.envoyerCode(request.getEmail());
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Code envoyé à " + request.getEmail());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/email/change/demander")
+    @Operation(summary = "Étape 1 — demander le changement d'email (OTP envoyé au nouveau mail)")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> demanderChangementEmail(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody EnvoyerOtpRequest request) {
+        authService.demanderChangementEmail(userDetails, request.getEmail());
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Un code de vérification a été envoyé au nouvel email");
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/email/change/confirmer")
+    @Operation(summary = "Étape 2 — confirmer le changement d'email avec le code reçu")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> confirmerChangementEmail(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody ChangementEmailRequest request) {
+        authService.confirmerChangementEmail(userDetails, request.getNouveauEmail(), request.getCode());
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Adresse email mise à jour avec succès");
         return ResponseEntity.ok(response);
     }
 

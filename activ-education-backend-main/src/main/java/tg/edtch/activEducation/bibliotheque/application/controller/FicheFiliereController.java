@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tg.edtch.activEducation.bibliotheque.application.dto.request.FicheFiliereRequest;
 import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheFiliereResponse;
+import tg.edtch.activEducation.bibliotheque.domain.service.FicheExplorerPersonnaliseeService;
 import tg.edtch.activEducation.bibliotheque.domain.service.FicheFiliereService;
 
 import org.springframework.http.MediaType;
@@ -31,6 +32,7 @@ import java.util.UUID;
 public class FicheFiliereController {
 
     private final FicheFiliereService filiereService;
+    private final FicheExplorerPersonnaliseeService explorerPersonnaliseService;
 
     /** Création sans fichiers (JSON simple) */
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -91,10 +93,15 @@ public class FicheFiliereController {
     }
 
     @GetMapping
-    @Operation(summary = "Lister toutes les fiches filières (paginé)")
+    @Operation(summary = "Lister toutes les fiches filières (paginé) — personnalisé si eleveTrackingId fourni")
     public ResponseEntity<Page<FicheFiliereResponse>> lister(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) UUID eleveTrackingId) {
+        if (eleveTrackingId != null) {
+            return ResponseEntity.ok(explorerPersonnaliseService
+                    .listerFilieresPersonnalisees(eleveTrackingId, PageRequest.of(page, size)));
+        }
         return ResponseEntity
                 .ok(filiereService.listerToutes(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))));
     }

@@ -18,6 +18,7 @@ import tg.edtch.activEducation.profil.domain.entite.Eleve;
 import tg.edtch.activEducation.profil.domain.entite.NoteSaisiManuel;
 import tg.edtch.activEducation.profil.repository.EleveRepository;
 import tg.edtch.activEducation.profil.repository.NoteSaisiManuelRepository;
+import tg.edtch.activEducation.shared.ai.domain.dto.RecommandationIAResponse;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +40,22 @@ public class RecommandationIAService {
     private final FicheEtablissementRepository etablissementRepository;
     private final AIEmbeddingService aiService;
 
-    public String genererRecommandation(UUID eleveTrackingId) {
+    /**
+     * Construit la recommandation IA d'un élève.
+     *
+     * <p>Retourne désormais un {@link RecommandationIAResponse} typé pour
+     * distinguer 3 cas (cf. JOURNAL_BORD_IA.md, 6 août 2026) :
+     * <ul>
+     *   <li>{@code OK} : recommandation générée par le LLM</li>
+     *   <li>{@code PROFIL_INCOMPLET} : profil trop vide pour faire une
+     *       recommandation pertinente, message déterministe invitant à
+     *       compléter le profil</li>
+     *   <li>{@code ERREUR_LLM} : le LLM (OpenAI, Ollama, …) a échoué
+     *       malgré un profil complet, message invitant à réessayer</li>
+     * </ul>
+     * </p>
+     */
+    public RecommandationIAResponse genererRecommandation(UUID eleveTrackingId) {
         Eleve eleve = eleveRepository.findByTrackingId(eleveTrackingId)
                 .orElseThrow(() -> new RuntimeException("Élève introuvable"));
 
@@ -83,13 +99,23 @@ public class RecommandationIAService {
                 || aDesNotes || aDesQuiz;
 
         if (!profilRempli) {
-            return "Je n'ai pas encore assez d'informations sur toi pour te faire une recommandation personnalisée. "
-                    + "Pour obtenir ta recommandation, je te propose de :\n\n"
-                    + "1️⃣ Compléter ton profil (niveau, filière, métier souhaité)\n"
-                    + "2️⃣ Renseigner tes notes scolaires\n"
-                    + "3️⃣ Passer les quiz d'orientation (RIASEC, personnalité)\n\n"
-                    + "Une fois ces informations remplies, reviens ici et je pourrai te générer "
-                    + "une recommandation sur mesure adaptée à ton profil ! 🎯";
+            // Cas "profil incomplet" : message déterministe, AUCUN appel LLM.
+            // Le frontend affichera un bandeau bleu "complète ton profil" plutôt
+            // qu'un message d'erreur générique.
+            log.info("Recommandation IA : profil incomplet pour élève {} "
+                            + "(niveau={}, filiere={}, metier={}, matieres={}, notes={}, quiz={}) — "
+                            + "retour PROFIL_INCOMPLET sans appel LLM",
+                    eleveTrackingId,
+                    eleve.getNiveau(), eleve.getFiliere(), eleve.getMetierSouhaite(),
+                    eleve.getMatieresPreferees(), aDesNotes, aDesQuiz);
+            return RecommandationIAResponse.profilIncomplet(
+                "Je n'ai pas encore assez d'informations sur toi pour te faire une recommandation personnalisée. "
+                + "Pour obtenir ta recommandation, je te propose de :\n\n"
+                + "1️⃣ Compléter ton profil (niveau, filière, métier souhaité)\n"
+                + "2️⃣ Renseigner tes notes scolaires\n"
+                + "3️⃣ Passer les quiz d'orientation (RIASEC, personnalité)\n\n"
+                + "Une fois ces informations remplies, reviens ici et je pourrai te générer "
+                + "une recommandation sur mesure adaptée à ton profil ! 🎯");
         }
 
         List<FicheFiliere> filieres = filiereRepository.findAllByEstPublieTrue(
@@ -120,13 +146,24 @@ public class RecommandationIAService {
                 + "Sois encourageant et concret.";
 
         try {
-            return aiService.generateAnswer(question, List.of(
+            log.info("Recommandation IA : appel LLM pour élève {} (contexte : {} filières, {} métiers, {} établissements publiés)",
+                    eleveTrackingId, filieres.size(), metiers.size(), etablissements.size());
+            String reponse = aiService.generateAnswer(question, List.of(
                     profilBuilder.toString(),
                     contexteBuilder.toString()));
+            log.info("Recommandation IA : LLM OK pour élève {} ({} caractères)",
+                    eleveTrackingId, reponse.length());
+            return RecommandationIAResponse.ok(reponse);
         } catch (Exception e) {
-            log.error("Erreur génération recommandation IA", e);
-            return "Désolé, je n'ai pas pu générer une recommandation pour le moment. "
-                    + "Veuillez réessayer plus tard ou consulter un conseiller.";
+            // Cas "erreur LLM" : on a essayé d'appeler le LLM, il a échoué.
+            // On distingue maintenant ce cas de "profil incomplet" pour que
+            // le frontend affiche un bandeau "service indisponible, réessayez"
+            // plutôt qu'un message générique confus.
+            log.error("Erreur génération recommandation IA pour élève {}", eleveTrackingId, e);
+            return RecommandationIAResponse.erreurLlm(
+                "Le service de recommandation IA est momentanément indisponible. "
+                + "Réessaie dans quelques instants, ou complète ton profil pour "
+                + "améliorer la qualité des prochaines recommandations.");
         }
     }
 }

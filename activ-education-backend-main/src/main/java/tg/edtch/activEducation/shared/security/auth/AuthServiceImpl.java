@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tg.edtch.activEducation.profil.domain.entite.Utilisateur;
 import tg.edtch.activEducation.profil.repository.UtilisateurRepository;
+import tg.edtch.activEducation.shared.email.EmailService;
 import tg.edtch.activEducation.shared.security.auth.dto.ForgotPasswordRequest;
 import tg.edtch.activEducation.shared.security.auth.dto.LoginRequest;
 import tg.edtch.activEducation.shared.security.auth.dto.OtpResponse;
@@ -46,9 +47,11 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final TotpService totpService;
     private final AuditLogService auditLogService;
+    private final EmailService emailService;
 
     private static final String OTP_PREFIX = "otp:";
     private static final String TOTP_CHALLENGE_PREFIX = "totp_challenge:";
+    private static final String EMAIL_CHALLENGE_PREFIX = "email_challenge:";
     private static final String RESET_TOKEN_PREFIX = "reset_token:";
     private static final long OTP_TTL_SECONDS = 300;
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -77,6 +80,27 @@ public class AuthServiceImpl implements AuthService {
             return TokenResponse.builder()
                     .requires2fa(true)
                     .challengeToken(challengeToken)
+                    .type2fa("TOTP")
+                    .build();
+        }
+
+        if (est2faEmailActivePour(userDetails.getId())) {
+            String challengeToken = UUID.randomUUID().toString();
+            String challengeKey = EMAIL_CHALLENGE_PREFIX + challengeToken;
+            redisTemplate.opsForValue().set(challengeKey, String.valueOf(userDetails.getId()),
+                    300, TimeUnit.SECONDS);
+
+            Utilisateur utilisateur = utilisateurRepository.findById(userDetails.getId())
+                    .orElseThrow(() -> new InvalidTokenException("Utilisateur introuvable"));
+            genererEtEnvoyerOtp(utilisateur.getEmail(), "la double authentification par email");
+
+            auditLogService.log(request.getEmail(), "", "CONNEXION", "/api/v1/auth/login",
+                    "2FA email required", deviceInfo, null);
+
+            return TokenResponse.builder()
+                    .requires2fa(true)
+                    .challengeToken(challengeToken)
+                    .type2fa("EMAIL")
                     .build();
         }
 
@@ -160,7 +184,7 @@ public class AuthServiceImpl implements AuthService {
 
         redisTemplate.opsForValue().set(otpKey, otp, OTP_TTL_SECONDS, TimeUnit.SECONDS);
 
-        log.info("OTP pour {} : {} (valide {}s)", email, otp, OTP_TTL_SECONDS);
+        emailService.envoyerCodeOtp(email, otp, "la réinitialisation de votre mot de passe");
     }
 
     @Override
@@ -239,6 +263,133 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new InvalidTokenException("Utilisateur introuvable"));
 
         return generateTokens(new CustomUserDetails(utilisateur), "TOTP");
+    }
+
+    @Override
+    public void envoyerCode(String email) {
+        genererEtEnvoyerOtp(email, "la vérification de votre email");
+    }
+
+    @Override
+    @Transactional
+    public void demanderChangementEmail(CustomUserDetails userDetails, String nouveauEmail) {
+        if (nouveauEmail.equalsIgnoreCase(userDetails.getUsername())) {
+            throw new InvalidTokenException("Le nouvel email est identique à l'email actuel");
+        }
+
+        utilisateurRepository.findByEmail(nouveauEmail).ifPresent(other -> {
+            if (!other.getId().equals(userDetails.getId())) {
+                throw new InvalidTokenException("Cet email est déjà utilisé par un autre compte");
+            }
+        });
+
+        genererEtEnvoyerOtp(nouveauEmail, "le changement de votre adresse email");
+    }
+
+    @Override
+    @Transactional
+    public void confirmerChangementEmail(CustomUserDetails userDetails, String nouveauEmail, String code) {
+        verifierEtConsommerOtp(nouveauEmail, code);
+
+        Utilisateur utilisateur = utilisateurRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new InvalidTokenException("Utilisateur introuvable"));
+
+        utilisateur.setEmail(nouveauEmail);
+        utilisateur.setEmailVerifie(true);
+        utilisateurRepository.save(utilisateur);
+
+        refreshTokenRepository.revokeAllUserTokens(utilisateur.getId());
+
+        log.info("Email changé pour l'utilisateur {} → {}", userDetails.getId(), nouveauEmail);
+    }
+
+    @Override
+    @Transactional
+    public void activer2faEmail(CustomUserDetails userDetails) {
+        Utilisateur utilisateur = utilisateurRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new InvalidTokenException("Utilisateur introuvable"));
+
+        genererEtEnvoyerOtp(utilisateur.getEmail(), "l'activation de la double authentification par email");
+    }
+
+    @Override
+    @Transactional
+    public void confirmerActivation2faEmail(CustomUserDetails userDetails, String code) {
+        Utilisateur utilisateur = utilisateurRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new InvalidTokenException("Utilisateur introuvable"));
+
+        verifierEtConsommerOtp(utilisateur.getEmail(), code);
+
+        utilisateur.setEmail2faActif(true);
+        utilisateurRepository.save(utilisateur);
+
+        log.info("2FA email activée pour l'utilisateur {}", userDetails.getId());
+    }
+
+    @Override
+    @Transactional
+    public void desactiver2faEmail(CustomUserDetails userDetails, String code) {
+        Utilisateur utilisateur = utilisateurRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new InvalidTokenException("Utilisateur introuvable"));
+
+        verifierEtConsommerOtp(utilisateur.getEmail(), code);
+
+        utilisateur.setEmail2faActif(false);
+        utilisateurRepository.save(utilisateur);
+
+        log.info("2FA email désactivée pour l'utilisateur {}", userDetails.getId());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean statut2faEmail(CustomUserDetails userDetails) {
+        return utilisateurRepository.findById(userDetails.getId())
+                .map(u -> Boolean.TRUE.equals(u.getEmail2faActif()))
+                .orElse(false);
+    }
+
+    @Override
+    @Transactional
+    public TokenResponse completeEmail2faLogin(String challengeToken, String code) {
+        String challengeKey = EMAIL_CHALLENGE_PREFIX + challengeToken;
+        String userIdStr = redisTemplate.opsForValue().get(challengeKey);
+
+        if (userIdStr == null) {
+            throw new InvalidTokenException("Challenge OTP email invalide ou expiré");
+        }
+
+        redisTemplate.delete(challengeKey);
+
+        Long userId = Long.parseLong(userIdStr);
+        Utilisateur utilisateur = utilisateurRepository.findById(userId)
+                .orElseThrow(() -> new InvalidTokenException("Utilisateur introuvable"));
+
+        verifierEtConsommerOtp(utilisateur.getEmail(), code);
+
+        return generateTokens(new CustomUserDetails(utilisateur), "EMAIL_OTP");
+    }
+
+    private boolean est2faEmailActivePour(Long userId) {
+        return utilisateurRepository.findById(userId)
+                .map(u -> Boolean.TRUE.equals(u.getEmail2faActif()))
+                .orElse(false);
+    }
+
+    private void genererEtEnvoyerOtp(String email, String contexte) {
+        String otp = String.format("%04d", RANDOM.nextInt(10000));
+        redisTemplate.opsForValue().set(OTP_PREFIX + email, otp, OTP_TTL_SECONDS, TimeUnit.SECONDS);
+        emailService.envoyerCodeOtp(email, otp, contexte);
+    }
+
+    private void verifierEtConsommerOtp(String email, String code) {
+        String otpKey = OTP_PREFIX + email;
+        String storedOtp = redisTemplate.opsForValue().get(otpKey);
+
+        if (storedOtp == null || !storedOtp.equals(code)) {
+            throw new InvalidTokenException("Code OTP invalide ou expiré");
+        }
+
+        redisTemplate.delete(otpKey);
     }
 
     private TokenResponse generateTokens(CustomUserDetails userDetails, String deviceInfo) {

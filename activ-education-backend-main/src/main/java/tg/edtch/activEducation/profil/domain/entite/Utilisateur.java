@@ -72,6 +72,20 @@ public abstract class Utilisateur extends BaseEntity {
     private Boolean estActif = true;
 
     /**
+     * Email confirmé par OTP (changement d'email ou inscription).
+     */
+    @Column(name = "email_verifie")
+    @Builder.Default
+    private Boolean emailVerifie = false;
+
+    /**
+     * Double authentification par OTP email activée (en plus du TOTP).
+     */
+    @Column(name = "email_2fa_actif")
+    @Builder.Default
+    private Boolean email2faActif = false;
+
+    /**
      * Relation ManyToMany avec Role via une table de jointure explicite.
      */
     @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
