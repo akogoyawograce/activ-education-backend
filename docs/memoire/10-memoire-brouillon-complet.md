@@ -34,16 +34,13 @@ artificielle : conception d'un moteur de recommandation enrichi
 d'un modèle prédictif de réussite
 ─────────────────────────────────────────────
 
-Présenté par : [NOM ET PRÉNOMS DE L'ÉTUDIANT]
+Rédigé par :
+**[NOM ET PRÉNOMS DE L'ÉTUDIANT]**
 
-Soutenu le : [DATE DE LA SOUTENANCE]
-
-Directeur du Mémoire : [NOM Prénoms — Titre/Profession]
-
-JURY :
-  Président   : [NOM Prénoms — Titre]
-  Membre      : [NOM Prénoms — Titre]
-  Membre      : [NOM Prénoms — Titre]
+| Maître de Stage                  | Directeur du Mémoire             |
+|----------------------------------|----------------------------------|
+| [Nom Prénoms]                    | [Nom Prénoms]                    |
+| (Titre/Profession)               | (Titre/Profession)               |
 
 ANNÉE ACADÉMIQUE : 2025 – 2026
 ```
