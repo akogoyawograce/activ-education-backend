@@ -33,6 +33,7 @@ docs/
 | 07 | `07-description-pour-theme.md` | Description synthétique du projet (pour générer un thème) | ~5 |
 | 08 | `08-annexe-modules-complementaires.md` | **23 modules ajoutés** au-delà du cahier des charges | ~10 |
 | 09 | `09-theme-memoire-activ-education.md` | **Thème retenu + variantes** pour le mémoire | ~2 |
+| 10 | `10-memoire-brouillon-complet.md` | **Mémoire complet brouillon .md** (à convertir en Word) — structure conforme au canevas DEFITECH | ~50 |
 
 ### 📌 Ordre de lecture recommandé
 
