@@ -32,6 +32,7 @@ docs/
 | 06 | `06-maquettes-ui-ux.md` | Maquettes Banai.cio + palette couleurs + specs UI | ~21 |
 | 07 | `07-description-pour-theme.md` | Description synthétique du projet (pour générer un thème) | ~5 |
 | 08 | `08-annexe-modules-complementaires.md` | **23 modules ajoutés** au-delà du cahier des charges | ~10 |
+| 09 | `09-prompt-theme-pour-claude.md` | **Brief complet + prompt prêt à coller** pour générer le thème | ~10 |
 
 ### 📌 Ordre de lecture recommandé
 
