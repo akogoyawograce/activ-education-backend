@@ -96,10 +96,21 @@ def phase5_adapt_schema(df: pd.DataFrame) -> pd.DataFrame:
     out["en_favori"] = 0
     out["score_similarite_recherche"] = 0.0
 
+    # Conversationnel (pas dans l'export Phase 3 — neutre)
+    out["domaine_declare_match_filiere"] = 0.5
+    out["constance_ambition"] = 0.5
+    out["nb_echanges_domaine"] = 0
+
     # Catégorielles
     out["serie"] = df["serie"].fillna("INCONNU")
-    out["filiere_choisie"] = "INCONNU"  # pas dans l'export
+    out["filiere_choisie"] = df["filiere"].fillna("INCONNU") if "filiere" in df.columns else "INCONNU"
     out["niveau_actuel"] = df["niveau"].fillna("INCONNU")
+
+    # Contexte (Phase 5.1 — ajouté pour capturer P(ADMIS | région, année, ordre, sexe, filière))
+    out["region"] = df["region"].fillna("INCONNU")
+    out["ordre"] = df["ordre"].fillna("INCONNU")
+    out["sexe"] = df["sexe"].fillna("INCONNU") if "sexe" in df.columns else "INCONNU"
+    out["annee_session"] = df["annee_session"].fillna(0).astype(int)
 
     # Cible
     out["statut"] = df["label"].map({1: "ADMIS", 0: "REORIENTE"})
@@ -153,7 +164,7 @@ def main():
     print("\nLancement de train_model.py…")
     import subprocess
     result = subprocess.run(
-        ["python", "train_model.py"],
+        [sys.executable, "train_model.py"],
         cwd=Path(__file__).parent,
         env={**__import__("os").environ, "PHASE5_DATASET": str(out)},
         check=False,

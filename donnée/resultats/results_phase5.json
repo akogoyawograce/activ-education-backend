@@ -1,0 +1,258 @@
+{
+  "n_students": 6000,
+  "admis_rate": 0.423,
+  "cv_results": [
+    {
+      "model": "logistic_regression",
+      "config": "sans_comportemental",
+      "roc_auc_mean": 0.6563109618262739,
+      "roc_auc_std": 0.005326753759884696,
+      "pr_auc_mean": 0.6011517544666874,
+      "pr_auc_std": 0.013346413746839673,
+      "brier": 0.2262037661661931,
+      "f1_admis": 0.5780730897009967,
+      "recall_reoriente": 0.6204506065857885
+    },
+    {
+      "model": "gradient_boosting",
+      "config": "sans_comportemental",
+      "roc_auc_mean": 0.6691717592996552,
+      "roc_auc_std": 0.010327584490908991,
+      "pr_auc_mean": 0.6218943940567863,
+      "pr_auc_std": 0.013026560500694492,
+      "brier": 0.19985921477338592,
+      "f1_admis": 0.5534074432092798,
+      "recall_reoriente": 0.8685730791450029
+    },
+    {
+      "model": "logistic_regression",
+      "config": "avec_comportemental",
+      "roc_auc_mean": 0.6562938570265974,
+      "roc_auc_std": 0.005510142716570622,
+      "pr_auc_mean": 0.6012466548410547,
+      "pr_auc_std": 0.013357076501978014,
+      "brier": 0.22620333711476961,
+      "f1_admis": 0.5775973426831519,
+      "recall_reoriente": 0.6198729058347776
+    },
+    {
+      "model": "gradient_boosting",
+      "config": "avec_comportemental",
+      "roc_auc_mean": 0.6693954216818272,
+      "roc_auc_std": 0.010675205951501645,
+      "pr_auc_mean": 0.6221721014423552,
+      "pr_auc_std": 0.01328056848651472,
+      "brier": 0.19985921477338592,
+      "f1_admis": 0.5534074432092798,
+      "recall_reoriente": 0.8685730791450029
+    },
+    {
+      "model": "logistic_regression",
+      "config": "avec_conversationnel",
+      "roc_auc_mean": 0.6563035827884072,
+      "roc_auc_std": 0.005279087652916812,
+      "pr_auc_mean": 0.60104129346062,
+      "pr_auc_std": 0.0134510224221249,
+      "brier": 0.22620225134221733,
+      "f1_admis": 0.5782287822878229,
+      "recall_reoriente": 0.620161756210283
+    },
+    {
+      "model": "gradient_boosting",
+      "config": "avec_conversationnel",
+      "roc_auc_mean": 0.6693954216818272,
+      "roc_auc_std": 0.010675205951501645,
+      "pr_auc_mean": 0.6221721014423552,
+      "pr_auc_std": 0.01328056848651472,
+      "brier": 0.19985921477338592,
+      "f1_admis": 0.5534074432092798,
+      "recall_reoriente": 0.8685730791450029
+    }
+  ],
+  "summary_delta_auc": {
+    "logistic_regression": {
+      "sans_comportemental": {
+        "roc_auc_mean": 0.6563109618262739,
+        "roc_auc_std": 0.005326753759884696,
+        "pr_auc_mean": 0.6011517544666874,
+        "brier": 0.2262037661661931
+      },
+      "avec_comportemental": {
+        "roc_auc_mean": 0.6562938570265974,
+        "roc_auc_std": 0.005510142716570622,
+        "pr_auc_mean": 0.6012466548410547,
+        "brier": 0.22620333711476961
+      },
+      "avec_conversationnel": {
+        "roc_auc_mean": 0.6563035827884072,
+        "roc_auc_std": 0.005279087652916812,
+        "pr_auc_mean": 0.60104129346062,
+        "brier": 0.22620225134221733
+      }
+    },
+    "gradient_boosting": {
+      "sans_comportemental": {
+        "roc_auc_mean": 0.6691717592996552,
+        "roc_auc_std": 0.010327584490908991,
+        "pr_auc_mean": 0.6218943940567863,
+        "brier": 0.19985921477338592
+      },
+      "avec_comportemental": {
+        "roc_auc_mean": 0.6693954216818272,
+        "roc_auc_std": 0.010675205951501645,
+        "pr_auc_mean": 0.6221721014423552,
+        "brier": 0.19985921477338592
+      },
+      "avec_conversationnel": {
+        "roc_auc_mean": 0.6693954216818272,
+        "roc_auc_std": 0.010675205951501645,
+        "pr_auc_mean": 0.6221721014423552,
+        "brier": 0.19985921477338592
+      }
+    }
+  },
+  "importance_top10": {
+    "sans_comportemental": [
+      [
+        "remainder__annee_session",
+        0.20657141001007306
+      ],
+      [
+        "remainder__ecart_notes_seuil",
+        0.13844943400370424
+      ],
+      [
+        "remainder__score_60_40",
+        0.127591455774124
+      ],
+      [
+        "cat__serie_A",
+        0.08196814359322745
+      ],
+      [
+        "remainder__notes_actuelle",
+        0.07463516675988334
+      ],
+      [
+        "remainder__match_riasec",
+        0.054167119005439884
+      ],
+      [
+        "remainder__moyenne_generale",
+        0.052462283625639955
+      ],
+      [
+        "remainder__notes_n1",
+        0.041983238114204076
+      ],
+      [
+        "cat__region_Grand Lomé",
+        0.03208598755775658
+      ],
+      [
+        "remainder__notes_n2",
+        0.031182298383343906
+      ]
+    ],
+    "avec_comportemental": [
+      [
+        "remainder__annee_session",
+        0.20657141001006712
+      ],
+      [
+        "remainder__score_60_40",
+        0.12759145577412198
+      ],
+      [
+        "remainder__moyenne_generale",
+        0.11064854413841356
+      ],
+      [
+        "remainder__notes_actuelle",
+        0.09505438381002647
+      ],
+      [
+        "cat__serie_A",
+        0.08196814359323251
+      ],
+      [
+        "remainder__ecart_notes_seuil",
+        0.059843956440776565
+      ],
+      [
+        "remainder__match_riasec",
+        0.0541671190054466
+      ],
+      [
+        "remainder__notes_n1",
+        0.04198323811420383
+      ],
+      [
+        "cat__region_Grand Lomé",
+        0.032085987557755886
+      ],
+      [
+        "remainder__notes_n2",
+        0.031182298383342445
+      ]
+    ],
+    "avec_conversationnel": [
+      [
+        "remainder__annee_session",
+        0.20657141001006712
+      ],
+      [
+        "remainder__score_60_40",
+        0.12759145577412198
+      ],
+      [
+        "remainder__moyenne_generale",
+        0.11064854413841356
+      ],
+      [
+        "remainder__notes_actuelle",
+        0.09505438381002647
+      ],
+      [
+        "cat__serie_A",
+        0.08196814359323251
+      ],
+      [
+        "remainder__ecart_notes_seuil",
+        0.059843956440776565
+      ],
+      [
+        "remainder__match_riasec",
+        0.0541671190054466
+      ],
+      [
+        "remainder__notes_n1",
+        0.04198323811420383
+      ],
+      [
+        "cat__region_Grand Lomé",
+        0.032085987557755886
+      ],
+      [
+        "remainder__notes_n2",
+        0.031182298383342445
+      ]
+    ]
+  },
+  "bubble_test": {
+    "comportemental": {
+      "config": "avec_comportemental",
+      "n_faible": 2335,
+      "taux_pred_faible": 0.10321199143468951,
+      "taux_reel_faible": 0.3588865096359743,
+      "derive": -0.2556745182012848
+    },
+    "conversationnel": {
+      "config": "avec_conversationnel",
+      "n_faible": 2335,
+      "taux_pred_faible": 0.10321199143468951,
+      "taux_reel_faible": 0.3588865096359743,
+      "derive": -0.2556745182012848
+    }
+  }
+}
