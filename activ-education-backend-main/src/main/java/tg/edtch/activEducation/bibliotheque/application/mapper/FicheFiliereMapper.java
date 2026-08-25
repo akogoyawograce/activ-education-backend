@@ -99,6 +99,6 @@ public class FicheFiliereMapper {
         if (request.getDomaine() != null)
             entity.setDomaine(request.getDomaine());
         if (series != null)
-            entity.setSeriesAssociees(series);
+            entity.setSeriesAssociees(new java.util.HashSet<>(series));
     }
 }

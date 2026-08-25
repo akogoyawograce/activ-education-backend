@@ -33,6 +33,21 @@ public class PredictionDatasetRow {
     /** Série du bac (si connue). */
     private String serie;
 
+    /** Région du lycée d'origine (Grand Lomé, Maritime, ...). */
+    private String region;
+
+    /** Ordre d'enseignement d'origine : public / privé / communautaire. */
+    private String ordre;
+
+    /** Année de la session du concours (ex. 2024). */
+    private Integer anneeSession;
+
+    /** Filière visée (titre de la fiche). */
+    private String filiere;
+
+    /** Sexe du candidat : M / F. */
+    private String sexe;
+
     /** Top 3 dimensions RIASEC au moment du choix (codes séparés par "|"). */
     private String riasecTop3;
 

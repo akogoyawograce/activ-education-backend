@@ -13,6 +13,7 @@ import tg.edtch.activEducation.prediction.domain.entite.OrientationOutcome;
 import tg.edtch.activEducation.prediction.domain.repository.OrientationOutcomeRepository;
 import tg.edtch.activEducation.profil.domain.entite.Eleve;
 import tg.edtch.activEducation.profil.repository.EleveRepository;
+import tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -40,13 +41,15 @@ class OrientationOutcomeServiceTest {
 
     @Mock private OrientationOutcomeRepository repository;
     @Mock private EleveRepository eleveRepository;
+    @Mock private FicheFiliereRepository ficheFiliereRepository;
 
     private OrientationOutcomeServiceImpl service;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
-        service = new OrientationOutcomeServiceImpl(repository, eleveRepository, objectMapper);
+        service = new OrientationOutcomeServiceImpl(
+                repository, eleveRepository, ficheFiliereRepository, objectMapper);
     }
 
     @Test

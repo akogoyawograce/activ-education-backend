@@ -57,8 +57,8 @@ public class StatsService {
     }
 
     public List<Map<String, Object>> getRDVParsMois(int mois) {
-        List<Object[]> raw = rendezVousRepository.compterRDVParsMois(
-                LocalDate.now().minusMonths(mois));
+        LocalDateTime depuis = LocalDate.now().minusMonths(mois).atStartOfDay();
+        List<Object[]> raw = rendezVousRepository.compterRDVParsMois(depuis);
         List<Map<String, Object>> result = new ArrayList<>();
         for (Object[] row : raw) {
             Map<String, Object> entry = new HashMap<>();
@@ -98,7 +98,8 @@ public class StatsService {
         List<Object[]> raw = quizRepository.compterParDomaineRaw();
         Map<String, Long> result = new LinkedHashMap<>();
         for (Object[] row : raw) {
-            result.put((String) row[0], (Long) row[1]);
+            String key = row[0] != null ? row[0].toString() : "INCONNU";
+            result.put(key, (Long) row[1]);
         }
         return result;
     }

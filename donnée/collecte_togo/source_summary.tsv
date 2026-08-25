@@ -1,0 +1,18 @@
+fichier	lignes	colonnes	colonnes_principales
+sources/onet_career_interest_types.csv	8307	9	O*NET-SOC Code;Title;Element ID;Element Name;Scale ID;Scale Name;Data Value;Date;Domain Source
+sources/onet_occupations.csv	1016	3	O*NET-SOC Code;Title;Description
+sources/onet_specific_interest_areas.csv	73062	9	O*NET-SOC Code;Title;Element ID;Element Name;Scale ID;Scale Name;Data Value;Date;Domain Source
+sources/onet_specific_interest_mapping.csv	53	4	Specific Interest Areas Element ID;Specific Interest Areas Element Name;Career Interest Types Element ID;Career Interest Types Element Name
+sources/unesco_dem_data_tgo.csv	1687	6	indicator_id;country_id;year;value;magnitude;qualifier
+sources/unesco_dem_indicatorlist_tgo.csv	35	2	indicator_id;indicator_label_en
+sources/unesco_opri_data_tgo.csv	18579	6	indicator_id;country_id;year;value;magnitude;qualifier
+sources/unesco_opri_indicatorlist_tgo.csv	2042	2	indicator_id;indicator_label_en
+sources/unesco_sdg_data_tgo.csv	7024	6	indicator_id;country_id;year;value;magnitude;qualifier
+sources/unesco_sdg_indicatorlist_tgo.csv	2935	2	indicator_id;indicator_label_en
+structured/career_interest_types.csv	8307	9	O*NET-SOC Code;Title;Element ID;Element Name;Scale ID;Scale Name;Data Value;Date;Domain Source
+structured/occupation_data.csv	1016	3	O*NET-SOC Code;Title;Description
+structured/specific_interest_areas.csv	73062	9	O*NET-SOC Code;Title;Element ID;Element Name;Scale ID;Scale Name;Data Value;Date;Domain Source
+structured/specific_interest_areas_to_career_interest_types.csv	53	4	Specific Interest Areas Element ID;Specific Interest Areas Element Name;Career Interest Types Element ID;Career Interest Types Element Name
+sources/worldbank_education_expenditure_gdp.json	66	8	indicator;country;countryiso3code;date;value;unit;obs_status;decimal
+sources/worldbank_tertiary_completion.json	101	8	indicator;country;countryiso3code;date;value;unit;obs_status;decimal
+sources/worldbank_tertiary_enrollment.json	101	8	indicator;country;countryiso3code;date;value;unit;obs_status;decimal

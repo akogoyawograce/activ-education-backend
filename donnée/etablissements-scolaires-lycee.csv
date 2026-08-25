@@ -1,0 +1,169 @@
+No.,Nom du champ,Question,Description,Type du champ
+1,region_nom_bdd,,xsd:string,string
+2,prefecture_nom_bdd,,xsd:string,string
+3,commune_nom_bdd,,xsd:string,string
+4,canton_nom_bdd,,xsd:string,string
+5,id,,xsd:int,int
+6,canton_id_bdd,ID du canton,xsd:string,string
+7,nom_localite,Localité,xsd:string,string
+8,etablissement_nom,Nom de l'établissement,xsd:string,string
+9,etab_id_collecte,ID textuel de l'établissement,xsd:string,string
+10,etab_adr,Adresse,xsd:string,string
+11,ouverture_heure,Horaire d'ouverture,xsd:string,string
+12,ouverture_jour,Jours d'ouverture,xsd:string,string
+13,etablissement_categorie,Catégorie de l'établissement,xsd:string,string
+14,etab_complex,Le directeur dirige t-il d'autres niveaux?,xsd:string,string
+15,etab_complex_spec,"Si oui, lesquels ?",xsd:string,string
+16,etab_groupe,Y a-t-il plusieurs groupes?,xsd:string,string
+17,etab_groupe_spec,"Si oui, quel est le groupe de ce questionnaire?",xsd:string,string
+18,etab_groupe_spec_autre,Autre groupe de ce questionnaire,xsd:string,string
+19,etablissement_secteur,Secteur de l'établissement,xsd:string,string
+20,etablissement_secteur_autre,Autre secteur de l'établissement,xsd:string,string
+21,secteur_prive_agrement,Type d'agrémént,xsd:string,string
+22,terrain,Statut foncier du terrain,xsd:string,string
+23,terrain_autre,Autre statut foncier du terrain,xsd:string,string
+24,terrain_prive,"Si terrain privé, à qui?",xsd:string,string
+25,terrain_conflit,Y a-t-il un conflit de terrain ?,xsd:string,string
+26,terrain_conflit_qui,"Si oui, avec qui?",xsd:string,string
+27,etab_reconnu,L'établissement est-il reconnu par l'Etat?,xsd:string,string
+28,organisme_rattachement,Organisme de rattachement (si privé),xsd:string,string
+29,inspection_tutelle,Nom de l'inspection de tutelle,xsd:string,string
+30,etablissement_creation_date,Année de création de l'établissement,xsd:int,int
+31,construction_prog,L'établissement est-il construit dans le cadre d'un programme/projet particulier?,xsd:string,string
+32,construction_prog_nom,"Si oui, lequel ?",xsd:string,string
+33,construction_prog_date,"Si oui, année du programme",xsd:string,string
+34,construction_prog_acteur,"Si oui, nom des acteurs participants au programme institutionnel",xsd:string,string
+35,construction_prog_montant,"Si oui, montant aloué",xsd:string,string
+36,etablissement_religion,Laïcité ou religion de l'établissement,xsd:string,string
+37,etablissement_religion_autre,Autre religion,xsd:string,string
+38,etablissement_religion_spec,Détail sur la religion,xsd:string,string
+39,jumelage,Y a-t-il des classes jumelées ? (groupe A et groupe B dans la même classe)?,xsd:string,string
+40,jumelage_spec,"Si oui, entre quel(s) groupe(s)?",xsd:string,string
+41,classe_nbr,Nombre total de classes pour ce niveau et ce groupe (si applicable),xsd:int,int
+42,double_flux,Covid : est-ce que l'établissement pratique le double flux ?,xsd:string,string
+43,etablissement_langue,Langue d'enseignement,xsd:string,string
+44,langue_locale,Langue locale ?,xsd:string,string
+45,langue_locale_spec,"Si oui, lesquelles ?",xsd:string,string
+46,langue_locale_spec_autre,Autre langues parlées,xsd:string,string
+47,etablissement_renovation,Ministère de tutelle,xsd:string,string
+48,etablissement_renovation_date,Année de la dernière rénovation,xsd:int,int
+49,subvention,L'établissement reçoit-il des subventions ou du matériel?,xsd:string,string
+50,subventions_nom,"Si oui, lesquels? (materiel, financier ): lister si plusieurs",xsd:string,string
+51,subventions_qui,"Si oui, par qui (lister dans l'ordre si plusieurs)",xsd:string,string
+52,subvention_date,"Si oui, récurrence (ponctuelle, annuelle, mensuel...)",xsd:string,string
+53,subvention_montant,"Si oui, montant aloué",xsd:string,string
+54,interlocuteur,L'interlocuteur est il le chef de l'établissement ?,xsd:string,string
+55,interlocuteur_nom,"Si non, NOM Prénom",xsd:string,string
+56,interlocuteur_fonction,"Si non, quelle est votre fonction ?",xsd:string,string
+57,interlocuteur_fonction_autre,Autre fonction de l'interlocuteur,xsd:string,string
+58,interlocuteur_contact,"Si non, contact de l'interlocuteur",xsd:string,string
+59,responsable_genre,Genre du responsable,xsd:string,string
+60,responsable_nom,NOM et Prénom du Chef d'établissement,xsd:string,string
+61,responsable_contact,Numéro de téléphone/contact du chef d'établissement,xsd:string,string
+62,responsable_annee,Année de la prise de fonction en tant que responsable,xsd:string,string
+63,personnel_nbr,Nombre total de personnel (toutes catégories confondues),xsd:int,int
+64,personnel_femmme_nbr,Nombre total de personnel femmes,xsd:int,int
+65,personnel_homme_nbr,Nombre total de personnel hommes,xsd:int,int
+66,etablissement_enseignant_nbr,Nombre total d'enseignant(e)s,xsd:int,int
+67,prof_femme_nbr,Nombre d'enseignantes femmes,xsd:int,int
+68,prof_homme_nbr,Nombre d'enseignants hommes,xsd:int,int
+69,etablissement_enseignant_ape_nbr,Nombre d'enseignants volontaires APE,xsd:int,int
+70,etablissement_enseignant_vne_nbr,Nombre d'enseignants volontaires VNE,xsd:int,int
+71,etablissement_enseignant_fct_nbr,Nombre d'enseignant(e)s fonctionnaire,xsd:int,int
+72,etablissement_enseignant_non_fct_nbr,Nombre d'enseignant(e)s non fonctionnaire,xsd:int,int
+73,etablissement_enseignant_annee_passee,Liste des enseignants année dernière,xsd:string,string
+74,etablissement_enseignant_annee_cours,Liste des enseignants année en cours,xsd:string,string
+75,non_prof_nbr,Nombre total du personnel NON enseignant,xsd:int,int
+76,non_prof_femme,Nombre du personnel NON enseignant femme,xsd:int,int
+77,non_prof_homme,Nombre du personnel NON enseignant homme,xsd:int,int
+78,etab_proprio,L'établissement est-il propriétaire de tous les bâtiments?,xsd:string,string
+79,institution,"Si non, utilise t-il des bâtiments d'une autre institution?",xsd:string,string
+80,institution_spec,"Si oui, laquelle ?",xsd:string,string
+81,institution_spec_autre,Autre institution,xsd:string,string
+82,biblio,Y a-t-il une bibliothèque?,xsd:string,string
+83,salle_info,Y a-t-il une salle informatique?,xsd:string,string
+84,piscine,Y a-t-il une piscine?,xsd:string,string
+85,terrain_sport,Y a-t-il un terrain de sport ?,xsd:string,string
+86,gymnase,Y a-t-il une un gymnase?,xsd:string,string
+87,infirmerie,Y a-t-il une une infirmerie?,xsd:string,string
+88,toilette,Y a-t-il des toilettes ?,xsd:string,string
+89,toilettes_nbr,"Si oui, nombre d'assises",xsd:int,int
+90,toilette_int_nbr,"Si oui, nombre de toilettes intérieures",xsd:int,int
+91,toilette_ext_nbr,"Si oui, nombre de toilettes extérieures",xsd:int,int
+92,toilette_mixite,Les hommes et les femmes utilisent ils les mêmes toilettes ?,xsd:string,string
+93,lampadaire,Y a-t-il des lampadaires dans l'établissement ?,xsd:string,string
+94,lampadaire_solaire_nbr,"Si oui, combien de lampadaires solaires ?",xsd:int,int
+95,lampadaire_reseau_nbr,"Si oui, combien de lampadaires réseaux ?",xsd:int,int
+96,lampadaire_artisanal_nbr,"Si oui, combien de lampadaires artisanaux ?",xsd:int,int
+97,fontaine_ext,Y a-t-il des fontaines extérieures ?,xsd:string,string
+98,fontaine_ext_type,"Si oui, quel type ?",xsd:string,string
+99,fontaine_ext_type_autre,Autre type de fontaines extérieures,xsd:string,string
+100,transport,Y a-t-il un système de transport scolaire ?,xsd:string,string
+101,transport_type,Quel type de transport?,xsd:string,string
+102,transport_service,Année mise en service du transport scolaire,xsd:int,int
+103,transport_org,Quel organisme s'occupe du transport scolaire?,xsd:string,string
+104,transport_subv,Comment le transport scolaire est-il subventionné ?,xsd:string,string
+105,cantine,Y a-t-il une cantine?,xsd:string,string
+106,rampe_handicape,Y a-t-il des rampes pour faciliter l'accès aux handicapés ?,xsd:string,string
+107,internet,Y a-t-il un réseau internet dédié?,xsd:string,string
+108,internet_type,"Si oui, type d'accès dédié ?",xsd:string,string
+109,internet_type_autre,Autre type d'internet dédié,xsd:string,string
+110,internet_reception,Recevez vous internet ?,xsd:string,string
+111,internet_reception_type,"Si oui, quel type ?",xsd:string,string
+112,internet_reception_type_autre,Autre type de réception internet,xsd:string,string
+113,logement_fonction,L'établissement est-il dôté de logement de fonction ?,xsd:string,string
+114,logement_fonction_nbr,"Si oui, combien ?",xsd:int,int
+115,logement_fonction_utilisation,"Si oui, utilisés par qui?",xsd:string,string
+116,elec_acces,Y a-t-il accès à l'électricité ?,xsd:string,string
+117,elec_source,"Si oui, quelle source d'électricité ?",xsd:string,string
+118,elec_source_autre,Autre source d'électricité,xsd:string,string
+119,elec_qualite,"Si oui, qualité d'accès ?",xsd:string,string
+120,elec_acces_temps,"Si oui, temps d'accès à l'électricité",xsd:string,string
+121,eleve_nbr,Nombre total d'élèves,xsd:int,int
+122,fille_nbr,Nombre total de filles,xsd:int,int
+123,garcon_nbr,Nombre total de garçons,xsd:int,int
+124,eleve_age,Tranche d'âge des élèves (du plus petit au plus grand),xsd:string,string
+125,eleve_tranchejardin,Nombre total d'élèves de 4 à 5 ans,xsd:int,int
+126,eleve_moinsquatre,Nombre total d'élèves de moins de 4 ans,xsd:int,int
+127,eleve_pluscinq,Nombre total d'élèves de plus de 5 ans,xsd:int,int
+128,eleve_quatre,Nombre total d'élèves de 4 ans,xsd:int,int
+129,eleve_cinq,Nombre total d'élèves de 5 ans,xsd:int,int
+130,eleve_trancheprimaire,Nombre total d'élèves de 6 à 11 ans,xsd:int,int
+131,eleve_moinssix,Nombre total d'élèves de moins de 6 ans,xsd:int,int
+132,eleve_plusonze,Nombre total d'élèves de plus de 11 ans,xsd:int,int
+133,eleve_six,Nombre total d'élèves de 6 ans,xsd:int,int
+134,eleve_sept,Nombre total d'élèves de 7 ans,xsd:int,int
+135,eleve_huit,Nombre total d'élèves de 8 ans,xsd:int,int
+136,eleve_neuf,Nombre total d'élèves de 9 ans,xsd:int,int
+137,eleve_dix,Nombre total d'élèves de 10 ans,xsd:int,int
+138,eleve_onze,Nombre total d'élèves de 11 ans,xsd:int,int
+139,eleve_tranchecollege,Nombre total d'élèves de 12 à 15 ans,xsd:int,int
+140,eleve_moinsdouze,Nombre total d'élèves de moins de 12 ans,xsd:int,int
+141,eleve_plusquinze,Nombre total d'élèves de plus de 15 ans,xsd:int,int
+142,eleve_douze,Nombre total d'élèves de 12 ans,xsd:int,int
+143,eleve_treize,Nombre total d'élèves de 13 ans,xsd:int,int
+144,eleve_quatorze,Nombre total d'élèves de 14 ans,xsd:int,int
+145,eleve_quinze,Nombre total d'élèves de 15 ans,xsd:int,int
+146,eleve_tranchelycee,Nombre total d'élèves de 16 à 18 ans,xsd:int,int
+147,eleve_moinsseize,Nombre total d'élèves de moins de 16 ans,xsd:int,int
+148,eleve_plusdixhuit,Nombre total d'élèves de plus de 18 ans,xsd:int,int
+149,eleve_seize,Nombre total d'élèves de 16 ans,xsd:int,int
+150,eleve_dixsept,Nombre total d'élèves de 17 ans,xsd:int,int
+151,eleve_dixhuit,Nombre total d'élèves de 18 ans,xsd:int,int
+152,eleves_liste_annee_passee,Liste d'élèves année dernière,xsd:string,string
+153,eleves_liste_annee_cours,Liste d'élèves année en cours,xsd:string,string
+154,resultats,Résultats examen et passage élèves de l'année dernière,xsd:string,string
+155,ordinateur_nbr,Combien d'ordinateurs fixes? Appartenant à l'établissement,xsd:int,int
+156,ordinateurs_fonctionnel,Combien d'ordinateurs fixes sont fonctionnels?,xsd:int,int
+157,laptop_nbr,Combien d'ordinateurs portables?,xsd:int,int
+158,laptop_fonctionnel,Combien d'ordinateurs portables sont fonctionnels?,xsd:int,int
+159,tablette_nbr,Combien de tablettes ?,xsd:int,int
+160,tablette_fonctionnel,Combien de tablettes sont fonctionnelles?,xsd:string,string
+161,defis,Problèmes/Difficultés de l'établissement,xsd:string,string
+162,solutions,Potentielles solutions,xsd:string,string
+163,ministere_tutelle,Ministère de tutelle,xsd:string,string
+164,lavage_mains_nombre,Nombre de dispositifs de lavage de mains,xsd:string,string
+165,date_collecte,Date de la collecte,xsd:string,string
+166,date_mise_a_jour_collecte,Date de la mise à jour,xsd:string,string
+167,geometry,Géométrie,gml:Point,Point
+168,dist_poteau_bt,Distance (m) du plus proche poteau électrique basse tension,xsd:string,string

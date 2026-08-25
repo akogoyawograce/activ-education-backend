@@ -220,6 +220,14 @@ public class OpenAIEmbeddingServiceImpl implements AIEmbeddingService {
         }
     }
 
+    private String nettoyerReponseLlm(String contenu) {
+        if (contenu == null) return contenu;
+        String r = contenu
+                .replaceAll("(?s)<(?:think|thinking)\\b[^>]*>[\\s\\S]*?</(?:think|thinking)>", "")
+                .replaceAll("(?s)(?:^|\\n)\\s*(?:think|thinking)\\b[^\\n]*\\n[\\s\\S]*?\\n\\s*/\\s*(?:think|thinking)\\s*(?:\\n|$)", "");
+        return r.trim();
+    }
+
     /** Construit le prompt utilisé pour OpenAI ET Ollama (même format). */
     private String buildPrompt(String question, List<String> contextes) {
         StringBuilder promptBuilder = new StringBuilder();
@@ -254,7 +262,7 @@ public class OpenAIEmbeddingServiceImpl implements AIEmbeddingService {
         if (textNode.isMissingNode()) {
             throw new RuntimeException("Aucun texte retourné par OpenAI");
         }
-        return textNode.asText();
+        return nettoyerReponseLlm(textNode.asText());
     }
 
     /**
@@ -289,7 +297,7 @@ public class OpenAIEmbeddingServiceImpl implements AIEmbeddingService {
                 throw new RuntimeException("Format de réponse invalide de l'API Ollama");
             }
             log.debug("Réponse Ollama Chat générée : {} caractères", textNode.asText().length());
-            return textNode.asText();
+            return nettoyerReponseLlm(textNode.asText());
         } catch (Exception e) {
             log.error("Échec Ollama Chat : {}", e.getMessage());
             throw new RuntimeException("Erreur de génération Ollama Chat: " + e.getMessage());

@@ -35,16 +35,17 @@ public class MinioController {
 
     @PostMapping(value = "/upload/{fileType}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN') or hasRole('CONSEILLER')")
-    @Operation(summary = "Upload un fichier", description = "Upload un fichier vers MinIO selon le type spécifié")
+    @Operation(summary = "Upload un fichier", description = "Upload un fichier vers MinIO selon le type spécifié (purpose=GENERIC|BANNER|LOGO pour les images)")
     @ApiResponse(responseCode = "200", description = "Fichier uploadé avec succès")
     @ApiResponse(responseCode = "400", description = "Type de fichier invalide ou fichier corrompu")
     public ResponseEntity<FileUploadResponse> uploadFile(
             @Parameter(description = "Type de fichier (IMAGE, VIDEO, DOCUMENT, PDF)", required = true) @PathVariable FileType fileType,
             @Parameter(description = "Fichier à uploader", required = true) @RequestParam("file") MultipartFile file,
-            @Parameter(hidden = true) @RequestParam(value = "customFileName", required = false) String customFileName) {
+            @Parameter(description = "Nom de fichier personnalisé") @RequestParam(value = "customFileName", required = false) String customFileName,
+            @Parameter(description = "Usage de l'image (GENERIC, BANNER, LOGO)") @RequestParam(value = "purpose", required = false) String purpose) {
 
-        log.info("Uploading file: {} of type: {}", file.getOriginalFilename(), fileType);
-        FileUploadResponse response = minioService.uploadFile(file, fileType);
+        log.info("Uploading file: {} of type: {} purpose: {}", file.getOriginalFilename(), fileType, purpose);
+        FileUploadResponse response = minioService.uploadFile(file, fileType, customFileName, purpose);
         return ResponseEntity.ok(response);
     }
 

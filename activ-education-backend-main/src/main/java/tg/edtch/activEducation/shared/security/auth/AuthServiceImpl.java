@@ -53,6 +53,7 @@ public class AuthServiceImpl implements AuthService {
     private static final String TOTP_CHALLENGE_PREFIX = "totp_challenge:";
     private static final String EMAIL_CHALLENGE_PREFIX = "email_challenge:";
     private static final String RESET_TOKEN_PREFIX = "reset_token:";
+    private static final String INSCRIPTION_TOKEN_PREFIX = "inscription_token:";
     private static final long OTP_TTL_SECONDS = 300;
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -390,6 +391,53 @@ public class AuthServiceImpl implements AuthService {
         }
 
         redisTemplate.delete(otpKey);
+    }
+
+    @Override
+    public void envoyerOtpInscription(String email) {
+        if (utilisateurRepository.existsByEmail(email)) {
+            throw new InvalidTokenException("Un compte avec cette adresse email existe déjà");
+        }
+        genererEtEnvoyerOtp(email, "la vérification de votre email lors de l'inscription");
+    }
+
+    @Override
+    public OtpResponse verifyOtpInscription(String email, String code) {
+        verifierEtConsommerOtp(email, code);
+
+        String inscriptionToken = UUID.randomUUID().toString();
+        String inscriptionKey = INSCRIPTION_TOKEN_PREFIX + email;
+        redisTemplate.opsForValue().set(inscriptionKey, inscriptionToken, OTP_TTL_SECONDS, TimeUnit.SECONDS);
+
+        return OtpResponse.builder()
+                .success(true)
+                .message("Code vérifié avec succès")
+                .inscriptionToken(inscriptionToken)
+                .build();
+    }
+
+    @Override
+    public void validerInscriptionToken(String email, String inscriptionToken) {
+        if (inscriptionToken == null || inscriptionToken.isBlank()) {
+            throw new InvalidTokenException("Email non vérifié : le code OTP de vérification est requis");
+        }
+
+        String inscriptionKey = INSCRIPTION_TOKEN_PREFIX + email;
+        String storedToken = redisTemplate.opsForValue().get(inscriptionKey);
+
+        if (storedToken == null || !storedToken.equals(inscriptionToken)) {
+            throw new InvalidTokenException("Code de vérification invalide ou expiré, veuillez recommencer l'inscription");
+        }
+
+        redisTemplate.delete(inscriptionKey);
+    }
+
+    @Override
+    public String genererInscriptionToken(String email) {
+        String inscriptionToken = UUID.randomUUID().toString();
+        String inscriptionKey = INSCRIPTION_TOKEN_PREFIX + email;
+        redisTemplate.opsForValue().set(inscriptionKey, inscriptionToken, OTP_TTL_SECONDS, TimeUnit.SECONDS);
+        return inscriptionToken;
     }
 
     private TokenResponse generateTokens(CustomUserDetails userDetails, String deviceInfo) {

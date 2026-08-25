@@ -1,0 +1,75 @@
+No.,Nom du champ,Question,Description,Type du champ
+1,region_nom_bdd,,xsd:string,string
+2,prefecture_nom_bdd,,xsd:string,string
+3,commune_nom_bdd,,xsd:string,string
+4,canton_nom_bdd,,xsd:string,string
+5,id,,xsd:int,int
+6,canton_id_bdd,ID du canton,xsd:string,string
+7,etab_id_bdd,ID de l'établissement,xsd:int,int
+8,etab_id_collecte,ID textuel de l'établissement,xsd:string,string
+9,batiment_id_collecte,ID du bâtiment,xsd:string,string
+10,proprietaire,Le bâtiment appartient-il à l'établissement ?,xsd:string,string
+11,proprietaire_qui,"si oui, nom de l'autre établissement propriétaire",xsd:string,string
+12,proprietaire_id,"Si oui, ID de l'autre établissement",xsd:string,string
+13,proprietaire_autre,"si non, à qui appartient le bâtiment ?",xsd:string,string
+14,proprietaire_autre_autre,Autre propriétaire du bâtiment,xsd:string,string
+15,batiment_nom,Nom du bâtiment (batiment + numéro),xsd:string,string
+16,batiment_type,Type de bâtiment,xsd:string,string
+17,batiment_type_autre,Autre type de bâtiment,xsd:string,string
+18,batiment_construction,Le bâtiment est-il en construction/travaux?,xsd:string,string
+19,batiment_utilise,Le bâtiment est il utilisé ?,xsd:string,string
+20,batiment_fonction,Fonction du bâtiment,xsd:string,string
+21,batiment_groupe,Le bâtiment est-il utilisé par plusieurs groupes/autre établissement?,xsd:string,string
+22,batiment_groupe_spec,"Si oui, lesquels?",xsd:string,string
+23,batiment_annee,Année de construction,xsd:string,string
+24,renovation,Y a-t-il eu une rénovation ?,xsd:string,string
+25,renovation_date,"Si oui, année de la rénovation",xsd:string,string
+26,renovation_present,Le bâtiment est-il en rénovation actuellement?,xsd:string,string
+27,renovation_present_spec,"Si oui, à quel stade est la rénovation?",xsd:string,string
+28,construction_prog,Construction dans le cadre d'un programme/projet particulier?,xsd:string,string
+29,construction_prog_nom,"Si oui, lequel ?",xsd:string,string
+30,construction_prog_date,"Si oui, année du programme",xsd:string,string
+31,construction_prog_acteur,"Si oui, nom des acteurs participants au programme institutionnel",xsd:string,string
+32,construction_prog_montant,"Si oui, montant aloué",xsd:string,string
+33,etages_nbr,Nombre d'étages,xsd:int,int
+34,salles_nbr,Nombre de salles de classe (hors amphithéâtre),xsd:int,int
+35,salles_place_nbr,Nombre de places dans les salles de classe (hors amphithéâtre),xsd:int,int
+36,amphi_nbr,Nombre d'amphithéâtres,xsd:int,int
+37,amphi_place_nbr,Nombre de places dans les amphithéâtres,xsd:int,int
+38,bureau_nbr,Nombre de bureaux,xsd:int,int
+39,bureau_fnc,Nombre de bureaux fonctionnels,xsd:int,int
+40,depot_nbr,Nombre de dépôts,xsd:int,int
+41,depot_fnc,Nombre de dépôts fonctionnels,xsd:int,int
+42,batiment_etat,Etat du bâtiment,xsd:string,string
+43,toiture_type,Type de toiture,xsd:string,string
+44,toiture_type_autre,Autre type de toiture,xsd:string,string
+45,mur,Y a-t-il des murs ?,xsd:string,string
+46,mur_materiel,"Si oui, matériau du mur ?",xsd:string,string
+47,mur_materiel_autre,Autre matériau du mur,xsd:string,string
+48,mur_type,"Si oui, quel type de mur et/ou d'ouverture?",xsd:string,string
+49,mur_type_autre,Autre type de mur/ouverture,xsd:string,string
+50,eau_acces,Y a-t-il accès à l'eau ?,xsd:string,string
+51,eau_source,"Si oui, quelle source ?",xsd:string,string
+52,eau_source_autre,Autre type de source d'eau,xsd:string,string
+53,eau_pression,"Si oui, quelle pression ?",xsd:string,string
+54,eau_qualite,"Si oui, qualité de l'eau ?",xsd:string,string
+55,eau_acces_temps,"Si oui, temps d'accès à l'eau ?",xsd:string,string
+56,debit_mesure,"Combien de secondes pour remplir une bouteille de 1,5L?",xsd:string,string
+57,elec_acces,Y a-t-il accès à l'électricité ?,xsd:string,string
+58,elec_source,"Si oui, quelle source d'électricité ?",xsd:string,string
+59,elec_source_autre,Autre source d'électricité,xsd:string,string
+60,elec_qualite,"Si oui, qualité d'accès ?",xsd:string,string
+61,elec_acces_temps,"Si oui, temps d'accès à l'électricité",xsd:string,string
+62,lavage_mains,Y a-t-il des dispositifs pour le lavage des mains ?,xsd:string,string
+63,lavage_mains_type,Type de dispositifs de lavage de mains,xsd:string,string
+64,lavage_mains_type_autre,Autre type de dispositifs de lavage de mains,xsd:string,string
+65,lavage_mains_nbr,Combien de dispositifs pour ce bâtiment ?,xsd:int,int
+66,lavage_mains_place,Où se situent les dispositifs de lavages de mains?,xsd:string,string
+67,lavage_mains_place_autre,Autre type de lavage de mains,xsd:string,string
+68,lavage_mains_fonctionnalite,Etat de fonctionnement,xsd:string,string
+69,batiment_hygiene,Hygiène du bâtiment,xsd:string,string
+70,remarques,Remarques,xsd:string,string
+71,salles_fnc,Nombre de salles de classe fonctionnelles,xsd:int,int
+72,date_collecte,Date de la collecte,xsd:date-time,date-time
+73,date_mise_a_jour_collecte,Date de la mise à jour,xsd:date-time,date-time
+74,geometry,Géométrie,gml:MultiPolygon,MultiPolygon

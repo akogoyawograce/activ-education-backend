@@ -1,7 +1,11 @@
 package tg.edtch.activEducation.prediction.application.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import tg.edtch.activEducation.prediction.application.dto.OrientationOutcomeRequest;
 import tg.edtch.activEducation.prediction.application.dto.OrientationOutcomeResponse;
+import tg.edtch.activEducation.prediction.application.dto.OrientationOutcomeSuiviResponse;
+import tg.edtch.activEducation.prediction.domain.entite.OrientationOutcome;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,4 +35,11 @@ public interface OrientationOutcomeService {
                                                  String statut,
                                                  Integer satisfaction,
                                                  String commentaire);
+
+    /**
+     * Suivi conseiller : liste paginée des outcomes (filtre statut optionnel),
+     * enrichie du nom de l'élève et du titre de la filière.
+     */
+    Page<OrientationOutcomeSuiviResponse> listerSuivi(
+            OrientationOutcome.StatutOrientation statut, Pageable pageable);
 }

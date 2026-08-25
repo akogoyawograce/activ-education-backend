@@ -1,0 +1,487 @@
+{
+  "source_name": "osm",
+  "snapshot_label": "2026-08-07",
+  "dataset_source": "OpenStreetMap (Geofabrik TGO 2026-08-07)",
+  "generated_utc": "2026-08-07T17:17:51Z",
+  "oex_version": "0.4.7",
+  "license_label": "hdx-odc-odbl",
+  "license_url": "https://opendatacommons.org/licenses/odbl/1-0/",
+  "pcode_source_date": "2025-07-29",
+  "boundary": "geoBoundaries CGAZ ADM0",
+  "metadata": {
+    "feature_count": 3632,
+    "geometry_types": {
+      "POINT": 3006,
+      "POLYGON": 626
+    },
+    "bbox": [
+      -0.1294018,
+      6.1165386,
+      1.7801338,
+      11.1303144
+    ],
+    "columns": [
+      {
+        "name": "id",
+        "type": "VARCHAR",
+        "null_count": 0,
+        "null_percent": 0.0,
+        "distinct_count": 3632,
+        "top_values": []
+      },
+      {
+        "name": "name",
+        "type": "VARCHAR",
+        "null_count": 757,
+        "null_percent": 20.84,
+        "distinct_count": 2683,
+        "top_values": []
+      },
+      {
+        "name": "name_en",
+        "type": "VARCHAR",
+        "null_count": 3612,
+        "null_percent": 99.45,
+        "distinct_count": 20,
+        "top_values": [
+          {
+            "value": "\u00c9cole primaire publique Av\u00e9v\u00e9 Bas Mono",
+            "count": 1
+          },
+          {
+            "value": "Official Primary School of Attiv\u00e9 Bas Mono",
+            "count": 1
+          },
+          {
+            "value": "Tonte Middle School",
+            "count": 1
+          },
+          {
+            "value": "British School of Lom\u00e9",
+            "count": 1
+          },
+          {
+            "value": "Veggie Lady",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "name_fr",
+        "type": "VARCHAR",
+        "null_count": 3596,
+        "null_percent": 99.01,
+        "distinct_count": 36,
+        "top_values": [
+          {
+            "value": "EPP HOUNTIGONM\u00c9",
+            "count": 1
+          },
+          {
+            "value": "\u00c9cole primaire publique Av\u00e9v\u00e9 Bas Mono",
+            "count": 1
+          },
+          {
+            "value": "EPP- Tangbamonte",
+            "count": 1
+          },
+          {
+            "value": "EPP Boloumondji",
+            "count": 1
+          },
+          {
+            "value": "\u00c9cole Primaire Catholique de Yoko\u00e8",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "amenity",
+        "type": "VARCHAR",
+        "null_count": 392,
+        "null_percent": 10.79,
+        "distinct_count": 5,
+        "top_values": [
+          {
+            "value": "school",
+            "count": 3006
+          },
+          {
+            "value": "college",
+            "count": 130
+          },
+          {
+            "value": "kindergarten",
+            "count": 68
+          },
+          {
+            "value": "university",
+            "count": 35
+          },
+          {
+            "value": "canteen",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "building",
+        "type": "VARCHAR",
+        "null_count": 3207,
+        "null_percent": 88.3,
+        "distinct_count": 7,
+        "top_values": [
+          {
+            "value": "school",
+            "count": 379
+          },
+          {
+            "value": "yes",
+            "count": 26
+          },
+          {
+            "value": "university",
+            "count": 12
+          },
+          {
+            "value": "kindergarten",
+            "count": 4
+          },
+          {
+            "value": "college",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "operator_type",
+        "type": "VARCHAR",
+        "null_count": 3307,
+        "null_percent": 91.05,
+        "distinct_count": 9,
+        "top_values": [
+          {
+            "value": "public",
+            "count": 161
+          },
+          {
+            "value": "private",
+            "count": 143
+          },
+          {
+            "value": "religious",
+            "count": 10
+          },
+          {
+            "value": "community",
+            "count": 4
+          },
+          {
+            "value": "intern",
+            "count": 2
+          }
+        ]
+      },
+      {
+        "name": "capacity_persons",
+        "type": "VARCHAR",
+        "null_count": 3632,
+        "null_percent": 100.0,
+        "distinct_count": 0,
+        "top_values": []
+      },
+      {
+        "name": "addr_full",
+        "type": "VARCHAR",
+        "null_count": 3614,
+        "null_percent": 99.5,
+        "distinct_count": 18,
+        "top_values": [
+          {
+            "value": "BP : 12456 Lom\u00e9, Togo",
+            "count": 1
+          },
+          {
+            "value": "BP : 80585 Tokoin-H\u00f4pital, Lom\u00e9 Togo",
+            "count": 1
+          },
+          {
+            "value": "Ago\u00e8-Nyiv\u00e9 Gbonv\u00e9, Lom\u00e9, Togo",
+            "count": 1
+          },
+          {
+            "value": "USTTG - Si\u00e8ge administratif Quartier de Noukafou Boulevard Jean-Paul II (en face la station Total) Lom\u00e9",
+            "count": 1
+          },
+          {
+            "value": "Boulevard Agbalep\u00e9dogan en face de la station service Sanol",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "addr_city",
+        "type": "VARCHAR",
+        "null_count": 3607,
+        "null_percent": 99.31,
+        "distinct_count": 13,
+        "top_values": [
+          {
+            "value": "Lom\u00e9",
+            "count": 10
+          },
+          {
+            "value": "Balanka",
+            "count": 2
+          },
+          {
+            "value": "Hahoto\u00e9",
+            "count": 2
+          },
+          {
+            "value": "Ago\u00e8-Sogbossito / Lom\u00e9",
+            "count": 2
+          },
+          {
+            "value": "Akodessewa - Port (Lom\u00e9)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "name": "source",
+        "type": "VARCHAR",
+        "null_count": 3632,
+        "null_percent": 100.0,
+        "distinct_count": 0,
+        "top_values": []
+      },
+      {
+        "name": "adm0_pcode",
+        "type": "VARCHAR",
+        "null_count": 0,
+        "null_percent": 0.0,
+        "distinct_count": 1,
+        "top_values": [
+          {
+            "value": "TGO",
+            "count": 3632
+          }
+        ]
+      },
+      {
+        "name": "adm0_name",
+        "type": "VARCHAR",
+        "null_count": 0,
+        "null_percent": 0.0,
+        "distinct_count": 1,
+        "top_values": [
+          {
+            "value": "Togo",
+            "count": 3632
+          }
+        ]
+      },
+      {
+        "name": "adm1_pcode",
+        "type": "VARCHAR",
+        "null_count": 0,
+        "null_percent": 0.0,
+        "distinct_count": 5,
+        "top_values": [
+          {
+            "value": "TG03",
+            "count": 1375
+          },
+          {
+            "value": "TG04",
+            "count": 855
+          },
+          {
+            "value": "TG05",
+            "count": 523
+          },
+          {
+            "value": "TG02",
+            "count": 450
+          },
+          {
+            "value": "TG01",
+            "count": 429
+          }
+        ]
+      },
+      {
+        "name": "adm1_name",
+        "type": "VARCHAR",
+        "null_count": 0,
+        "null_percent": 0.0,
+        "distinct_count": 5,
+        "top_values": [
+          {
+            "value": "Maritime",
+            "count": 1375
+          },
+          {
+            "value": "Plateaux",
+            "count": 855
+          },
+          {
+            "value": "Savanes",
+            "count": 523
+          },
+          {
+            "value": "Kara",
+            "count": 450
+          },
+          {
+            "value": "Centrale",
+            "count": 429
+          }
+        ]
+      },
+      {
+        "name": "adm2_pcode",
+        "type": "VARCHAR",
+        "null_count": 0,
+        "null_percent": 0.0,
+        "distinct_count": 40,
+        "top_values": [
+          {
+            "value": "TG0305",
+            "count": 436
+          },
+          {
+            "value": "TG0516",
+            "count": 244
+          },
+          {
+            "value": "TG0207",
+            "count": 203
+          },
+          {
+            "value": "TG0308",
+            "count": 197
+          },
+          {
+            "value": "TG0105",
+            "count": 191
+          }
+        ]
+      },
+      {
+        "name": "adm2_name",
+        "type": "VARCHAR",
+        "null_count": 0,
+        "null_percent": 0.0,
+        "distinct_count": 40,
+        "top_values": [
+          {
+            "value": "Lome Commune",
+            "count": 436
+          },
+          {
+            "value": "Tone",
+            "count": 244
+          },
+          {
+            "value": "Kozah",
+            "count": 203
+          },
+          {
+            "value": "Zio",
+            "count": 197
+          },
+          {
+            "value": "Tchaoudjo",
+            "count": 191
+          }
+        ]
+      },
+      {
+        "name": "adm3_pcode",
+        "type": "VARCHAR",
+        "null_count": 0,
+        "null_percent": 0.0,
+        "distinct_count": 327,
+        "top_values": [
+          {
+            "value": "TG030501",
+            "count": 436
+          },
+          {
+            "value": "TG010506",
+            "count": 117
+          },
+          {
+            "value": "TG030902",
+            "count": 106
+          },
+          {
+            "value": "TG020706",
+            "count": 104
+          },
+          {
+            "value": "TG051602",
+            "count": 77
+          }
+        ]
+      },
+      {
+        "name": "adm3_name",
+        "type": "VARCHAR",
+        "null_count": 0,
+        "null_percent": 0.0,
+        "distinct_count": 326,
+        "top_values": [
+          {
+            "value": "Lome Commune",
+            "count": 436
+          },
+          {
+            "value": "Komah",
+            "count": 117
+          },
+          {
+            "value": "Agoenyive",
+            "count": 106
+          },
+          {
+            "value": "Lama",
+            "count": 104
+          },
+          {
+            "value": "Dapaong",
+            "count": 77
+          }
+        ]
+      },
+      {
+        "name": "adm4_pcode",
+        "type": "VARCHAR",
+        "null_count": 3632,
+        "null_percent": 100.0,
+        "distinct_count": 0,
+        "top_values": []
+      },
+      {
+        "name": "adm4_name",
+        "type": "VARCHAR",
+        "null_count": 3632,
+        "null_percent": 100.0,
+        "distinct_count": 0,
+        "top_values": []
+      },
+      {
+        "name": "name_latin",
+        "type": "VARCHAR",
+        "null_count": 756,
+        "null_percent": 20.81,
+        "distinct_count": 2663,
+        "top_values": []
+      }
+    ],
+    "summary": "3,632 features. geometry types: 3,006 POINT, 626 POLYGON. 10 of 22 columns are >=50% null (name_en, name_fr, building, operator_type, capacity_persons, addr_full, addr_city, source, adm4_pcode, adm4_name).",
+    "temporal": null
+  }
+}

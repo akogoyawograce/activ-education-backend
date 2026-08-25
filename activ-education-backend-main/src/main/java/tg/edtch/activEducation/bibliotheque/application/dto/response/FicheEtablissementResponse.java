@@ -28,4 +28,12 @@ public class FicheEtablissementResponse extends FicheResponse {
     private Double longitude;
 
     private Set<FicheResponse> filieresProposees;
+
+    /**
+     * Détails enrichis depuis le XLSX national (sigle, frais, infrastructures,
+     * statistiques, partenariats, bourses, avis). Null si l'établissement
+     * n'a pas de fiche XLSX liée — permet aux clients de distinguer
+     * « pas d'info » de « info à null ».
+     */
+    private EtablissementDetailsSupplementaires detailsSupplementaires;
 }

@@ -15,6 +15,7 @@ import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
 import tg.edtch.activEducation.shared.minio.exception.FileNotFoundException;
 import tg.edtch.activEducation.shared.minio.exception.MinioException;
+import tg.edtch.activEducation.shared.minio.service.ImageProcessingService;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 
 import java.io.ByteArrayInputStream;
@@ -25,19 +26,21 @@ import java.util.*;
 
 @Slf4j
 @Service
-@org.springframework.context.annotation.Primary
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name = "minio.enabled", havingValue = "false", matchIfMissing = true)
 public class SupabaseStorageServiceImpl implements MinioService {
 
     private final String storageUrl;
     private final String anonKey;
     private final String serviceRoleKey;
     private final RestTemplate restTemplate;
+    private final ImageProcessingService imageProcessingService;
 
-    public SupabaseStorageServiceImpl(SupabaseStorageProperties props) {
+    public SupabaseStorageServiceImpl(SupabaseStorageProperties props, ImageProcessingService imageProcessingService) {
         this.storageUrl = props.getUrl() + "/storage/v1";
         this.anonKey = props.getAnonKey();
         this.serviceRoleKey = props.getServiceRoleKey();
         this.restTemplate = new RestTemplate();
+        this.imageProcessingService = imageProcessingService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -47,22 +50,41 @@ public class SupabaseStorageServiceImpl implements MinioService {
 
     @Override
     public FileUploadResponse uploadFile(MultipartFile file, FileType fileType) {
-        return uploadFile(file, fileType, null);
+        return uploadFile(file, fileType, null, null);
     }
 
     @Override
     public FileUploadResponse uploadFile(MultipartFile file, FileType fileType, String customFileName) {
+        return uploadFile(file, fileType, customFileName, null);
+    }
+
+    @Override
+    public FileUploadResponse uploadFile(MultipartFile file, FileType fileType, String customFileName, String purpose) {
         try {
             String bucketId = getBucketId(fileType);
             String fileName = customFileName != null ? customFileName : generateFileName(file);
+            String contentType = Objects.requireNonNull(file.getContentType(), "Unknown content type");
+
+            // Optimisation automatique des images (downscale + compression)
+            byte[] content = file.getBytes();
+            if (fileType == FileType.IMAGE) {
+                ImageProcessResult processed = imageProcessingService.process(file,
+                        ImageProcessingService.ImagePurpose.parse(purpose));
+                if (processed != null) {
+                    content = processed.bytes();
+                    contentType = processed.contentType();
+                    fileName = withExtension(fileName, contentType);
+                }
+            }
+
             String path = bucketId + "/" + fileName;
 
             HttpHeaders headers = new HttpHeaders();
             headers.set("apikey", anonKey);
             headers.set("Authorization", "Bearer " + serviceRoleKey);
-            headers.setContentType(MediaType.valueOf(Objects.requireNonNull(file.getContentType(), "Unknown content type")));
+            headers.setContentType(MediaType.valueOf(contentType));
 
-            HttpEntity<byte[]> entity = new HttpEntity<>(file.getBytes(), headers);
+            HttpEntity<byte[]> entity = new HttpEntity<>(content, headers);
             String uploadUrl = storageUrl + "/object/" + path;
 
             ResponseEntity<String> response = restTemplate.exchange(uploadUrl, HttpMethod.POST, entity, String.class);
@@ -73,8 +95,8 @@ public class SupabaseStorageServiceImpl implements MinioService {
                 return FileUploadResponse.builder()
                         .fileName(fileName)
                         .fileUrl(publicUrl)
-                        .fileSize(file.getSize())
-                        .contentType(file.getContentType())
+                        .fileSize((long) content.length)
+                        .contentType(contentType)
                         .uploadedAt(LocalDateTime.now())
                         .build();
             }
@@ -84,6 +106,18 @@ public class SupabaseStorageServiceImpl implements MinioService {
         } catch (Exception e) {
             throw new MinioException("Upload failed: " + e.getMessage(), e);
         }
+    }
+
+    /** Aligne l'extension du nom de fichier sur le format de sortie du processing. */
+    private String withExtension(String fileName, String contentType) {
+        int dot = fileName.lastIndexOf('.');
+        String base = dot > 0 ? fileName.substring(0, dot) : fileName;
+        String ext = contentType.contains("png") ? ".png"
+                : contentType.contains("jpeg") ? ".jpg" : null;
+        if (ext == null || fileName.toLowerCase().endsWith(ext)) {
+            return fileName;
+        }
+        return base + ext;
     }
 
     @Override

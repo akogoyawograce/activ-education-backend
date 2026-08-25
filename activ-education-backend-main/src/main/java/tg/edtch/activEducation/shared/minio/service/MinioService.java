@@ -22,6 +22,15 @@ public interface MinioService {
     FileUploadResponse uploadFile(MultipartFile file, FileType fileType, String customFileName);
 
     /**
+     * Upload a file to MinIO with custom filename and image purpose
+     * (GENERIC, BANNER, LOGO — utilisé pour optimiser les images).
+     * Par défaut : délègue à uploadFile(file, fileType, customFileName).
+     */
+    default FileUploadResponse uploadFile(MultipartFile file, FileType fileType, String customFileName, String purpose) {
+        return uploadFile(file, fileType, customFileName);
+    }
+
+    /**
      * Download a file from MinIO
      */
     FileDownloadResponse downloadFile(String fileName, FileType fileType);

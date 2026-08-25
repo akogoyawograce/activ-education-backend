@@ -2,6 +2,7 @@ package tg.edtch.activEducation.bibliotheque.application.mapper;
 
 import org.springframework.stereotype.Component;
 import tg.edtch.activEducation.bibliotheque.application.dto.request.FicheEtablissementRequest;
+import tg.edtch.activEducation.bibliotheque.application.dto.response.EtablissementDetailsSupplementaires;
 import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheEtablissementResponse;
 import tg.edtch.activEducation.bibliotheque.application.dto.response.FicheResponse;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheEtablissement;
@@ -35,7 +36,7 @@ public class FicheEtablissementMapper {
                 .estPublic(request.getEstPublic() != null ? request.getEstPublic() : true)
                 .latitude(request.getLatitude())
                 .longitude(request.getLongitude())
-                .filieresProposees(filieres)
+                .filieresProposees(new java.util.HashSet<>(filieres))
                 .build();
     }
 
@@ -75,7 +76,72 @@ public class FicheEtablissementMapper {
                                 .typeFiche("FILIERE")
                                 .build())
                         .collect(Collectors.toSet()))
+                .detailsSupplementaires(toDetailsSupplementaires(entity))
                 .build();
+    }
+
+    /**
+     * Construit le bloc optionnel de détails enrichis (XLSX).
+     * Renvoie null si l'établissement n'a aucun champ enrichi renseigné —
+     * permet au client de distinguer "pas couvert par XLSX" de "tout est null".
+     */
+    private EtablissementDetailsSupplementaires toDetailsSupplementaires(FicheEtablissement e) {
+        EtablissementDetailsSupplementaires d = EtablissementDetailsSupplementaires.builder()
+                .sigle(e.getSigle())
+                .anneeCreation(e.getAnneeCreation())
+                .statutJuridique(e.getStatutJuridique())
+                .numeroAgrement(e.getNumeroAgrement())
+                .dateAgrement(e.getDateAgrement())
+                .autoriteTutelle(e.getAutoriteTutelle())
+                .reconnaissanceCames(e.getReconnaissanceCames())
+                .region(e.getRegion())
+                .prefecture(e.getPrefecture())
+                .commune(e.getCommune())
+                .quartier(e.getQuartier())
+                .lienGoogleMaps(e.getLienGoogleMaps())
+                .presentation(e.getPresentation())
+                .mission(e.getMission())
+                .vision(e.getVision())
+                .valeurs(e.getValeurs())
+                .fraisInscription(e.getFraisInscription())
+                .scolariteAnnuelle(e.getScolariteAnnuelle())
+                .fraisDevise(e.getFraisDevise())
+                .infrastructuresSynthese(e.getInfrastructuresSynthese())
+                .nbBatiments(e.getNbBatiments())
+                .nbAmphitheatres(e.getNbAmphitheatres())
+                .bibliotheque(e.getBibliotheque())
+                .wifi(e.getWifi())
+                .internat(e.getInternat())
+                .restaurant(e.getRestaurant())
+                .cafeteria(e.getCafeteria())
+                .terrainSport(e.getTerrainSport())
+                .infirmerie(e.getInfirmerie())
+                .parking(e.getParking())
+                .nbEnseignants(e.getNbEnseignants())
+                .nbEtudiants(e.getNbEtudiants())
+                .nbDiplomes(e.getNbDiplomes())
+                .tauxReussite(e.getTauxReussite())
+                .tauxInsertionPro(e.getTauxInsertionPro())
+                .universitesPartenaires(e.getUniversitesPartenaires())
+                .entreprisesPartenaires(e.getEntreprisesPartenaires())
+                .programmesMobilite(e.getProgrammesMobilite())
+                .boursesInternes(e.getBoursesInternes())
+                .boursesGouvernementales(e.getBoursesGouvernementales())
+                .boursesInternationales(e.getBoursesInternationales())
+                .clubs(e.getClubs())
+                .sports(e.getSports())
+                .noteMoyenneAvis(e.getNoteMoyenneAvis())
+                .nbAvis(e.getNbAvis())
+                .build();
+
+        // Si TOUT est null, on renvoie null pour économiser la bande passante
+        if (d.getSigle() == null && d.getRegion() == null && d.getInfrastructuresSynthese() == null
+                && d.getPresentation() == null && d.getNbEtudiants() == null && d.getNbEnseignants() == null
+                && d.getFraisInscription() == null && d.getScolariteAnnuelle() == null
+                && d.getStatutJuridique() == null && d.getAutoriteTutelle() == null) {
+            return null;
+        }
+        return d;
     }
 
     public void updateFromRequest(FicheEtablissementRequest request, FicheEtablissement entity,
@@ -112,7 +178,7 @@ public class FicheEtablissementMapper {
         if (request.getLongitude() != null)
             entity.setLongitude(request.getLongitude());
         if (filieres != null)
-            entity.setFilieresProposees(filieres);
+            entity.setFilieresProposees(new java.util.HashSet<>(filieres));
     }
 
     private FicheEtablissement.TypeEtablissement parseTypeEtablissement(String rawType) {

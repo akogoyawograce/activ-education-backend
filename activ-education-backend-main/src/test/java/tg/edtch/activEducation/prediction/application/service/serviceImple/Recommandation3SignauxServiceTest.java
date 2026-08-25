@@ -15,6 +15,7 @@ import tg.edtch.activEducation.prediction.application.dto.ProfilEleve;
 import tg.edtch.activEducation.prediction.application.dto.Recommandation3SignauxResponse;
 import tg.edtch.activEducation.prediction.domain.config.PredictionProperties;
 import tg.edtch.activEducation.prediction.domain.repository.EngagementSignalRepository;
+import tg.edtch.activEducation.prediction.domain.service.ModeleReussiteService;
 import tg.edtch.activEducation.prediction.domain.service.NoteTrajectoireService;
 import tg.edtch.activEducation.profil.domain.entite.Eleve;
 import tg.edtch.activEducation.profil.domain.entite.NotesHistorique;
@@ -54,6 +55,7 @@ class Recommandation3SignauxServiceTest {
     @Mock private FicheFiliereRepository ficheFiliereRepository;
     @Mock private EngagementSignalRepository engagementRepository;
     @Mock private NoteTrajectoireService trajectoireService;
+    @Mock private ModeleReussiteService modeleReussiteService;
 
     @InjectMocks private Recommandation3SignauxServiceImpl service;
 
@@ -66,7 +68,7 @@ class Recommandation3SignauxServiceTest {
         service = new Recommandation3SignauxServiceImpl(
                 eleveRepository, riasecRepository, notesRepository,
                 niveauFiliereRepository, ficheFiliereRepository,
-                engagementRepository, trajectoireService, properties);
+                engagementRepository, trajectoireService, modeleReussiteService, properties);
     }
 
     @Test

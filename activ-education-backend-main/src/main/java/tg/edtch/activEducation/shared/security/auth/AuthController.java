@@ -135,6 +135,22 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/inscription/otp/envoyer")
+    @Operation(summary = "Envoyer un code OTP de vérification d'email lors de l'inscription")
+    public ResponseEntity<Map<String, Object>> envoyerOtpInscription(@Valid @RequestBody EnvoyerOtpRequest request) {
+        authService.envoyerOtpInscription(request.getEmail());
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Code envoyé à " + request.getEmail());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/inscription/otp/verify")
+    @Operation(summary = "Vérifier le code OTP d'inscription → retourne un token à joindre à POST /eleves ou /parents")
+    public ResponseEntity<OtpResponse> verifyOtpInscription(@Valid @RequestBody OtpVerifyRequest request) {
+        OtpResponse response = authService.verifyOtpInscription(request.getEmail(), request.getCode());
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/reset-password")
     @Operation(summary = "Réinitialiser le mot de passe avec le token de validation")
     public ResponseEntity<Map<String, Object>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {

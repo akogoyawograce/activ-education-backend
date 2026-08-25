@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HexFormat;
 import java.util.Iterator;
 import java.util.List;
@@ -35,6 +36,7 @@ import java.util.TreeMap;
 public class PredictionDatasetServiceImpl implements PredictionDatasetService {
 
     private final OrientationOutcomeRepository repository;
+    private final tg.edtch.activEducation.bibliotheque.repository.FicheFiliereRepository ficheFiliereRepository;
 
     @Override
     public List<PredictionDatasetRow> construireDataset() {
@@ -43,8 +45,13 @@ public class PredictionDatasetServiceImpl implements PredictionDatasetService {
                         OrientationOutcome.StatutOrientation.RECALE));
 
         List<PredictionDatasetRow> rows = new ArrayList<>(outcomes.size());
+        Map<Long, String> filiereTitres = new HashMap<>();
         for (OrientationOutcome o : outcomes) {
-            rows.add(toRow(o));
+            if (!filiereTitres.containsKey(o.getFiliereId())) {
+                ficheFiliereRepository.findById(o.getFiliereId())
+                        .ifPresent(f -> filiereTitres.put(o.getFiliereId(), f.getTitre()));
+            }
+            rows.add(toRow(o, filiereTitres.get(o.getFiliereId())));
         }
         log.info("Dataset d'entraînement construit : {} lignes", rows.size());
         return rows;
@@ -54,7 +61,7 @@ public class PredictionDatasetServiceImpl implements PredictionDatasetService {
     public String serialiserCsv(List<PredictionDatasetRow> rows) {
         StringBuilder sb = new StringBuilder(256 + rows.size() * 128);
         // Header RFC 4180
-        sb.append("row_id,niveau,serie,riasec_top3,riasec_score,")
+        sb.append("row_id,niveau,serie,region,ordre,sexe,annee_session,filiere,riasec_top3,riasec_score,")
           .append("note_actuelle,note_n1,note_n2,tendance_notes,")
           .append("score_aspiration,score_realite,score_engagement,score_recommandation,label")
           .append('\n');
@@ -63,6 +70,11 @@ public class PredictionDatasetServiceImpl implements PredictionDatasetService {
             sb.append(csv(r.getRowId())).append(',')
               .append(csv(r.getNiveau())).append(',')
               .append(csv(r.getSerie())).append(',')
+              .append(csv(r.getRegion())).append(',')
+              .append(csv(r.getOrdre())).append(',')
+              .append(csv(r.getSexe())).append(',')
+              .append(r.getAnneeSession() == null ? "" : r.getAnneeSession()).append(',')
+              .append(csv(r.getFiliere())).append(',')
               .append(csv(r.getRiasecTop3())).append(',')
               .append(num(r.getRiasecScore())).append(',')
               .append(num(r.getNoteActuelle())).append(',')
@@ -83,7 +95,7 @@ public class PredictionDatasetServiceImpl implements PredictionDatasetService {
     // Privé
     // ─────────────────────────────────────────────────────────────────────
 
-    private PredictionDatasetRow toRow(OrientationOutcome o) {
+    private PredictionDatasetRow toRow(OrientationOutcome o, String filiereTitre) {
         JsonNode riasec = o.getRiasecSnapshot();
         JsonNode notes  = o.getNotesSnapshot();
 
@@ -101,6 +113,11 @@ public class PredictionDatasetServiceImpl implements PredictionDatasetService {
                 .rowId(anonymiser(o.getTrackingId()))
                 .niveau(riasec != null && riasec.hasNonNull("niveau") ? riasec.get("niveau").asText() : null)
                 .serie(o.getSerie())
+                .region(o.getRegion())
+                .ordre(o.getOrdre())
+                .sexe(o.getSexe())
+                .anneeSession(o.getAnneeSession())
+                .filiere(filiereTitre)
                 .riasecTop3(top3)
                 .riasecScore(riasecScore)
                 .noteActuelle(nAct)

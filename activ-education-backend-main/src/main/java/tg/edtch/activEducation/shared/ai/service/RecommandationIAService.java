@@ -2,6 +2,7 @@ package tg.edtch.activEducation.shared.ai.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tg.edtch.activEducation.bibliotheque.domain.entite.FicheEtablissement;
@@ -20,8 +21,12 @@ import tg.edtch.activEducation.profil.repository.EleveRepository;
 import tg.edtch.activEducation.profil.repository.NoteSaisiManuelRepository;
 import tg.edtch.activEducation.shared.ai.domain.dto.RecommandationIAResponse;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -30,6 +35,16 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional(readOnly = true)
 public class RecommandationIAService {
+
+    private static final Set<String> STOP_WORDS = Set.of(
+            "je", "veux", "devenir", "suis", "j", "aime", "aimerais", "passionne", "passionnee",
+            "un", "une", "le", "la", "les", "des", "du", "de", "et", "en", "au", "aux",
+            "pour", "dans", "avec", "que", "qui", "ce", "cette", "mon", "ma", "mes",
+            "domaine", "metier", "filiere", "etudier", "apprendre", "faire");
+
+    private static final int MAX_ENTREES = 50;
+    private static final int MAX_SELECTION = 10;
+    private static final int MAX_OFFRE_FORMATION = 160;
 
     private final EleveRepository eleveRepository;
     private final NoteSaisiManuelRepository noteRepository;
@@ -82,7 +97,7 @@ public class RecommandationIAService {
         boolean aDesQuiz = false;
         List<ResultatDiagnostic> resultats = resultatRepository
                 .findByEleveTrackingIdOrderByDatePassageDesc(eleveTrackingId,
-                        org.springframework.data.domain.PageRequest.of(0, 5))
+                        PageRequest.of(0, 5))
                 .getContent();
         if (!resultats.isEmpty()) {
             aDesQuiz = true;
@@ -118,32 +133,64 @@ public class RecommandationIAService {
                 + "une recommandation sur mesure adaptée à ton profil ! 🎯");
         }
 
-        List<FicheFiliere> filieres = filiereRepository.findAllByEstPublieTrue(
-                org.springframework.data.domain.PageRequest.of(0, 10)).getContent();
-        List<FicheMetier> metiers = metierRepository.findAllByEstPublieTrue(
-                org.springframework.data.domain.PageRequest.of(0, 10)).getContent();
-        List<FicheEtablissement> etablissements = etablissementRepository.findAllByEstPublieTrue(
-                org.springframework.data.domain.PageRequest.of(0, 10)).getContent();
+        // Mots-clés extraits du profil pour filtrer les fiches pertinentes.
+        List<String> motsCles = extraireMotsCles(eleve);
+        log.info("Recommandation IA : mots-clés extraits du profil = {}", motsCles);
+
+        List<FicheFiliere> filieres = selectionnerFilieres(motsCles);
+        List<FicheMetier> metiers = selectionnerMetiers(motsCles);
+        List<FicheEtablissement> etablissements = selectionnerEtablissements(filieres, motsCles);
 
         StringBuilder contexteBuilder = new StringBuilder();
-        contexteBuilder.append("\nFilières disponibles au Togo :\n");
+        contexteBuilder.append("\nFilières disponibles au Togo (liste exhaustive, NE PAS en inventer) :\n");
         for (FicheFiliere f : filieres) {
-            contexteBuilder.append("- ").append(f.getTitre()).append(" : ").append(f.getResume()).append("\n");
+            contexteBuilder.append("- ").append(f.getTitre());
+            if (f.getDomaine() != null && !f.getDomaine().isBlank()) {
+                contexteBuilder.append(" [domaine : ").append(f.getDomaine()).append("]");
+            }
+            contexteBuilder.append(" : ").append(f.getResume() != null ? f.getResume() : "");
+            if (f.getDebouchesMetiers() != null && !f.getDebouchesMetiers().isBlank()) {
+                contexteBuilder.append(" (débouchés : ").append(f.getDebouchesMetiers()).append(")");
+            }
+            contexteBuilder.append("\n");
         }
-        contexteBuilder.append("\nMétiers disponibles au Togo :\n");
+        contexteBuilder.append("\nMétiers disponibles au Togo (liste exhaustive, NE PAS en inventer) :\n");
         for (FicheMetier m : metiers) {
-            contexteBuilder.append("- ").append(m.getTitre()).append(" : ").append(m.getResume()).append("\n");
+            contexteBuilder.append("- ").append(m.getTitre());
+            if (m.getSecteur() != null && !m.getSecteur().isBlank()) {
+                contexteBuilder.append(" [secteur : ").append(m.getSecteur()).append("]");
+            }
+            contexteBuilder.append(" : ").append(m.getResume() != null ? m.getResume() : "");
+            contexteBuilder.append("\n");
         }
-        contexteBuilder.append("\nÉtablissements au Togo :\n");
+        contexteBuilder.append("\nÉtablissements au Togo (liste exhaustive, NE PAS en inventer) :\n");
         for (FicheEtablissement e : etablissements) {
-            contexteBuilder.append("- ").append(e.getTitre()).append(" (").append(e.getVille()).append(")\n");
+            contexteBuilder.append("- ").append(e.getTitre()).append(" (").append(e.getVille()).append(")")
+                    .append(" — type : ").append(e.getTypeEtablissement() != null ? e.getTypeEtablissement().name() : "inconnu")
+                    .append(", niveau : ").append(e.getNiveau() != null ? e.getNiveau() : "non renseigné");
+            if (e.getOffreFormation() != null && !e.getOffreFormation().isBlank()) {
+                contexteBuilder.append(", offre : ")
+                        .append(abreger(e.getOffreFormation(), MAX_OFFRE_FORMATION));
+            }
+            contexteBuilder.append("\n");
         }
 
-        String question = "En tant que conseiller d'orientation, fais une recommandation personnalisée pour cet élève. "
-                + "Propose-lui 3 filières d'études adaptées à son profil, 3 métiers qui correspondent, "
-                + "et les établissements où il peut les étudier au Togo. "
-                + "Justifie chaque recommandation en t'appuyant sur son profil, ses notes et ses résultats de quiz. "
-                + "Sois encourageant et concret.";
+        String question = "Tu es un conseiller d'orientation qui s'adresse DIRECTEMENT à l'élève (tutoiement, "
+                + "jamais « votre élève » ni « l'élève »). À partir de son profil et UNIQUEMENT des listes "
+                + "de filières, métiers et établissements fournies :\n"
+                + "1. Propose 3 filières d'études adaptées à son profil, en citant uniquement des filières de la liste.\n"
+                + "2. Pour chaque filière, propose 1 à 2 métiers correspondants, uniquement parmi la liste.\n"
+                + "3. Pour chaque filière, indique l'établissement où l'étudier au Togo, UNIQUEMENT parmi la liste, "
+                + "en précisant sa ville et son type (université, lycée, …). Si aucun établissement de la liste ne "
+                + "propose cette filière, dis-le explicitement au lieu d'en inventer un.\n"
+                + "4. Justifie brièvement chaque choix en t'appuyant sur son profil (niveau, série, métier souhaité, "
+                + "notes, quiz).\n"
+                + "RÈGLES STRICTES :\n"
+                + "- N'invente JAMAIS un établissement, une filière ou un métier absent des listes.\n"
+                + "- Ne recommande pas de matières scolaires à étudier (pas de conseil de type « étudie la physique »).\n"
+                + "- Ne mélange pas les domaines : si l'élève veut l'informatique, ne recommande pas le médical.\n"
+                + "- Pas de répétitions, pas de listes vides. Sois concret, encourageant, en français.\n"
+                + "- Termine par un court paragraphe « En conclusion » qui résume le plan d'orientation proposé.";
 
         try {
             log.info("Recommandation IA : appel LLM pour élève {} (contexte : {} filières, {} métiers, {} établissements publiés)",
@@ -165,5 +212,95 @@ public class RecommandationIAService {
                 + "Réessaie dans quelques instants, ou complète ton profil pour "
                 + "améliorer la qualité des prochaines recommandations.");
         }
+    }
+
+    /** Extrait les mots-clés significatifs du profil (métier souhaité, filière, matières). */
+    private List<String> extraireMotsCles(Eleve eleve) {
+        Set<String> mots = new HashSet<>();
+        for (String champ : List.of(eleve.getMetierSouhaite(), eleve.getFiliere(), eleve.getMatieresPreferees())) {
+            if (champ == null || champ.isBlank()) continue;
+            for (String mot : champ.toLowerCase(Locale.FRENCH).split("[^a-zà-ÿ0-9]+")) {
+                if (mot.length() >= 3 && !STOP_WORDS.contains(mot)) {
+                    mots.add(mot);
+                }
+            }
+        }
+        return new ArrayList<>(mots);
+    }
+
+    /** Filières publiées dont titre/domaine/débouchés correspondent aux mots-clés (repli : 10 premières). */
+    private List<FicheFiliere> selectionnerFilieres(List<String> motsCles) {
+        List<FicheFiliere> toutes = filiereRepository
+                .findAllByEstPublieTrue(PageRequest.of(0, MAX_ENTREES)).getContent();
+        List<FicheFiliere> pertinentes = toutes.stream()
+                .filter(f -> correspond(f.getTitre(), f.getDomaine(), f.getDebouchesMetiers(), motsCles))
+                .limit(MAX_SELECTION)
+                .collect(Collectors.toList());
+        if (pertinentes.isEmpty() || motsCles.isEmpty()) {
+            return toutes.stream().limit(MAX_SELECTION).collect(Collectors.toList());
+        }
+        return pertinentes;
+    }
+
+    /** Métiers publiés dont titre/secteur/missions correspondent aux mots-clés (repli : 10 premiers). */
+    private List<FicheMetier> selectionnerMetiers(List<String> motsCles) {
+        List<FicheMetier> tous = metierRepository
+                .findAllByEstPublieTrue(PageRequest.of(0, MAX_ENTREES)).getContent();
+        List<FicheMetier> pertinents = tous.stream()
+                .filter(m -> correspond(m.getTitre(), m.getSecteur(), m.getMissions(), motsCles))
+                .limit(MAX_SELECTION)
+                .collect(Collectors.toList());
+        if (pertinents.isEmpty() || motsCles.isEmpty()) {
+            return tous.stream().limit(MAX_SELECTION).collect(Collectors.toList());
+        }
+        return pertinents;
+    }
+
+    /**
+     * Établissements publiés : priorité à ceux dont les filières proposées
+     * recoupent les filières sélectionnées, avec le type/niveau/offre
+     * (permet au LLM de ne pas confondre lycée et université).
+     */
+    private List<FicheEtablissement> selectionnerEtablissements(List<FicheFiliere> filieres, List<String> motsCles) {
+        List<FicheEtablissement> tous = etablissementRepository
+                .findAllByEstPublieTrue(PageRequest.of(0, MAX_ENTREES)).getContent();
+        Set<Long> filiereIds = filieres.stream()
+                .map(FicheFiliere::getId)
+                .collect(Collectors.toSet());
+
+        List<FicheEtablissement> pertinents = tous.stream()
+                .filter(e -> e.getFilieresProposees() != null
+                        && e.getFilieresProposees().stream().anyMatch(f -> filiereIds.contains(f.getId())))
+                .limit(MAX_SELECTION)
+                .collect(Collectors.toList());
+        if (!pertinents.isEmpty()) {
+            return pertinents;
+        }
+        // Repli 1 : correspondance texte (titre/offre) sur les mots-clés.
+        List<FicheEtablissement> texte = tous.stream()
+                .filter(e -> correspond(e.getTitre(), e.getOffreFormation(), null, motsCles))
+                .limit(MAX_SELECTION)
+                .collect(Collectors.toList());
+        if (!texte.isEmpty()) {
+            return texte;
+        }
+        // Repli 2 : 10 premiers publiés.
+        return tous.stream().limit(MAX_SELECTION).collect(Collectors.toList());
+    }
+
+    /** Vrai si l'un des champs (non null) contient l'un des mots-clés. */
+    private boolean correspond(String a, String b, String c, List<String> motsCles) {
+        if (motsCles.isEmpty()) return true;
+        StringBuilder sb = new StringBuilder();
+        for (String champ : new String[]{a, b, c}) {
+            if (champ != null) sb.append(champ).append(' ');
+        }
+        String texte = sb.toString().toLowerCase(Locale.FRENCH);
+        return motsCles.stream().anyMatch(texte::contains);
+    }
+
+    private String abreger(String texte, int max) {
+        if (texte.length() <= max) return texte;
+        return texte.substring(0, max).trim() + "…";
     }
 }

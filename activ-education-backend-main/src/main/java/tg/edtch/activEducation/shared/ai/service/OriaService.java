@@ -44,6 +44,12 @@ public class OriaService {
     @Value("${openai.api.key:}")
     private String openaiApiKey;
 
+    @Value("${openai.api.chat.url:https://api.openai.com/v1/chat/completions}")
+    private String openaiChatUrl;
+
+    @Value("${openai.api.chat.key:${openai.api.key:}}")
+    private String openaiChatKey;
+
     @Value("${openai.api.chat.model:gpt-4o-mini}")
     private String chatModel;
 
@@ -61,6 +67,7 @@ public class OriaService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final int MAX_MESSAGES_IN_MEMORY = 50;
+    private static final int MAX_MESSAGES_FOR_LLM = 6;
     private static final int PROFIL_UPDATE_INTERVAL = 5;
 
     private final ConcurrentHashMap<String, OriaSession> sessions = new ConcurrentHashMap<>();
@@ -75,6 +82,27 @@ public class OriaService {
 
     private static final Set<String> BLOCKED_WORDS = Set.of(
         "hack", "pirate", "exploit", "vuln", "malware", "virus", "phish"
+    );
+
+    /**
+     * Salutations pures (message court, aucun contenu informationnel) : on y
+     * répond de façon humaine SANS appeler le LLM (rapide, gratuit, fiable),
+     * avec une question d'orientation scolaire/apprentissage en relance.
+     * Cf. JOURNAL_BORD_IA.md §11.
+     */
+    private static final Set<String> SALUTATIONS = Set.of(
+        "bonjour", "bonsoir", "salut", "slt", "coucou", "hello", "hey",
+        "bonjour oria", "bonsoir oria", "salut oria", "coucou oria", "hello oria",
+        "bonjour a tous", "bonsoir a tous", "bonjour tout le monde",
+        "bonne journee", "bonne soiree", "bonne nuit", "bienvenue"
+    );
+
+    private static final List<String> SALUTATION_TEMPLATES = List.of(
+        "Bonjour ! Ravi de te voir ici. Je suis ORIA, ton conseiller en orientation scolaire et professionnelle. Dis-moi, tu es en quelle classe en ce moment ? Et qu'est-ce que tu préfères comme matière à l'école ?",
+        "Salut ! Content de te retrouver. Pour bien t'accompagner, j'aimerais en savoir plus sur toi : quel niveau scolaire es-tu, et as-tu déjà une idée du métier qui te ferait rêver ?",
+        "Coucou ! J'espère que tu vas bien. Parle-moi un peu de toi : quelles matières aimes-tu le plus, et qu'est-ce qui te semble difficile ou intéressant dans tes cours en ce moment ?",
+        "Bonjour ! Bienvenue dans ton espace d'orientation. Pour te guider vers des filières et des métiers adaptés, j'ai besoin de te connaître : quel est ton niveau d'études actuel et quelles sont tes ambitions ?",
+        "Bonjour ! Heureux de te parler. Pour t'aider à réussir ton parcours, dis-moi : quelles sont tes matières fortes, et as-tu besoin d'aide sur un cours ou une méthode de travail en particulier ?"
     );
 
     @Transactional
@@ -92,6 +120,19 @@ public class OriaService {
         session.messages.add(new ChatMessage("user", message, Instant.now()));
         if (session.messages.size() > MAX_MESSAGES_IN_MEMORY) {
             session.messages.remove(0);
+        }
+
+        String salutation = reponseSiSalutation(message, profilOrientationSafe(userId));
+        if (salutation != null) {
+            var ts = Instant.now();
+            session.messages.add(new ChatMessage("assistant", salutation, ts));
+            if (session.messages.size() > MAX_MESSAGES_IN_MEMORY) {
+                session.messages.remove(0);
+            }
+            List<MessageDto> historique = session.messages.stream()
+                .map(m -> new MessageDto(m.role, m.contenu, m.timestamp))
+                .collect(Collectors.toList());
+            return new OriaResponse(salutation, sessionId, historique);
         }
 
         try {
@@ -166,6 +207,22 @@ public class OriaService {
             session.messages.get(session.messages.size() - 1).role
         );
 
+        // ── SALUTATION ── réponse humaine immédiate, sans LLM (rapide + fiable)
+        String salutation = reponseSiSalutation(message, profilOrientationSafe(userId));
+        if (salutation != null) {
+            log.debug("[ORIA-DEBUG] (salutation) Message de salutation détecté → réponse humaine sans LLM");
+            var ts = Instant.now();
+            session.messages.add(new ChatMessage("assistant", salutation, ts));
+            saveMessage(sessionId, "assistant", salutation, ts, userId);
+            if (session.messages.size() > MAX_MESSAGES_IN_MEMORY) {
+                session.messages.remove(0);
+            }
+            List<MessageDto> historique = session.messages.stream()
+                .map(m -> new MessageDto(m.role, m.contenu, m.timestamp))
+                .collect(Collectors.toList());
+            return new OriaResponse(salutation, sessionId, historique);
+        }
+
         try {
             var contexte = rechercherContexte(message);
             // ── DEBUG (d + e) ── Résultat RAG
@@ -216,9 +273,12 @@ public class OriaService {
             List<MessageDto> historique = session.messages.stream()
                 .map(m -> new MessageDto(m.role, m.contenu, m.timestamp))
                 .collect(Collectors.toList());
+            String messageErreur = (e.getMessage() != null && e.getMessage().contains("429"))
+                ? "L'assistant IA est très sollicité en ce moment. Attends une minute puis réessaie, merci !"
+                : "Désolé, je rencontre une difficulté technique. " +
+                  "Veuillez réessayer dans quelques instants.";
             return new OriaResponse(
-                "Désolé, je rencontre une difficulté technique. " +
-                "Veuillez réessayer dans quelques instants.",
+                messageErreur,
                 sessionId, historique
             );
         }
@@ -235,13 +295,27 @@ public class OriaService {
           .append(buildSystemPrompt(session.contexteOrientation, resumeParcours));
         if (contexteRecherche != null) sb.append(contexteRecherche);
         sb.append("\n--- HISTORIQUE (");
-        sb.append(session.messages.size()).append(" msgs) ---\n");
-        for (ChatMessage msg : session.messages) {
+        var pourLlm = derniersMessagesPourLlm(session);
+        sb.append(pourLlm.size()).append(" msgs sur ").append(session.messages.size()).append(") ---\n");
+        for (ChatMessage msg : pourLlm) {
             sb.append("[").append(msg.role).append("] ")
               .append(abreger(msg.contenu, 200)).append("\n");
         }
         sb.append("--- FIN PAYLOAD ---");
         return sb.toString();
+    }
+
+    /**
+     * Fenêtre glissante : ne transmet au LLM que les N derniers messages de la
+     * session. Un historique de 50 messages (MAX_MESSAGES_IN_MEMORY) sature le
+     * contexte des petits modèles et dégrade la qualité des réponses.
+     */
+    private List<ChatMessage> derniersMessagesPourLlm(OriaSession session) {
+        int size = session.messages.size();
+        if (size <= MAX_MESSAGES_FOR_LLM) {
+            return session.messages;
+        }
+        return session.messages.subList(size - MAX_MESSAGES_FOR_LLM, size);
     }
 
     private void saveMessage(String sessionId, String role, String contenu, Instant timestamp, String userId) {
@@ -294,8 +368,13 @@ public class OriaService {
             }
             Set<String> existants = new HashSet<>();
             if (profil.getDomainesInteret() != null) {
-                String[] parts = profil.getDomainesInteret().split(",\\s*");
-                Collections.addAll(existants, parts);
+                // Filtre les entrées vides : un profil vide ("") produisait
+                // ", informatique" avec une virgule initiale au 1er ajout.
+                for (String p : profil.getDomainesInteret().split(",\\s*")) {
+                    if (!p.isBlank()) {
+                        existants.add(p.trim());
+                    }
+                }
             }
             existants.addAll(mentions);
             profil.setDomainesInteret(String.join(", ", existants));
@@ -333,11 +412,49 @@ public class OriaService {
     }
 
     private String resolveSessionId(OriaRequest request, String userId) {
-        return "conv-" + userId;
+        String base = "conv-" + userId;
+        if (base.length() <= 36) {
+            return base;
+        }
+        // Emails longs (ex. developpementdapplication@gmail.com → 39 chars > 36) :
+        // la colonne oria_messages.session_id est varchar(36) et l'insert échouait
+        // avec DataIntegrityViolationException → l'API renvoyait une erreur et le
+        // mobile affichait « Vérifie ta connexion » (cf. JOURNAL_BORD_IA.md §9).
+        // ID compact déterministe : "conv-" + 16 hex (SHA-256 tronqué) = 21 chars.
+        return "conv-" + hashUser(userId);
+    }
+
+    private String hashUser(String userId) {
+        try {
+            var digest = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] bytes = digest.digest(userId.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (int i = 0; i < 8; i++) {
+                hex.append(String.format("%02x", bytes[i]));
+            }
+            return hex.toString();
+        } catch (Exception e) {
+            log.warn("Hash userId impossible, fallback hashCode: {}", e.getMessage());
+            return Integer.toHexString(userId.hashCode());
+        }
     }
 
     private OriaSession getOrCreateSession(String sessionId, String contexte) {
-        return sessions.computeIfAbsent(sessionId, k -> new OriaSession(contexte));
+        OriaSession session = sessions.computeIfAbsent(sessionId, k -> new OriaSession(contexte));
+        // Hydrate la session RAM depuis la DB si elle est vide (restart backend,
+        // première utilisation). Sans ça, ORIA perdait la mémoire multi-tour à
+        // chaque redémarrage alors que les messages sont bien persistés.
+        if (session.messages.isEmpty()) {
+            var histo = messageRepository.findBySessionIdOrderByMessageTimestampAsc(sessionId);
+            if (histo != null && !histo.isEmpty()) {
+                int start = Math.max(0, histo.size() - MAX_MESSAGES_IN_MEMORY);
+                for (var m : histo.subList(start, histo.size())) {
+                    session.messages.add(new ChatMessage(m.getRole(), m.getContenu(), m.getMessageTimestamp()));
+                }
+                log.debug("[ORIA-DEBUG] (c.0) Session hydratée depuis DB : {} message(s)", histo.size());
+            }
+        }
+        return session;
     }
 
     private String callLLM(OriaSession session, String contexteRecherche) {
@@ -364,6 +481,11 @@ public class OriaService {
             } catch (Exception e) {
                 log.warn("Provider LLM a échoué, tentative suivante: {}", e.getMessage());
                 lastError = e;
+                if (e.getMessage() != null && e.getMessage().contains("429")) {
+                    // Quota épuisé : Ollama qwen2:0.5b ne compensera pas (qualité très
+                    // inférieure, réponses absurdes) — remonter proprement à l'utilisateur.
+                    throw new RuntimeException("Quota LLM dépassé (429)", lastError);
+                }
             }
         }
         throw new RuntimeException("Aucun provider LLM disponible", lastError);
@@ -388,15 +510,15 @@ public class OriaService {
         var systemContent = buildSystemPrompt(session.contexteOrientation, resumeParcours);
         if (contexteRecherche != null) systemContent += contexteRecherche;
         messages.add(Map.of("role", "system", "content", systemContent));
-        for (ChatMessage msg : session.messages) {
-            messages.add(Map.of("role", msg.role, "content", msg.contenu));
+        for (ChatMessage msg : derniersMessagesPourLlm(session)) {
+            messages.add(Map.of("role", msg.role, "content", abreger(msg.contenu, 300)));
         }
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", ollamaModel);
         payload.put("messages", messages);
         payload.put("temperature", 0.7);
-        payload.put("max_tokens", 150);
+        payload.put("max_tokens", 500);
         payload.put("stream", false);
 
         HttpHeaders headers = new HttpHeaders();
@@ -411,7 +533,8 @@ public class OriaService {
             if (textNode.isMissingNode()) {
                 throw new RuntimeException("Réponse vide d'Ollama");
             }
-            return textNode.asText();
+            log.info("[ORIA-PROVIDER] Réponse obtenue d'Ollama (modèle: {})", ollamaModel);
+            return nettoyerReponseLlm(textNode.asText());
         } catch (org.springframework.web.client.ResourceAccessException e) {
             log.warn("Ollama non disponible: {}", e.getMessage());
             throw new RuntimeException("Ollama non disponible");
@@ -432,15 +555,15 @@ public class OriaService {
         var systemContent = buildSystemPrompt(session.contexteOrientation, resumeParcours);
         if (contexteRecherche != null) systemContent += contexteRecherche;
         messages.add(Map.of("role", "system", "content", systemContent));
-        for (ChatMessage msg : session.messages) {
-            messages.add(Map.of("role", msg.role, "content", msg.contenu));
+        for (ChatMessage msg : derniersMessagesPourLlm(session)) {
+            messages.add(Map.of("role", msg.role, "content", abreger(msg.contenu, 300)));
         }
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", groqModel);
         payload.put("messages", messages);
         payload.put("temperature", 0.7);
-        payload.put("max_tokens", 800);
+        payload.put("max_tokens", 400);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -455,10 +578,11 @@ public class OriaService {
             if (textNode.isMissingNode()) {
                 throw new RuntimeException("Réponse vide de Groq");
             }
-            return textNode.asText();
+            log.info("[ORIA-PROVIDER] Réponse obtenue de Groq (modèle: {})", groqModel);
+            return nettoyerReponseLlm(textNode.asText());
         } catch (org.springframework.web.client.HttpClientErrorException e) {
             log.error("Erreur HTTP Groq: {} - {}", e.getStatusCode(), e.getMessage());
-            throw new RuntimeException("Erreur Groq: " + e.getStatusCode());
+            throw new RuntimeException("Erreur Groq: " + e.getStatusCode() + " " + e.getMessage());
         } catch (Exception e) {
             log.error("Erreur parsing réponse Groq: {}", e.getMessage());
             throw new RuntimeException("Erreur parsing Groq");
@@ -470,25 +594,31 @@ public class OriaService {
     }
 
     private String callOpenAI(OriaSession session, String contexteRecherche, String resumeParcours) {
-        String url = "https://api.openai.com/v1/chat/completions";
+        // URL + clé configurables : en dev, openai.api.chat.url pointe vers Groq
+        // (endpoint OpenAI-compatible) avec la clé GROQ_API_KEY — cf.
+        // application-dev.properties. En prod, défauts = api.openai.com + openai.api.key.
+        // Avant ce fix, l'URL était durcie vers api.openai.com alors que la clé
+        // OPENAI_API_KEY locale est une clé Groq (gsk_...) → 401 systématique de 7s
+        // à chaque message (cf. JOURNAL_BORD_IA.md 6 août 2026 §1).
+        String url = openaiChatUrl;
 
         List<Map<String, String>> messages = new ArrayList<>();
         var systemContent = buildSystemPrompt(session.contexteOrientation, resumeParcours);
         if (contexteRecherche != null) systemContent += contexteRecherche;
         messages.add(Map.of("role", "system", "content", systemContent));
-        for (ChatMessage msg : session.messages) {
-            messages.add(Map.of("role", msg.role, "content", msg.contenu));
+        for (ChatMessage msg : derniersMessagesPourLlm(session)) {
+            messages.add(Map.of("role", msg.role, "content", abreger(msg.contenu, 300)));
         }
 
         Map<String, Object> payload = new HashMap<>();
         payload.put("model", chatModel);
         payload.put("messages", messages);
         payload.put("temperature", 0.7);
-        payload.put("max_tokens", 800);
+        payload.put("max_tokens", 400);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(openaiApiKey);
+        headers.setBearerAuth(openaiChatKey);
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
 
         try {
@@ -499,10 +629,34 @@ public class OriaService {
             if (textNode.isMissingNode()) {
                 throw new RuntimeException("Réponse vide d'OpenAI");
             }
-            return textNode.asText();
+            log.info("[ORIA-PROVIDER] Réponse obtenue de OpenAI (modèle: {}, url: {})", chatModel, url);
+            return nettoyerReponseLlm(textNode.asText());
         } catch (org.springframework.web.client.HttpClientErrorException e) {
+            if (e.getStatusCode().value() == 429) {
+                log.warn("Quota OpenAI dépassé (429), nouvelle tentative dans 15s");
+                try {
+                    Thread.sleep(15000);
+                    var retry = restTemplate.postForEntity(url, requestEntity, String.class);
+                    JsonNode retryRoot = objectMapper.readTree(retry.getBody());
+                    JsonNode retryText = retryRoot.path("choices").get(0).path("message").path("content");
+                    if (retryText.isMissingNode()) {
+                        throw new RuntimeException("Réponse vide d'OpenAI (retry)");
+                    }
+                    log.info("[ORIA-PROVIDER] Réponse obtenue de OpenAI après retry (modèle: {})", chatModel);
+                    return nettoyerReponseLlm(retryText.asText());
+                } catch (org.springframework.web.client.HttpClientErrorException retryEx) {
+                    log.error("Erreur HTTP OpenAI (retry): {} - {}", retryEx.getStatusCode(), retryEx.getMessage());
+                    throw new RuntimeException("Erreur OpenAI: " + retryEx.getStatusCode() + " " + retryEx.getMessage());
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Erreur OpenAI: 429 interrompu");
+                } catch (Exception retryAutre) {
+                    log.error("Erreur parsing réponse OpenAI (retry): {}", retryAutre.getMessage());
+                    throw new RuntimeException("Erreur parsing OpenAI (retry)");
+                }
+            }
             log.error("Erreur HTTP OpenAI: {} - {}", e.getStatusCode(), e.getMessage());
-            throw new RuntimeException("Erreur OpenAI: " + e.getStatusCode());
+            throw new RuntimeException("Erreur OpenAI: " + e.getStatusCode() + " " + e.getMessage());
         } catch (Exception e) {
             log.error("Erreur parsing réponse OpenAI: {}", e.getMessage());
             throw new RuntimeException("Erreur parsing OpenAI");
@@ -554,7 +708,21 @@ public class OriaService {
         var motsCles = java.util.Arrays.stream(mots.split("\\s+"))
             .filter(m -> m.length() >= 3)
             // Stop words français minimaux — évite de chercher 'est', 'les', 'des'
-            .filter(m -> !java.util.Set.of("est", "les", "des", "une", "pour", "avec", "dans", "sur", "que", "qui", "quoi", "comment", "moi", "toi", "nous", "vous", "fait", "faire", "etre", "sont", "peut", "tout", "tous", "cette", "mon", "ton", "son", "mes", "tes", "ses", "leur", "leurs").contains(m))
+            .filter(m -> !java.util.Set.of(
+                "est", "etre", "sont", "les", "des", "une", "un", "pour", "avec", "dans", "sur",
+                "que", "qui", "quoi", "comment", "moi", "toi", "nous", "vous", "fait", "faire",
+                "peut", "tout", "tous", "toute", "toutes", "cette", "ces", "mon", "ton", "son",
+                "mes", "tes", "ses", "leur", "leurs", "pas", "plus", "quels", "quelle", "quelles",
+                "quel", "trouve", "trouver", "trouvent", "donner", "donne", "dire", "veux", "veut",
+                "liste", "listes", "lister", "connais", "connaitre", "appeler", "expliquer",
+                "explique", "parler", "parle", "savoir", "voudrais", "suis", "aime", "aimer",
+                "bonjour", "bonsoir", "salut", "coucou", "hello", "hey", "merci", "bonne",
+                "journee", "soiree", "nuit", "bienvenue", "eleve", "etudiante", "etudiant"
+            ).contains(m))
+            // Pluriel français : 'universités' → 'universite' pour matcher 'Université'
+            // (LIKE %universites% ne matche pas 'Universite'). Ne s'applique qu'aux
+            // mots longs (évite 'pas' → 'pa', 'bac' → 'ba').
+            .map(m -> (m.endsWith("s") && m.length() > 4) ? m.substring(0, m.length() - 1) : m)
             .distinct()
             .toList();
         log.debug("[ORIA-DEBUG] (d.1b) Mots-clés après split={}", motsCles);
@@ -564,26 +732,35 @@ public class OriaService {
             return contexteVide(message);
         }
 
-        // Agrège les résultats de chaque mot-clé, déduplique par fiche.id, garde les 5 premiers.
+        // Agrège les résultats de chaque mot-clé, déduplique par fiche.id, garde les 8 premiers.
         // On ne fait pas un OR SQL car le repository ne le supporte pas nativement — N requêtes
-        // de 5 résultats coûtent moins cher qu'un LIKE %X%Y%Z%.
+        // de 8 résultats coûtent moins cher qu'un LIKE %X%Y%Z%.
         java.util.LinkedHashMap<Long, Fiche> agregat = new java.util.LinkedHashMap<>();
         for (var mot : motsCles) {
             var res = ficheRepository.rechercherParMotCle(mot,
                 org.springframework.data.domain.PageRequest.of(0, 5));
             for (var fiche : res.getContent()) {
                 agregat.putIfAbsent(fiche.getId(), fiche);
-                if (agregat.size() >= 5) break;
+                if (agregat.size() >= 8) break;
             }
-            if (agregat.size() >= 5) break;
+            if (agregat.size() >= 8) break;
         }
-        var resultats = new java.util.ArrayList<>(agregat.values());
+        // Priorité aux fiches dont le TITRE contient un mot-clé (pertinence forte),
+        // puis les autres (match resume/contenu/ville).
+        java.util.List<Fiche> resultats = new java.util.ArrayList<>(agregat.values());
+        resultats.sort(java.util.Comparator.comparing((Fiche f) -> !titreContientUnMotCle(f, motsCles)));
         log.debug("[ORIA-DEBUG] (d.3) RAG mot-clé : {} résultat(s) → titres={}",
             resultats.size(),
             resultats.stream().map(f -> f.getTitre()).collect(Collectors.toList())
         );
         if (resultats.isEmpty()) return contexteVide(message);
         return formaterContexte(resultats);
+    }
+
+    private boolean titreContientUnMotCle(Fiche fiche, java.util.List<String> motsCles) {
+        if (fiche.getTitre() == null) return false;
+        String titre = fiche.getTitre().toLowerCase(ROOT);
+        return motsCles.stream().anyMatch(m -> titre.contains(m));
     }
 
     /**
@@ -596,8 +773,11 @@ public class OriaService {
     private String contexteVide(String message) {
         return "\n\n--- INFORMATIONS DE LA BASE DE DONNÉES ---\n" +
                "Aucune fiche ne correspond à « " + abreger(message, 80) + " » dans la base togolaise.\n" +
-               "Si tu réponds, signale clairement que tu n'as pas d'information vérifiée\n" +
-               "et ne cite aucun établissement précis.\n" +
+               "Réponds avec tes connaissances générales : parcours type, étapes, matières, compétences,\n" +
+               "métiers, établissements bien connus dont tu es raisonnablement sûr. Ne refuse pas de répondre.\n" +
+               "Cite uniquement les établissements dont tu es certain de l'existence, et signale d'une phrase\n" +
+               "les points précis à vérifier (conditions d'admission, frais, dates) sans déni de responsabilité\n" +
+               "excessif.\n" +
                "--- FIN DES INFORMATIONS ---\n";
     }
 
@@ -632,6 +812,49 @@ public class OriaService {
         return texte.length() <= max ? texte : texte.substring(0, max) + "...";
     }
 
+    /**
+     * Détecte une salutation pure (« bonjour », « salut oria », « bonsoir »…)
+     * et renvoie une réponse humaine prête à l'emploi, orientée vers la scolarité
+     * et l'apprentissage. Retourne {@code null} si le message n'est pas une
+     * salutation → l'appel LLM normal prend le relais.
+     */
+    private String reponseSiSalutation(String message, ProfilOrientation profil) {
+        String norm = normaliserPourSalutation(message);
+        if (!SALUTATIONS.contains(norm)) {
+            return null;
+        }
+        String reponse = SALUTATION_TEMPLATES.get(
+            java.util.concurrent.ThreadLocalRandom.current().nextInt(SALUTATION_TEMPLATES.size()));
+        // Si on connaît déjà un centre d'intérêt de l'élève, on s'appuie dessus
+        if (profil != null && profil.getDomainesInteret() != null && !profil.getDomainesInteret().isBlank()) {
+            String domaine = java.util.Arrays.stream(profil.getDomainesInteret().split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .findFirst()
+                .orElse(null);
+            if (domaine != null) {
+                reponse += " Je vois que « " + domaine + " » t'intéresse — on pourra explorer cette voie ensemble si tu veux.";
+            }
+        }
+        return reponse;
+    }
+
+    private String normaliserPourSalutation(String message) {
+        return message.toLowerCase(ROOT)
+            .replaceAll("[^a-z0-9 ]", " ")
+            .replaceAll("\\s+", " ")
+            .trim();
+    }
+
+    private ProfilOrientation profilOrientationSafe(String userId) {
+        try {
+            return profilOrientationRepository.findByUserId(userId).orElse(null);
+        } catch (Exception e) {
+            log.warn("ProfilOrientation indisponible: {}", e.getMessage());
+            return null;
+        }
+    }
+
     private String buildSystemPrompt(String contexteOrientation) {
         return buildSystemPrompt(contexteOrientation, null);
     }
@@ -662,18 +885,42 @@ public class OriaService {
               .append("4. Adapte ta réponse au niveau de l'élève (collège / lycée / université) quand cette information est \n")
               .append("connue ou déductible de la conversation. Si elle ne l'est pas et qu'elle change significativement \n")
               .append("la réponse, demande-la avant de répondre. \n\n")
-              .append("5. N'invente jamais un nom d'établissement, un chiffre ou un fait précis. Si tu n'es pas sûr qu'une \n")
-              .append("université propose réellement une filière donnée, dis-le clairement plutôt que d'affirmer une \n")
-              .append("information non vérifiée. Distingue explicitement ce que tu sais avec certitude de ce qui est une \n")
-              .append("estimation ou une piste à vérifier. \n\n")
-              .append("5b. Si la section « INFORMATIONS DE LA BASE DE DONNÉES » ne contient pas l'établissement ou la filière \n")
-              .append("demandé(e), tu dois : répondre explicitement que tu n'as pas d'information vérifiée sur ce sujet dans \n")
-              .append("ta base, NE JAMAIS inventer un nom d'établissement (surtout pas hors du Togo si la question porte sur \n")
-              .append("le Togo), NE JAMAIS inventer un chiffre, une adresse, un site web ou un fait précis. Préfère « je \n")
-              .append("n'ai pas d'information vérifiée » à un nom inventé, même si l'utilisateur insiste. \n\n")
+.append("5. Utilise tes connaissances générales pour tout ce qui touche à l'éducation : définitions, \n")
+               .append("parcours types, matières, métiers, débouchés, méthodes de travail, systèmes éducatifs. Ces \n")
+               .append("connaissances sont fiables et tu peux répondre naturellement, comme un conseiller d'orientation \n")
+               .append("expérimenté. Pour les établissements togolais, cite d'abord ceux présents dans la base de données ; \n")
+               .append("tu peux aussi citer de mémoire les établissements bien connus (ex. Université de Lomé, ESIA Aného, \n")
+               .append("École Polytechnique de Lomé, CFP) si tu es raisonnablement sûr de leur existence. N'invente \n")
+               .append("JAMAIS un chiffre, une adresse, un site web, une statistique ou un détail précis : si tu ne \n")
+               .append("connais pas un détail, dis-le simplement et propose une piste pour le vérifier. \n\n")
+               .append("5b. Si la section « INFORMATIONS DE LA BASE DE DONNÉES » ne contient pas l'établissement ou la filière \n")
+               .append("demandé(e), ne refuse PAS de répondre et ne réponds pas de façon évasive : réponds avec tes \n")
+               .append("connaissances générales (parcours type, étapes, matières, compétences, formations possibles, \n")
+               .append("établissements connus), comme le ferait un vrai conseiller d'orientation. Signale uniquement les \n")
+               .append("points précis dont tu n'es pas sûr (ex. « les conditions d'admission exactes sont à vérifier auprès \n")
+               .append("de l'établissement ») sans surcharger la réponse de dénis de responsabilité. \n\n")
               .append("6. Format : réponses courtes et claires par défaut, listes à puces pour énumérer des filières/établissements, \n")
               .append("pas de blocs de texte denses. Une seule langue par réponse — jamais de mélange de caractères ou de mots \n")
               .append("d'une autre langue (ex. chinois, anglais) sauf si l'utilisateur écrit lui-même dans cette langue. \n\n")
+.append("6b. Quand l'utilisateur demande une liste (universités, écoles, filières, métiers, séries), énumère \n")
+               .append("TOUTES les entrées pertinentes présentes dans le bloc « INFORMATIONS DE LA BASE DE DONNÉES », \n")
+               .append("sous forme de liste à puces complète. Ne te limite jamais à une ou deux entrées quand le bloc \n")
+               .append("en contient davantage. Si le bloc contient des éléments hors sujet pour la question, écarte-les. \n\n")
+               .append("6d. Les entrées de la base de données peuvent être incomplètes, hors sujet ou inexactes : ne cite \n")
+               .append("que celles qui répondent réellement à la question posée. Si elles sont toutes hors sujet ou \n")
+               .append("contredisent la question (ex. la question demande des universités publiques et les entrées \n")
+               .append("sont privées, ou la question porte sur les études et les entrées sont des centres de formation \n")
+               .append("sans rapport), ignore-les et réponds avec tes connaissances générales en le faisant \n")
+               .append("naturellement, sans commenter l'état de la base. \n\n")
+              .append("6c. Salutations : quand l'utilisateur te dit simplement « bonjour », « bonsoir », « salut », « coucou » \n")
+              .append("ou toute autre salutation, réponds chaleureusement, présente-toi brièvement, et pose-lui UNE question \n")
+              .append("sur son parcours : son niveau scolaire, ses matières préférées, ses difficultés dans un cours, ou ses \n")
+              .append("ambitions. Ne renvoie jamais une réponse froide ou générique à une salutation. \n\n")
+              .append("7. Questions de suivi : après avoir répondu utilement, pose régulièrement UNE question de suivi \n")
+              .append("pertinente qui approfondit l'accompagnement — sur les cours, les matières, les difficultés \n")
+              .append("d'apprentissage, les méthodes de travail, les projets d'études ou les filières. L'orientation \n")
+              .append("scolaire ne se limite pas aux universités : parle aussi des formations, des métiers, des \n")
+              .append("séries, des bourses et du parcours d'apprentissage. Ne répète jamais deux fois la même question. \n\n")
               .append("## Suivi conversationnel (mentorat continu)\n\n")
               .append("ORIA assure un suivi de l'élève dans la durée, du niveau troisième jusqu'à la fin de son parcours : \n")
               .append("- Aucune conversation ne doit être supprimée ; chaque échange nourrit le profil de suivi de l'élève. \n")
@@ -696,6 +943,14 @@ public class OriaService {
         }
 
         return prompt.toString();
+    }
+
+    private String nettoyerReponseLlm(String contenu) {
+        if (contenu == null) return contenu;
+        String r = contenu
+                .replaceAll("(?s)<(?:think|thinking)\\b[^>]*>[\\s\\S]*?</(?:think|thinking)>", "")
+                .replaceAll("(?s)(?:^|\\n)\\s*(?:think|thinking)\\b[^\\n]*\\n[\\s\\S]*?\\n\\s*/\\s*(?:think|thinking)\\s*(?:\\n|$)", "");
+        return r.trim();
     }
 
     private OriaResponse buildErrorResponse(String errorMessage) {

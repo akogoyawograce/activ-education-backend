@@ -1,5 +1,6 @@
 package tg.edtch.activEducation.prediction.application.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Création / mise à jour d'un {@link tg.edtch.activEducation.prediction.domain.entite.OrientationOutcome}.
@@ -24,14 +26,35 @@ import java.util.Map;
 @AllArgsConstructor
 public class OrientationOutcomeRequest {
 
-    @NotNull
+    /** Id technique de la filière (backoffice). Optionnel si {@link #filiereTrackingId} fourni. */
     private Long filiereId;
+
+    /** TrackingId de la fiche filière (mobile — les URLs REST utilisent les trackingId). */
+    private UUID filiereTrackingId;
 
     /** Date du choix. Si non fournie, on prend la date du jour. */
     private LocalDate dateChoix;
 
     /** Libellé de la série du bac (si déjà connue au moment du choix). */
     private String serie;
+
+    /** Région du lycée d'origine (Grand Lomé, Maritime, ...) — optionnel. */
+    private String region;
+
+    /** Ordre d'enseignement d'origine : public / privé / communautaire — optionnel. */
+    private String ordre;
+
+    /** Sexe du candidat : M / F — optionnel. */
+    private String sexe;
+
+    /** Année de la session du concours (ex. 2024) — optionnel. */
+    private Integer anneeSession;
+
+    /** Soit {@link #filiereId} soit {@link #filiereTrackingId} doit être renseigné. */
+    @AssertTrue(message = "filiereId ou filiereTrackingId requis")
+    public boolean isFiliereRefValide() {
+        return filiereId != null || filiereTrackingId != null;
+    }
 
     /** Snapshot RIASEC : map dimension → score (0..1). */
     private Map<String, BigDecimal> riasecSnapshot;

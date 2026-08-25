@@ -30,7 +30,7 @@ public class FicheMetierMapper {
                 .formationsAcces(request.getFormationsAcces())
                 .debouchesTogo(request.getDebouchesTogo())
                 .fourchetteSalaire(request.getFourchetteSalaire())
-                .filieresPreparantes(filieres)
+                .filieresPreparantes(new java.util.HashSet<>(filieres))
                 .build();
     }
 
@@ -92,6 +92,6 @@ public class FicheMetierMapper {
         if (request.getFourchetteSalaire() != null)
             entity.setFourchetteSalaire(request.getFourchetteSalaire());
         if (filieres != null)
-            entity.setFilieresPreparantes(filieres);
+            entity.setFilieresPreparantes(new java.util.HashSet<>(filieres));
     }
 }

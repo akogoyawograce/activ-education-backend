@@ -19,6 +19,7 @@ import tg.edtch.activEducation.profil.domain.enums.RoleNom;
 import tg.edtch.activEducation.profil.repository.EleveRepository;
 import tg.edtch.activEducation.profil.repository.RoleRepository;
 import tg.edtch.activEducation.profil.repository.UtilisateurRepository;
+import tg.edtch.activEducation.shared.security.auth.AuthService;
 import tg.edtch.activEducation.shared.minio.dto.FileUploadResponse;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.enums.FileType;
@@ -43,9 +44,13 @@ public class EleveServiceImpl implements EleveService {
     private final EleveMapper eleveMapper;
     private final PasswordEncoder passwordEncoder;
     private final MinioService minioService;
+    private final AuthService authService;
 
     @Override
     public EleveResponse inscrireEleve(EleveRequest request) {
+        // L'email doit avoir été vérifié via OTP (POST /auth/inscription/otp/verify)
+        authService.validerInscriptionToken(request.getEmail(), request.getInscriptionToken());
+
         // Vérification de l'unicité de l'email au niveau global (table utilisateurs)
         if (utilisateurRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException(
@@ -64,6 +69,7 @@ public class EleveServiceImpl implements EleveService {
 
         // Hachage du mot de passe
         eleve.setMotDePasseHash(passwordEncoder.encode(request.getMotDePasse()));
+        eleve.setEmailVerifie(true);
 
         // Association du rôle ROLE_ELEVE
         Role roleEleve = roleRepository.findByNom(RoleNom.ROLE_ELEVE)

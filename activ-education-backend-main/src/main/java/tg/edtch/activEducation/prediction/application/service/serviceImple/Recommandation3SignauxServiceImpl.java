@@ -15,6 +15,7 @@ import tg.edtch.activEducation.prediction.application.service.Recommandation3Sig
 import tg.edtch.activEducation.prediction.domain.config.PredictionProperties;
 import tg.edtch.activEducation.prediction.domain.entite.EngagementSignal;
 import tg.edtch.activEducation.prediction.domain.repository.EngagementSignalRepository;
+import tg.edtch.activEducation.prediction.domain.service.ModeleReussiteService;
 import tg.edtch.activEducation.prediction.domain.service.NoteTrajectoireService;
 import tg.edtch.activEducation.prediction.domain.util.ProfilFiliereRiasecCatalog;
 import tg.edtch.activEducation.profil.domain.entite.Eleve;
@@ -66,6 +67,7 @@ public class Recommandation3SignauxServiceImpl implements Recommandation3Signaux
     private final FicheFiliereRepository ficheFiliereRepository;
     private final EngagementSignalRepository engagementRepository;
     private final NoteTrajectoireService trajectoireService;
+    private final ModeleReussiteService modeleReussiteService;
     private final PredictionProperties properties;
 
     @Override
@@ -102,7 +104,16 @@ public class Recommandation3SignauxServiceImpl implements Recommandation3Signaux
             BigDecimal aspiration = calculerAspiration(profil, fiche);
             BigDecimal realite = calculerRealite(profil, fiche);
             BigDecimal engagement = calculerEngagement(engagementParFiche.get(fiche.getId()));
-            BigDecimal finalScore = combiner(aspiration, realite, engagement);
+
+            // Probabilité ML d'admission (modèle Phase 5, ONNX) — signal "réalité" enrichi
+            double proba = modeleReussiteService.probabiliteAdmission(
+                    profil, fiche, profil.getNotesCroissant());
+            BigDecimal ml = BigDecimal.valueOf(proba).setScale(3, RoundingMode.HALF_UP);
+            BigDecimal realiteHybride = realite.multiply(new BigDecimal("0.5"))
+                    .add(ml.multiply(new BigDecimal("0.5")))
+                    .setScale(3, RoundingMode.HALF_UP);
+
+            BigDecimal finalScore = combiner(aspiration, realiteHybride, engagement);
 
             scorees.add(FiliereScoreeResponse.builder()
                     .trackingId(fiche.getTrackingId())
@@ -113,8 +124,9 @@ public class Recommandation3SignauxServiceImpl implements Recommandation3Signaux
                     .scoreRealite(realite)
                     .scoreEngagement(engagement)
                     .scoreFinal(finalScore)
+                    .probabiliteReussite(ml)
                     .estDecouverte(false)
-                    .raisonClassement(genererRaison(aspiration, realite, engagement))
+                    .raisonClassement(genererRaison(aspiration, realiteHybride, engagement, ml))
                     .build());
         }
 
@@ -204,6 +216,7 @@ public class Recommandation3SignauxServiceImpl implements Recommandation3Signaux
                 .noteExtrapolée(traj.noteExtrapolée())
                 .pente(traj.pente())
                 .confianceTrajectoire(traj.confiance())
+                .notesCroissant(notesCroissant)
                 .build();
     }
 
@@ -379,12 +392,18 @@ public class Recommandation3SignauxServiceImpl implements Recommandation3Signaux
     // Explication textuelle
     // ─────────────────────────────────────────────────────────────────────
 
-    private String genererRaison(BigDecimal aspiration, BigDecimal realite, BigDecimal engagement) {
+    private String genererRaison(BigDecimal aspiration, BigDecimal realite,
+                                     BigDecimal engagement, BigDecimal probaML) {
         StringBuilder sb = new StringBuilder();
         if (aspiration != null && aspiration.doubleValue() >= 0.7) sb.append("Profil RIASEC très aligné. ");
         else if (aspiration != null && aspiration.doubleValue() >= 0.5) sb.append("Profil RIASEC compatible. ");
         if (realite != null && realite.doubleValue() >= 0.8) sb.append("Notes au-dessus du seuil. ");
         else if (realite != null && realite.doubleValue() >= 0.6) sb.append("Notes correctes vs admission. ");
+        if (probaML != null) {
+            sb.append("≈ ").append(probaML.multiply(BigDecimal.valueOf(100))
+                    .setScale(0, RoundingMode.HALF_UP).toPlainString())
+              .append("% de chances d'admission (modèle 6 000 parcours). ");
+        }
         if (engagement != null && engagement.doubleValue() >= 0.5) sb.append("Déjà consulté/intéressé. ");
         if (sb.length() == 0) sb.append("Score pondéré des 3 signaux.");
         return sb.toString().trim();

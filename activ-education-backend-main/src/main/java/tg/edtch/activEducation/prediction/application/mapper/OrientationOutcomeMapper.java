@@ -24,13 +24,18 @@ public class OrientationOutcomeMapper {
     private final ObjectMapper objectMapper;
 
     public OrientationOutcome toEntity(OrientationOutcomeRequest request,
+                                       Long filiereId,
                                        Long eleveId,
                                        LocalDateSupplier today) {
         return OrientationOutcome.builder()
                 .eleveId(eleveId)
-                .filiereId(request.getFiliereId())
+                .filiereId(filiereId)
                 .dateChoix(request.getDateChoix() != null ? request.getDateChoix() : today.now())
                 .serie(request.getSerie())
+                .region(request.getRegion())
+                .ordre(request.getOrdre())
+                .sexe(request.getSexe())
+                .anneeSession(request.getAnneeSession())
                 .riasecSnapshot(toJsonNode(request.getRiasecSnapshot()))
                 .notesSnapshot(toJsonNode(request.getNotesSnapshot()))
                 .scoreRecommandation(request.getScoreRecommandation())
@@ -45,6 +50,10 @@ public class OrientationOutcomeMapper {
                 .filiereId(entity.getFiliereId())
                 .dateChoix(entity.getDateChoix())
                 .serie(entity.getSerie())
+                .region(entity.getRegion())
+                .ordre(entity.getOrdre())
+                .sexe(entity.getSexe())
+                .anneeSession(entity.getAnneeSession())
                 .riasecSnapshot(entity.getRiasecSnapshot())
                 .notesSnapshot(entity.getNotesSnapshot())
                 .scoreRecommandation(entity.getScoreRecommandation())

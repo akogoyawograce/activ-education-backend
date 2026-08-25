@@ -72,6 +72,22 @@ public class OrientationOutcome extends BaseEntity {
     @Column(name = "serie", length = 10)
     private String serie;
 
+    /** Région du lycée d'origine (Grand Lomé, Maritime, ...). */
+    @Column(name = "region", length = 30)
+    private String region;
+
+    /** Ordre d'enseignement d'origine : public / privé / communautaire. */
+    @Column(name = "ordre", length = 20)
+    private String ordre;
+
+    /** Sexe du candidat : M / F. */
+    @Column(name = "sexe", length = 1)
+    private String sexe;
+
+    /** Année de la session du concours (ex. 2024 pour session juin 2024). */
+    @Column(name = "annee_session")
+    private Integer anneeSession;
+
     /** Score combiné issu du moteur de la Phase 3 (0 à 1). */
     @Column(name = "score_recommandation", precision = 5, scale = 3)
     private BigDecimal scoreRecommandation;

@@ -782,3 +782,151 @@ Nouveau service : `bibliotheque/.../FicheExplorerPersonnaliseeServiceImpl`
   l'Explorer home (métiers/établissements non couverts, tri createdAt
   conservé).
 - Données de test « Test Save Button MODIFIED » présentes en base — à purger.
+
+## §9 — Sprint ORIA : 3 bugs corrigés (10 août 2026)
+
+### Contexte
+L'utilisateur a lancé le mobile sur téléphone : ORIA répondait mal (listes
+incomplètes), perdait la mémoire multi-tour et chaque message gaspillait 7s
+sur un appel 401.
+
+### Bug 1 — Provider : URL durcie vers api.openai.com avec une clé Groq
+- `OriaService.callOpenAI()` avait l'URL **en dur** `https://api.openai.com/...`
+  et utilisait `openaiApiKey` (= `OPENAI_API_KEY`, qui contient une clé Groq
+  `gsk_...` dans `.env.local`). Résultat : 401 systématique à chaque message,
+  puis fallback Groq qui, lui, marchait (7s perdues).
+- **Fix** : `@Value` `openai.api.chat.url` + `openai.api.chat.key` injectés
+  (défauts : api.openai.com + openai.api.key). Le profil dev (URL Groq +
+  clé GROQ_API_KEY) est désormais respecté : l'appel part directement sur
+  `api.groq.com` (llama-3.1-8b-instant), 0 erreur 401.
+- `max_tokens` passé de 800 → 1000 (OpenAI + Groq) pour permettre les listes.
+
+### Bug 2 — RAG mot-clé : pluriel, stop-words, priorité aux titres
+- **Pluriel français** : "universités" ne matchait jamais "Université"
+  (LIKE `%universites%` ≠ "universite"). → strip du 's' final pour les mots
+  > 4 chars.
+- **Faux positif "Journaliste"** : le mot "liste" (commande "Liste moi…")
+  matche le titre "Journaliste" (contient "liste" en suffixe) et remplissait
+  le cap avant les universités. → "liste/listes/lister" + verbes métier
+  (trouver, donner, dire, expliquer…) ajoutés aux stop-words.
+- **Priorité aux titres** : les fiches dont le TITRE contient un mot-clé sont
+  triées en tête (vs match resume/contenu/ville).
+- Caps relevées : 5 → 8 résultats par mot-clé et 8 au total.
+- Résultat live : "Liste moi les universités au Togo" → 8 universités
+  togolaises (avant : 2 + 3 faux positifs).
+
+### Bug 3 — Mémoire multi-tour perdue au restart backend
+- `getOrCreateSession()` ne rechargeait pas l'historique DB → après un
+  restart, le LLM recevait UNIQUEMENT le message courant (log : RAM taille=1).
+- **Fix** : hydratation depuis `OriaMessageRepository` au premier usage
+  (dernier MAX_MESSAGES_IN_MEMORY), log `(c.0)`.
+- **Fenêtre LLM** : seuls les 12 derniers messages (`MAX_MESSAGES_FOR_LLM`)
+  sont envoyés au LLM (avant : jusqu'à 50 → saturation du contexte).
+
+### Règle prompt ajoutée (6b)
+"Quand l'utilisateur demande une liste, énumère TOUTES les entrées
+pertinentes du bloc INFORMATIONS, pas seulement une ou deux."
+
+### Vérifications
+- ✅ `mvnw -o test` → **128/128 (2 skips pré-existants)** — 2 nouveaux tests
+  (`sessionIsHydratedFromDatabaseOnFirstUse`, `keywordSearchStripsFrenchPlural`).
+- ✅ Live : réponse complète en ~8s (avant ~12s avec 401), 8 universités
+  listées, aucun appel api.openai.com.
+- ✅ Restart → historique de 44 messages rechargé (log `(c.0)`).
+
+### Fichiers modifiés
+- `shared/ai/service/OriaService.java`
+- `src/test/java/.../shared/ai/service/OriaServiceTest.java`
+
+## §10 — FIX ORIA mobile : session_id trop long pour varchar(36) (10 août 2026)
+
+### Symptôme (téléphone)
+ORIA répondait « Désolé, je n'ai pas pu répondre. Vérifie ta connexion et
+réessaie » pour le compte élève `developpementdapplication@gmail.com` alors
+que le backend tournait. Le login marchait, seul ORIA échouait.
+
+### Cause racine
+```
+sessionId = "conv-" + userId = "conv-developpementdapplication@gmail.com" (39 chars)
+INSERT INTO oria_messages (session_id varchar(36)) → DataIntegrityViolationException
+```
+`resolveSessionId()` fabriquait `conv-<email>` sans limite ; pour l'admin
+(`conv-admin@activeducation.tg`, 27 chars) ça passait, pour un email long ça
+plantait → l'exception (hors du try/catch de `sendMessageAndPersist`, ligne 155)
+remontait à l'API → le catch générique du mobile affichait le faux message
+« connexion ».
+
+### Découverte annexe : Flyway NE TOURNE PAS sur Spring Boot 4.0.5
+- Le jar `spring-boot-autoconfigure-4.0.5.jar` ne contient **aucune classe
+  Flyway** → `spring.flyway.enabled=true` est silencieusement ignoré.
+- `flyway_schema_history` n'existe pas en DB locale ; les V1/V2/V3 ne se sont
+  jamais appliquées (unaccent et etablissement_details_xlsx ont été créés par
+  ddl-auto / scripts manuels).
+- **À traiter** : soit runner Flyway explicite (bean), soit un script SQL
+  manuel documenté pour chaque migration.
+
+### Fix appliqué (code, sans migration DB)
+`resolveSessionId()` : si `"conv-" + userId` dépasse 36 chars → ID compact
+déterministe `"conv-" + hex(SHA-256(userId)[0..8])` (21 chars). Test ajouté
+`longEmailProducesCompactSessionId` (≤ 36, déterministe, isolé par user).
+
+### Vérifications
+- ✅ `mvnw -o test` → 129/129 (2 skips pré-existants), dont 22 ORIA.
+- ✅ Live : élève test `emailextremementlongquidepasse36@gmail.com` →
+  sessionId `conv-fadf5a8733192458` (21), ORIA répond « liste des universités
+  au Togo » (7 universités), multi-tour OK (4 messages), 0 erreur DB.
+- Le mobile n'a pas besoin d'être rebuildé : fix côté backend uniquement.
+
+### Fichiers modifiés
+- `shared/ai/service/OriaService.java` (resolveSessionId + hashUser)
+- `src/test/java/.../OriaServiceTest.java`
+
+## §11 — ORIA répond aux salutations : humanisation + relance d'orientation (10 août 2026)
+
+### Demande
+ORIA ne répondait pas aux « bonjour », « bonsoir » (il les ignorait ou générait
+une réponse bizarre). Il doit : 1) répondre chaleureusement, 2) poser une
+question d'orientation (parcours scolaire, apprentissage, cours, méthodes de
+travail — PAS seulement les universités), 3) s'appuyer sur les centres
+d'intérêt déjà connus de l'élève.
+
+### Implémentation (OriaService.java)
+- `SALUTATIONS` : set de formes normalisées (« bonjour », « bonjour oria »,
+  « bonsoir », « salut », « coucou », « bonne journee », …) + `SALUTATION_TEMPLATES`
+  (5 variantes) : présentation ORIA + question de relance.
+- Branchement avant TOUT appel LLM, dans `sendMessage` (RAM) et
+  `sendMessageAndPersist` (DB) : `reponseSiSalutation(message, profilOrientationSafe(userId))`
+  → si salutation détectée, réponse humain figée, **aucun appel LLM**
+  (instantané, zéro coût). Helpers : `normaliserPourSalutation` (minuscules +
+  `[^a-z0-9 ]`), `profilOrientationSafe` (try/catch).
+- La réponse s'appuie sur le 1er `domainesInteret` du profil si connu :
+  « Je vois que « informatique » t'intéresse — on pourra explorer cette voie… ».
+- Règles prompt 6c (salutations) + 7 (questions de suivi, périmètre élargi :
+  cours, matières, méthodes de travail, bourses…).
+
+### Bug de données corrigé au passage
+`domainesInteret` valait `", informatique"` (virgule initiale) : quand le
+profil était vide, `split(",\\s*")` produisait `[""]` → join → `", informatique"`
+→ la salutation affichait « Je vois que «  » t'intéresse ». Fix : filtre des
+entrées vides dans `updateProfilOrientation` + skip des entrées vides à la
+lecture dans `reponseSiSalutation`.
+
+### Vérifications
+- ✅ `mvnw -o -Dtest=OriaServiceTest test` → 26/26 (1 skip pré-existant) ;
+  `mvnw -o test` → 132/132 (2 skips).
+- ✅ Live : « bonjour » → réponse humaine + « informatique » exploité ;
+  « bonsoir ORIA » → idem ; log `(salutation) Message de salutation détecté →
+  réponse humaine sans LLM` (aucun appel Groq).
+- ✅ « comment mieux apprendre mes cours de maths ? » → passe par Groq,
+  réponse LLM normale (le check salutation ne court-circuite pas les vraies
+  questions).
+
+### Note JDK
+`~/.sdkman/candidates/java/current` pointait vers 17 → `mvnw` échoue avec
+« release version 21 not supported ». Utiliser
+`JAVA_HOME=/home/grace/.sdkman/candidates/java/21.0.9-tem` pour tout build et
+pour le restart backend.
+
+### Fichiers modifiés
+- `shared/ai/service/OriaService.java` (salutations + fix virgule)
+- `src/test/java/.../OriaServiceTest.java` (3 tests salutation + 1 test virgule)

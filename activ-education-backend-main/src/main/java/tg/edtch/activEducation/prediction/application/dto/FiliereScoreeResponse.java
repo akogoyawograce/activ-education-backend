@@ -43,6 +43,9 @@ public class FiliereScoreeResponse {
     /** Score combiné = Σ(poids · sous-score). */
     private BigDecimal scoreFinal;
 
+    /** Probabilité d'admission (modèle ML Phase 5, 0..1), ou null si indisponible. */
+    private BigDecimal probabiliteReussite;
+
     /** true si cette filière a été ajoutée comme "découverte" (engagement faible). */
     private Boolean estDecouverte;
 

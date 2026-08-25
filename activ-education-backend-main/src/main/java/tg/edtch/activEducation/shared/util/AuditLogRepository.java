@@ -18,10 +18,10 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     Page<AuditLog> findByActionOrderByCreatedAtDesc(String action, Pageable pageable);
 
     @Query("SELECT a FROM AuditLog a WHERE " +
-            "(:email IS NULL OR a.utilisateurEmail LIKE %:email%) AND " +
-            "(:action IS NULL OR a.action = :action) AND " +
-            "(:fromDate IS NULL OR a.createdAt >= :fromDate) AND " +
-            "(:toDate IS NULL OR a.createdAt <= :toDate) " +
+            "(COALESCE(:email, '') = '' OR a.utilisateurEmail LIKE %:email%) AND " +
+            "(COALESCE(:action, '') = '' OR a.action = :action) AND " +
+            "(COALESCE(:fromDate, a.createdAt) <= a.createdAt) AND " +
+            "(COALESCE(:toDate, a.createdAt) >= a.createdAt) " +
             "ORDER BY a.createdAt DESC")
     Page<AuditLog> findByFilters(
             @Param("email") String email,

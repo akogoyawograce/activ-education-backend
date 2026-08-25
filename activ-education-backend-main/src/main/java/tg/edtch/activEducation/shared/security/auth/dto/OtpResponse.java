@@ -13,4 +13,5 @@ public class OtpResponse {
     private String message;
     private boolean success;
     private String resetToken;
+    private String inscriptionToken;
 }

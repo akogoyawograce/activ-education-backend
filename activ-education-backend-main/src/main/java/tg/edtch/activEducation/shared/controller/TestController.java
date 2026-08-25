@@ -28,6 +28,7 @@ import tg.edtch.activEducation.profil.domain.service.AdministrateurService;
 import tg.edtch.activEducation.profil.domain.service.ConseillerService;
 import tg.edtch.activEducation.profil.domain.service.EleveService;
 import tg.edtch.activEducation.profil.domain.service.ParentService;
+import tg.edtch.activEducation.shared.security.auth.AuthService;
 
 import java.util.Map;
 
@@ -42,6 +43,7 @@ public class TestController {
     private final ParentService parentService;
     private final ConseillerService conseillerService;
     private final AdministrateurService administrateurService;
+    private final AuthService authService;
 
     @PostMapping("/create-user")
     @Operation(summary = "Créer un utilisateur de test", description = "Crée un utilisateur du type spécifié. Réservé ADMIN.")
@@ -56,6 +58,7 @@ public class TestController {
                         .email(request.getEmail())
                         .motDePasse(request.getMotDePasse())
                         .typeApprenant(TypeApprenant.LYCEEN)
+                        .inscriptionToken(authService.genererInscriptionToken(request.getEmail()))
                         .build();
                 EleveResponse res = eleveService.inscrireEleve(req);
                 yield ResponseEntity.status(HttpStatus.CREATED).body(res);
@@ -66,6 +69,7 @@ public class TestController {
                         .prenom(request.getPrenom())
                         .email(request.getEmail())
                         .motDePasse(request.getMotDePasse())
+                        .inscriptionToken(authService.genererInscriptionToken(request.getEmail()))
                         .build();
                 ParentResponse res = parentService.creerParent(req);
                 yield ResponseEntity.status(HttpStatus.CREATED).body(res);

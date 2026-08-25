@@ -1,0 +1,167 @@
+No.,Nom du champ,Question,Description,Type du champ
+1,region_nom_bdd,,xsd:string,string
+2,prefecture_nom_bdd,,xsd:string,string
+3,commune_nom_bdd,,xsd:string,string
+4,canton_nom_bdd,,xsd:string,string
+5,id,,xsd:int,int
+6,canton_id_bdd,ID du canton,xsd:string,string
+7,nom_localite,Nom de la localité,xsd:string,string
+8,etab_id_collecte,ID textuel de l'établissement,xsd:string,string
+9,etab_nom,Nom de l'établissement,xsd:string,string
+10,etab_adr,Adresse,xsd:string,string
+11,ouverture_heure,Horaire d'ouverture (de quelle heure à quelle heure),xsd:string,string
+12,ouverture_jour,Jours d'ouverture,xsd:string,string
+13,etablissement_creation_date,Année de création de l'établissement,xsd:string,string
+14,etablissement_secteur,Type d'établissement,xsd:string,string
+15,etablissement_secteur_autre,Autre secteur de l'établissement,xsd:string,string
+16,etablissement_categorie,Catégorie de l'établissement,xsd:string,string
+17,etablissement_categorie_autre,Autre catégorie de l'établissement,xsd:string,string
+18,etablissement_categoriegeneral,Catégorie général de l'établissement,xsd:string,string
+19,enseignement_categorie,Catégorie d'enseignement,xsd:string,string
+20,etablissement_renovation,Y a-t-il eu une rénovation?,xsd:string,string
+21,etablissement_renovation_annee,"Si oui, année de la rénovation",xsd:string,string
+22,construction_prog,L'établissement a-t-il été construit dans le cadre d'un programme/projet particulier?,xsd:string,string
+23,construction_prog_nom,"Si oui, lequel ?",xsd:string,string
+24,construction_date,"Si oui, année du programme/projet",xsd:string,string
+25,construction_prog_acteur,"Si oui, acteurs du programme/projet",xsd:string,string
+26,construction_prog_montant,"Si oui, montant aloué au programme/projet",xsd:string,string
+27,etab_reconnu,L'établissement est-il reconnu par l'Etat?,xsd:string,string
+28,organisme_rattachement,Organisme de rattachement,xsd:string,string
+29,ministere_tutelle,Ministère de tutelle,xsd:string,string
+30,etablissement_religion,Religion de l'établissement,xsd:string,string
+31,etablissement_religion_autre,Autre religion,xsd:string,string
+32,etablissement_religion_spec,Spécification de la religion (courant religieux),xsd:string,string
+33,interlocuteur,L'interlocuteur est il le chef de l'établissement ?,xsd:string,string
+34,interlocuteur_nom,"Si non, NOM Prénom",xsd:string,string
+35,interlocuteur_contact,"Si non, contact",xsd:string,string
+36,interlocuteur_fonction,"Si non, quelle est votre fonction ?",xsd:string,string
+37,interlocuteur_fonction_autre,Autre fonction de l'interlocuteur,xsd:string,string
+38,responsable_genre,Genre du responsable,xsd:string,string
+39,responsable_nom,NOM et Prénom du Directeur/trice d'établissement,xsd:string,string
+40,responsable_contact,Numéro de téléphone du Directeur/trice d'établissement,xsd:string,string
+41,responsable_annee,Année de la prise de fonction en tant que responsable,xsd:string,string
+42,directeur_autre_etab,Le directeur/trice d'établissement dirige t-il d'autres établissements ?,xsd:string,string
+43,directeur_autre_etab_nb,"Si oui, combien ?",xsd:int,int
+44,langue_enseignement,Langue d'enseignement,xsd:string,string
+45,enseignants_total,Nombre total d'enseignants,xsd:int,int
+46,enseignants_femmes,Nombre total d'enseignantes femmes,xsd:int,int
+47,enseignants_femmes_perm,Nombre d'enseignantes permanentes femmes,xsd:int,int
+48,enseignants_femmes_fonct,Nombre d'enseignantes fonctionnaires femmes,xsd:int,int
+49,enseignants_femmes_non_fonct,Nombre d'enseignantes non fonctionnaires femmes,xsd:int,int
+50,enseignants_hommes,Nombre total d'enseignants hommes,xsd:int,int
+51,enseignants_hommes_perm,Nombre d'enseignants permanents hommes,xsd:int,int
+52,enseignants_hommes_fonct,Nombre d'enseignants fonctionnaires hommes,xsd:int,int
+53,enseignants_hommes_non_fonct,Nombre d'enseignants non fonctionnaire hommes,xsd:int,int
+54,etudiants_total,Nombre d'étudiants (femmes + hommes),xsd:int,int
+55,etudiantes,Nombre total d'étudiantes femmes,xsd:int,int
+56,etudiants,Nombre total d'étudiants hommes,xsd:int,int
+57,admin_personnel_nbr,Nombre total de personnel administratif,xsd:int,int
+58,admin_personnel_femme_nbr,Nombre total de personnel administratif femme,xsd:int,int
+59,admin_personnel_homme_nbr,Nombre total de personnel administratif homme,xsd:int,int
+60,tech_personnel_nbr,Nombre total de personnel technique,xsd:int,int
+61,tech_personnel_femmes_nbr,Nombre total de personnel technique femme,xsd:int,int
+62,tech_personnel_hommes_nbr,Nombre total de personnel technique homme,xsd:int,int
+63,diplome,Type(s) de diplôme(s) délivrés au sein de l'établissement,xsd:string,string
+64,diplome_autre,Autre type de diplôme délivrés,xsd:string,string
+65,bts_formation_agrees,Nombre d'offres de formation agrées en BTS,xsd:int,int
+66,bts_formation_fonctionelle,Nombre d'offres de formation fonctionnelles en BTS,xsd:int,int
+67,bts_annee_obtention,"Nombre d'années post-bac afin d'obtenir le BTS (""Bac+ X"")",xsd:int,int
+68,licence_formation_agrees,Nombre d'offres de formation agrées en licence,xsd:int,int
+69,licence_formation_fonctionelle,Nombre d'offres de formation fonctionnelles en licence,xsd:int,int
+70,licence_annee_obtention,"Nombre d'années post-bac afin d'obtenir la license (""Bac+ X"")",xsd:int,int
+71,master_formation_fonctionelles,Nombre d'offres de formation fonctionnelles en master,xsd:int,int
+72,master_formation_agree,Nombre d'offres de formation agrées en master,xsd:int,int
+73,master_annee_obtention,"Nombre d'années post-bac afin d'obtenir le master (""Bac+ X"")",xsd:string,string
+74,doctorat_formation_fonctionelles,Nombre d'offres de formation fonctionnelle en doctorat,xsd:int,int
+75,doctorat_annee_obtention,"Nombre d'années post-bac afin d'obtenir le doctorat (""Bac+ X"")",xsd:string,string
+76,scolarite,La scolarité est-elle gratuite ?,xsd:string,string
+77,frais_inscription_licence,Montant frais d'inscription (administratif) pour la licence,xsd:string,string
+78,frais_inscription_master,Montant frais d'inscription (administratif) pour le master,xsd:string,string
+79,frais_inscription_doctorat,Montant frais d'inscription (administratif) pour le doctorat,xsd:string,string
+80,frais_inscription_autre,Montant frais d'inscription (administratif) pour tout autre formation,xsd:string,string
+81,frais_scolarite_licence,Montant frais de scolarité (hors inscription) pour la licence,xsd:string,string
+82,frais_scolarite_master,Montant frais scolarité (hors inscription) pour le master,xsd:string,string
+83,frais_scolarite_doctorat,Montant frais scolarité (hors inscription) pour le doctorat,xsd:string,string
+84,frais_scolarite_autre,Montant frais scolarité (hors inscription) pour tout autre formation,xsd:string,string
+85,etablissement_partenariat,L'établissement est-il en partenariat avec d'autres institutions ?,xsd:string,string
+86,etablissement_partenariat_spec,"Si oui, lesquelles?",xsd:string,string
+87,partenariat,Nature des partenariats,xsd:string,string
+88,etudiants_boursiers_total,Nombre d'étudiants total boursier (homme + femme),xsd:int,int
+89,etudiants_boursiers_femmes,Nombre d'étudiantes boursières (femme),xsd:int,int
+90,etudiants_boursiers_hommes,Nombre d'étudiants boursiers (homme),xsd:int,int
+91,etudiants_boursiers_etat_total,Nombre d'étudiants total boursiers de l'état (homme + femme),xsd:int,int
+92,etudiants_boursiers_etat_femmes,Nombre d'étudiants total boursiers de l'état (femme),xsd:int,int
+93,etudiants_boursiers_etat_hommes,Nombre d'étudiants total boursiers de l'état (homme),xsd:int,int
+94,etudiants_boursiers_etablissement_total,Nombre d'étudiants total boursiers de l'établissement (homme + femme),xsd:int,int
+95,etudiants_boursiers_etablissement_femmes,Nombre d'étudiants total boursiers de l'établissement (femme),xsd:int,int
+96,etudiants_boursiers_etablissement_hommes,Nombre d'étudiants total boursiers de l'établissement (homme),xsd:int,int
+97,etudiants_etrangers_declare,Nombre d'étudiants étrangers déclarés,xsd:int,int
+98,etudiants_etrangers_non_declare,Nombre d'étudiants étrangers non déclarés,xsd:int,int
+99,etudiants_etrangers,Nombre d'étudiants étrangers,xsd:int,int
+100,echange,L'établissement propose-t-il des programmes d'échanges universitaires ?,xsd:string,string
+101,echange_nb_femmes,Combien d'étudiantes ont-elles été en échange l'année dernière ? (femme),xsd:int,int
+102,echange_nb_hommes,Combien d'étudiants ont-ils été en échange l'année dernière ? (homme),xsd:int,int
+103,echange_nb_total,Combien d'échanges ont eu lieu l'année dernière ? (homme+femme),xsd:int,int
+104,echange_niveau,A partir de quel(s) niveau(x) de formation l'échange est-il possible ?,xsd:string,string
+105,echange_niveau_autre,Autre niveau de formation pour participer aux échanges,xsd:string,string
+106,echange_destination,Quelle(s) destination(s)?,xsd:string,string
+107,liste_enseignant_annee_derniere,Liste enseignants année dernière,xsd:string,string
+108,liste_enseignant_annee_now,Liste enseignants année en cours,xsd:string,string
+109,liste_etudiant_annee_derniere,Liste des étudiants année dernière,xsd:string,string
+110,liste_etudiant_annee_now,Liste des étudiants année en cours,xsd:string,string
+111,liste_resultats,"Résultat en fin de parcours (BTS, Licence, Master et Doctorat)",xsd:string,string
+112,biblio,Y a-t-il une bibliothèque?,xsd:string,string
+113,salle_info,Y a-t-il une salle informatique?,xsd:string,string
+114,piscine,Y a-t-il une piscine?,xsd:string,string
+115,terrain_sport,Y a-t-il un terrain de sport ?,xsd:string,string
+116,gymnase,Y a-t-il un gymnase ?,xsd:string,string
+117,infirmerie,Y a-t-il une infirmerie?,xsd:string,string
+118,toilette,Y a-t-il des toilettes ?,xsd:string,string
+119,toilettes_nbr,"Si oui, nombre de toilettes assises",xsd:int,int
+120,toilette_int_nbr,Nombre de toilettes intérieures,xsd:int,int
+121,toilette_ext_nbr,Nombre de toilettes extérieures,xsd:int,int
+122,toilette_mixite,Les hommes et les femmes utilisent ils les mêmes toilettes ?,xsd:string,string
+123,lampadaire,Y a-t-il des lampadaires dans l'établissement ?,xsd:string,string
+124,lampadaire_solaire_nbr,"Si oui, combien de lampadaires solaires ?",xsd:int,int
+125,lampadaire_reseau_nbr,"Si oui, combien de lampadaires réseaux ?",xsd:int,int
+126,lampadaire_artisanal_nbr,"Si oui, combien de lampadaires artisanaux ?",xsd:int,int
+127,fontaine,Y a-t-il des fontaines publiques?,xsd:string,string
+128,fontaine_ext_type,"Si oui, quel type ?",xsd:string,string
+129,fontaine_ext_type_autre,Autre type de fontaine,xsd:string,string
+130,transport,Y a-t-il un système de transport scolaire ?,xsd:string,string
+131,transport_type,"Si oui, quel type de transport scolaire?",xsd:string,string
+132,transport_service,"Si oui, année de mise en service du transport scolaire",xsd:string,string
+133,transport_org,"Si oui, quel organisme s'occupe du transport scolaire?",xsd:string,string
+134,transport_subv,"Si oui, comment ce transport scolaire est-il subventionné ?",xsd:string,string
+135,cantine,Y a-t-il une cantine?,xsd:string,string
+136,rampe_handicape,Y a-t-il des rampes pour faciliter l'accès aux handicapés ?,xsd:string,string
+137,subvention,L'établissement reçoit-il des subventions ou du matériel?,xsd:string,string
+138,subventions_nom,"Si oui, nom de la subvention",xsd:string,string
+139,subventions_montant,"Si oui, montant de la subvention",xsd:string,string
+140,subventions_lequels,"Si oui, lesquels? (matériel, financier...)",xsd:string,string
+141,subventions_acteurs,"Si oui, de qui vient elle ?",xsd:string,string
+142,subventions_recurrence,"Si oui, récurrence (ponctuelle, annuelle, mensuel...)",xsd:string,string
+143,subvention_rec_autre,Autre récurrence,xsd:string,string
+144,ordinateur_nbr,Combien d'ordinateurs fixes? Appartenant à l'établissement,xsd:int,int
+145,ordinateur_fonctionnel,Combien d'ordinateurs fixes sont fonctionnels?,xsd:int,int
+146,laptop_nbr,Combien d'ordinateurs portables? Appartenant à l'établissement,xsd:int,int
+147,laptop_fonctionnel,Combien d'ordinateurs portables sont fonctionnels?,xsd:int,int
+148,tablette_nbr,Combien de tablettes ?,xsd:int,int
+149,tablette_fonctionnel,Combien de tablettes sont fonctionnelles?,xsd:int,int
+150,internet,Y a-t-il un réseau internet dédié?,xsd:string,string
+151,internet_type,"Si oui, type d'accès dédié ?",xsd:string,string
+152,internet_type_autre,Autre type d'internet dédié,xsd:string,string
+153,internet_reception,Recevez vous internet ?,xsd:string,string
+154,internet_reception_type,"Si oui, quel type ?",xsd:string,string
+155,internet_reception_type_autre,Autre type de réception internet,xsd:string,string
+156,logement_fonction,L'établissement est-il dôté de logement de fonction ?,xsd:string,string
+157,logement_fonction_nbr,Combien de logement de fonction ?,xsd:string,string
+158,logement_fonction_utilisation,Qui utilise ces logements de fonction?,xsd:string,string
+159,double_flux,Est-ce que l'établissement pratique le double flux ?,xsd:string,string
+160,defis,Problèmes/Difficultés de l'établissement,xsd:string,string
+161,solutions,Potentielles solutions,xsd:string,string
+162,etudiants_age,Age des étudiants,xsd:int,int
+163,date_collecte,Date de la collecte,xsd:date-time,date-time
+164,date_mise_a_jour_collecte,Date de la mise à jour,xsd:date-time,date-time
+165,geometry,Géométrie,gml:Point,Point
+166,univ_ecole_nom,Acronyme du nom de l'école,xsd:string,string

@@ -48,8 +48,8 @@ public interface RendezVousRepository extends JpaRepository<RendezVous, Long> {
     List<RendezVous> findByConseillerTrackingIdAndStatutOrderByDateHeurePrevueDesc(UUID conseillerTrackingId,
             StatutRendezVous statut);
 
-    @Query("SELECT FUNCTION('YEAR', r.dateHeurePrevue), FUNCTION('MONTH', r.dateHeurePrevue), COUNT(r) FROM RendezVous r WHERE r.dateHeurePrevue >= :depuis GROUP BY FUNCTION('YEAR', r.dateHeurePrevue), FUNCTION('MONTH', r.dateHeurePrevue) ORDER BY FUNCTION('YEAR', r.dateHeurePrevue), FUNCTION('MONTH', r.dateHeurePrevue)")
-    List<Object[]> compterRDVParsMois(@Param("depuis") LocalDate depuis);
+    @Query("SELECT EXTRACT(YEAR FROM r.dateHeurePrevue), EXTRACT(MONTH FROM r.dateHeurePrevue), COUNT(r) FROM RendezVous r WHERE r.dateHeurePrevue >= :depuis GROUP BY EXTRACT(YEAR FROM r.dateHeurePrevue), EXTRACT(MONTH FROM r.dateHeurePrevue) ORDER BY EXTRACT(YEAR FROM r.dateHeurePrevue), EXTRACT(MONTH FROM r.dateHeurePrevue)")
+    List<Object[]> compterRDVParsMois(@Param("depuis") LocalDateTime depuis);
 
     List<RendezVous> findByStatutAndDateHeurePrevueBetween(
             RendezVous.StatutRendezVous statut,

@@ -24,6 +24,7 @@ import tg.edtch.activEducation.shared.ai.service.AIEmbeddingService;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.UUID;
@@ -199,7 +200,7 @@ public class FicheEtablissementServiceImpl implements FicheEtablissementService 
 
     private Set<FicheFiliere> resolveFilieres(Set<UUID> trackingIds) {
         if (trackingIds == null || trackingIds.isEmpty())
-            return Set.of();
+            return new HashSet<>();
         return trackingIds.stream()
                 .map(tid -> filiereRepository.findByTrackingId(tid)
                         .orElseThrow(() -> new NoSuchElementException("Filière introuvable : " + tid)))

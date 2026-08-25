@@ -17,6 +17,8 @@ import tg.edtch.activEducation.profil.repository.EleveRepository;
 import tg.edtch.activEducation.profil.repository.RoleRepository;
 import tg.edtch.activEducation.profil.repository.UtilisateurRepository;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
+import tg.edtch.activEducation.shared.security.auth.AuthService;
+import tg.edtch.activEducation.shared.security.exception.InvalidTokenException;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -34,13 +36,14 @@ class EleveServiceTest {
     @Mock private EleveMapper eleveMapper;
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private MinioService minioService;
+    @Mock private AuthService authService;
 
     private EleveServiceImpl eleveService;
 
     @BeforeEach
     void setUp() {
         eleveService = new EleveServiceImpl(eleveRepository, utilisateurRepository,
-                roleRepository, eleveMapper, passwordEncoder, minioService);
+                roleRepository, eleveMapper, passwordEncoder, minioService, authService);
     }
 
     @Test
@@ -51,6 +54,7 @@ class EleveServiceTest {
                 .nom("Doe")
                 .prenom("John")
                 .typeApprenant(TypeApprenant.LYCEEN)
+                .inscriptionToken("token-ok")
                 .build();
         Role role = Role.builder().nom(RoleNom.ROLE_ELEVE).build();
         Eleve entity = new Eleve();
@@ -73,7 +77,25 @@ class EleveServiceTest {
 
         assertNotNull(result);
         assertEquals("test@test.com", result.getEmail());
+        verify(authService).validerInscriptionToken("test@test.com", "token-ok");
         verify(eleveRepository).save(entity);
+    }
+
+    @Test
+    void inscrireEleve_shouldThrowWhenOtpTokenMissing() {
+        EleveRequest request = EleveRequest.builder()
+                .email("test@test.com")
+                .motDePasse("password123")
+                .nom("Doe")
+                .prenom("John")
+                .typeApprenant(TypeApprenant.LYCEEN)
+                .build();
+        doThrow(new InvalidTokenException("Email non vérifié"))
+                .when(authService).validerInscriptionToken(eq("test@test.com"), isNull());
+
+        assertThrows(InvalidTokenException.class,
+                () -> eleveService.inscrireEleve(request));
+        verify(eleveRepository, never()).save(any());
     }
 
     @Test

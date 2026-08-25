@@ -20,6 +20,7 @@ import tg.edtch.activEducation.profil.repository.EleveRepository;
 import tg.edtch.activEducation.profil.repository.ParentRepository;
 import tg.edtch.activEducation.profil.repository.RoleRepository;
 import tg.edtch.activEducation.profil.repository.UtilisateurRepository;
+import tg.edtch.activEducation.shared.security.auth.AuthService;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -42,9 +43,13 @@ public class ParentServiceImpl implements ParentService {
     private final RoleRepository roleRepository;
     private final ParentMapper parentMapper;
     private final PasswordEncoder passwordEncoder;
+    private final AuthService authService;
 
     @Override
     public ParentResponse creerParent(ParentRequest request) {
+        // L'email doit avoir été vérifié via OTP (POST /auth/inscription/otp/verify)
+        authService.validerInscriptionToken(request.getEmail(), request.getInscriptionToken());
+
         if (utilisateurRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException(
                     "Un compte avec l'email '" + request.getEmail() + "' existe déjà.");
@@ -53,6 +58,7 @@ public class ParentServiceImpl implements ParentService {
         Parent parent = parentMapper.toEntity(request);
         // Hachage du mot de passe
         parent.setMotDePasseHash(passwordEncoder.encode(request.getMotDePasse()));
+        parent.setEmailVerifie(true);
 
         // Rôle ROLE_PARENT
         Role roleParent = roleRepository.findByNom(RoleNom.ROLE_PARENT)

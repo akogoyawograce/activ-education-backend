@@ -51,6 +51,8 @@ class OriaServiceTest {
         restTemplate = mock(RestTemplate.class);
 
         when(messageRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(messageRepository.findBySessionIdOrderByMessageTimestampAsc(anyString()))
+            .thenReturn(java.util.List.of());
         when(profilRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         when(profilRepository.findByUserId(anyString())).thenReturn(Optional.empty());
         // Embedding par défaut = vecteur non-null (sinon NPE dans toVectorLiteral)
@@ -73,6 +75,8 @@ class OriaServiceTest {
         // Force no OpenAI / Groq keys → only Ollama is attempted
         ReflectionTestUtils.setField(service, "openaiApiKey", "");
         ReflectionTestUtils.setField(service, "groqApiKey", "");
+        ReflectionTestUtils.setField(service, "openaiChatUrl", "https://api.openai.com/v1/chat/completions");
+        ReflectionTestUtils.setField(service, "openaiChatKey", "");
         ReflectionTestUtils.setField(service, "ollamaUrl", "http://mock-ollama:11434");
         ReflectionTestUtils.setField(service, "ollamaModel", "mock-model");
     }
@@ -154,7 +158,7 @@ class OriaServiceTest {
             ));
 
         var req = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
-        req.setMessage("Bonjour ORIA");
+        req.setMessage("Bonjour ORIA, conseille-moi sur mon orientation");
 
         var resp = service.sendMessageAndPersist(req, "user-42");
 
@@ -169,7 +173,7 @@ class OriaServiceTest {
 
         var saved = captor.getAllValues();
         assertThat(saved.get(0).getRole()).isEqualTo("user");
-        assertThat(saved.get(0).getContenu()).isEqualTo("Bonjour ORIA");
+        assertThat(saved.get(0).getContenu()).isEqualTo("Bonjour ORIA, conseille-moi sur mon orientation");
         assertThat(saved.get(0).getSessionId()).isEqualTo("conv-user-42");
         assertThat(saved.get(0).getUserId()).isEqualTo("user-42");
         assertThat(saved.get(1).getRole()).isEqualTo("assistant");
@@ -211,7 +215,7 @@ class OriaServiceTest {
             ));
 
         var req1 = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
-        req1.setMessage("Bonjour");
+        req1.setMessage("Je veux des conseils d'orientation");
 
         var resp1 = service.sendMessage(req1, "user-multi");
         assertThat(resp1.getMessage()).isEqualTo("Réponse 1");
@@ -226,7 +230,7 @@ class OriaServiceTest {
         assertThat(resp2.getSessionId()).isEqualTo("conv-user-multi");
         assertThat(resp2.getHistorique()).hasSize(4); // 2 user + 2 assistant
         assertThat(resp2.getHistorique().get(0).getRole()).isEqualTo("user");
-        assertThat(resp2.getHistorique().get(0).getContenu()).isEqualTo("Bonjour");
+        assertThat(resp2.getHistorique().get(0).getContenu()).isEqualTo("Je veux des conseils d'orientation");
         assertThat(resp2.getHistorique().get(2).getContenu()).isEqualTo("Quellesfilières pour moi ?");
     }
 
@@ -381,8 +385,176 @@ class OriaServiceTest {
     }
 
     // ─────────────────────────────────────────────────────────────────────
+    // Humanisation des salutations (10 août 2026)
+    // Cf. JOURNAL_BORD_IA.md §11 — réponse humaine instantanée, sans LLM.
+    // ─────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("Salutation 'Bonjour' → réponse humaine sans appeler le LLM")
+    void greetingProducesHumanResponseWithoutLlm() {
+        var req = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req.setMessage("Bonjour");
+
+        var resp = service.sendMessageAndPersist(req, "user-greeting");
+
+        // Réponse humaine : salutation chaleureuse + question d'orientation
+        assertThat(resp.getMessage())
+            .as("La salutation doit recevoir une réponse chaleureuse")
+            .matches("(?s)^(Bonjour|Salut|Coucou).*")
+            .contains("?")
+            .as("La réponse doit contenir une question d'orientation");
+        // Aucun appel LLM (réponse instantanée et gratuite)
+        verifyNoInteractions(restTemplate);
+        // Persistée : user + assistant
+        ArgumentCaptor<tg.edtch.activEducation.shared.ai.domain.entite.OriaMessage> captor =
+            ArgumentCaptor.forClass(tg.edtch.activEducation.shared.ai.domain.entite.OriaMessage.class);
+        verify(messageRepository, times(2)).save(captor.capture());
+        assertThat(captor.getAllValues().get(1).getRole()).isEqualTo("assistant");
+        assertThat(captor.getAllValues().get(1).getContenu()).isEqualTo(resp.getMessage());
+    }
+
+    @Test
+    @DisplayName("Salutation avec centre d'intérêt connu → la réponse s'appuie dessus")
+    void greetingUsesKnownInterest() {
+        var profil = tg.edtch.activEducation.shared.ai.domain.entite.ProfilOrientation.builder()
+            .userId("user-interet")
+            .domainesInteret("informatique")
+            .build();
+        when(profilRepository.findByUserId("user-interet")).thenReturn(Optional.of(profil));
+
+        var req = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req.setMessage("Bonsoir");
+
+        var resp = service.sendMessage(req, "user-interet");
+
+        assertThat(resp.getMessage()).contains("informatique");
+        verifyNoInteractions(restTemplate);
+    }
+
+    @Test
+    @DisplayName("Message avec salutation + vraie question → LLM appelé (pas de réponse figée)")
+    void greetingWithRealQuestionStillCallsLlm() {
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
+            .thenReturn(ResponseEntity.ok(
+                "{\"choices\":[{\"message\":{\"content\":\"Réponse LLM\"}}]}"
+            ));
+
+        var req = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req.setMessage("Bonjour, quelles filières après la terminale ?");
+
+        var resp = service.sendMessage(req, "user-mixte");
+
+        assertThat(resp.getMessage()).isEqualTo("Réponse LLM");
+        verify(restTemplate).postForEntity(anyString(), any(), eq(String.class));
+    }
+
+    @Test
+    @DisplayName("Profil avec virgule initiale (\", informatique\") → la salutation ignore l'entrée vide")
+    void greetingIgnoresEmptyEntryInCommaList() {
+        var profil = tg.edtch.activEducation.shared.ai.domain.entite.ProfilOrientation.builder()
+            .userId("user-virgule")
+            .domainesInteret(", informatique")
+            .build();
+        when(profilRepository.findByUserId("user-virgule")).thenReturn(Optional.of(profil));
+
+        var req = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req.setMessage("Salut");
+
+        var resp = service.sendMessage(req, "user-virgule");
+
+        assertThat(resp.getMessage())
+            .contains("informatique")
+            .doesNotContain("«  »");
+        verifyNoInteractions(restTemplate);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
     // Session ID computation
     // ─────────────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("Session hydratée depuis la DB au premier message (restart backend)")
+    void sessionIsHydratedFromDatabaseOnFirstUse() {
+        // L'historique DB contient 2 messages d'une session précédente
+        // (backend redémarré → map RAM vide).
+        var ancienUser = tg.edtch.activEducation.shared.ai.domain.entite.OriaMessage.builder()
+            .sessionId("conv-user-hydrate").role("user").contenu("ancienne question").build();
+        var ancienAssistant = tg.edtch.activEducation.shared.ai.domain.entite.OriaMessage.builder()
+            .sessionId("conv-user-hydrate").role("assistant").contenu("ancienne réponse").build();
+        when(messageRepository.findBySessionIdOrderByMessageTimestampAsc("conv-user-hydrate"))
+            .thenReturn(java.util.List.of(ancienUser, ancienAssistant));
+
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
+            .thenReturn(ResponseEntity.ok(
+                "{\"choices\":[{\"message\":{\"content\":\"Nouvelle réponse\"}}]}"
+            ));
+
+        var req = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req.setMessage("nouvelle question");
+
+        var resp = service.sendMessageAndPersist(req, "user-hydrate");
+
+        assertThat(resp.getMessage()).isEqualTo("Nouvelle réponse");
+        // Historique renvoyé : 2 anciens (DB) + user courant + assistant = 4
+        assertThat(resp.getHistorique()).hasSize(4);
+        assertThat(resp.getHistorique().get(0).getContenu()).isEqualTo("ancienne question");
+
+        // Le payload envoyé au LLM doit contenir l'historique DB hydraté
+        ArgumentCaptor<HttpEntity> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).postForEntity(anyString(), entityCaptor.capture(), eq(String.class));
+        String payload = entityCaptor.getValue().getBody().toString();
+        assertThat(payload)
+            .as("Le LLM doit recevoir l'historique DB (mémoire multi-tour après restart)")
+            .contains("ancienne question");
+    }
+
+    @Test
+    @DisplayName("RAG : le pluriel français est réduit au singulier ('universités' → 'universite')")
+    void keywordSearchStripsFrenchPlural() {
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
+            .thenReturn(ResponseEntity.ok(
+                "{\"choices\":[{\"message\":{\"content\":\"Réponse\"}}]}"
+            ));
+
+        var req = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req.setMessage("Liste les universités à Lomé");
+
+        service.sendMessage(req, "user-pluriel");
+
+        // Capturer le terme passé au repository : "université" (sans 's'),
+        // sinon LIKE '%universités%' ne matche jamais 'Université' (le SQL fait
+        // unaccent(LOWER(...)) des deux côtés).
+        ArgumentCaptor<String> termeCaptor = ArgumentCaptor.forClass(String.class);
+        verify(ficheRepository, atLeastOnce()).rechercherParMotCle(termeCaptor.capture(), any());
+        var termes = termeCaptor.getAllValues();
+        assertThat(termes)
+            .as("Le pluriel 'universités' doit devenir 'université' (singulier) pour matcher les titres")
+            .contains("université");
+    }
+
+    @Test
+    @DisplayName("Session ID : email long → ID compact ≤ 36 chars (sinon insert DB échoue)")
+    void longEmailProducesCompactSessionId() {
+        when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
+            .thenReturn(ResponseEntity.ok("{\"choices\":[{\"message\":{\"content\":\"OK\"}}]}"));
+
+        var req = new tg.edtch.activEducation.shared.ai.domain.dto.OriaRequest();
+        req.setMessage("bonjour");
+
+        // Email long : "conv-" + email = 39 chars > varchar(36)
+        var resp = service.sendMessageAndPersist(req, "developpementdapplication@gmail.com");
+
+        assertThat(resp.getSessionId())
+            .as("Le sessionId doit tenir dans varchar(36)")
+            .hasSizeLessThanOrEqualTo(36)
+            .startsWith("conv-");
+        // Déterministe : deux messages → même sessionId
+        var resp2 = service.sendMessageAndPersist(req, "developpementdapplication@gmail.com");
+        assertThat(resp2.getSessionId()).isEqualTo(resp.getSessionId());
+        // Un email différent → sessionId différent
+        var resp3 = service.sendMessageAndPersist(req, "autreemaillongquidepasse36@gmail.com");
+        assertThat(resp3.getSessionId()).isNotEqualTo(resp.getSessionId());
+    }
 
     @Test
     @DisplayName("resolveSessionId : retourne 'conv-{userId}' pour isoler les sessions")
@@ -412,6 +584,7 @@ class OriaServiceTest {
     void providersAreTriedInReliabilityOrder() {
         // Une clé OpenAI valide est injectée pour vérifier le nouvel ordre de priorité.
         ReflectionTestUtils.setField(service, "openaiApiKey", "sk-test-valid");
+        ReflectionTestUtils.setField(service, "openaiChatKey", "sk-test-valid");
         when(restTemplate.postForEntity(anyString(), any(), eq(String.class)))
             .thenReturn(ResponseEntity.ok(
                 "{\"choices\":[{\"message\":{\"content\":\"Réponse OpenAI\"}}]}"

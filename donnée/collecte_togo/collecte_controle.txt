@@ -1,0 +1,153 @@
+=== INVENTAIRE ===
+./collecte_controle.txt	19 octets
+./inseed_annuaire_national_2024.pdf	17846736 octets
+./ministere_annuaire_national_2024_2025.pdf	10676610 octets
+./textes/Capacite-de-Droit.txt	4080 octets
+./textes/Concours-EPL.txt	4698 octets
+./textes/Concours-ESAAd.txt	2 octets
+./textes/Concours-ESTBA.txt	2 octets
+./textes/Concours-ISICA.txt	1 octets
+./textes/Concours-IUT-G-LMD.txt	1 octets
+./textes/EAM.txt	2 octets
+./textes/ESA.txt	1 octets
+./textes/FSS.txt	1 octets
+./textes/INJS.txt	2 octets
+./textes/INSE-SEF.txt	1 octets
+./textes/INSE-formation-des-enseignants-.txt	1 octets
+./textes/IUT-G-formation-continue.txt	1 octets
+./textes/inseed_annuaire_national_2024.txt	2681838 octets
+./textes/ministere_annuaire_national_2024_2025.txt	1395597 octets
+./univ_lome/Capacite-de-Droit.pdf	624556 octets
+./univ_lome/Concours-EPL.pdf	778920 octets
+./univ_lome/Concours-ESAAd.pdf	909668 octets
+./univ_lome/Concours-ESTBA.pdf	886381 octets
+./univ_lome/Concours-ISICA.pdf	875724 octets
+./univ_lome/Concours-IUT-G-LMD.pdf	207018 octets
+./univ_lome/EAM.pdf	1049567 octets
+./univ_lome/ESA.pdf	1209471 octets
+./univ_lome/FSS.pdf	595406 octets
+./univ_lome/INJS.pdf	1015170 octets
+./univ_lome/INSE-SEF.pdf	905992 octets
+./univ_lome/INSE-formation-des-enseignants-.pdf	1178257 octets
+./univ_lome/IUT-G-formation-continue.pdf	960117 octets
+=== MOTS-CLES ===
+textes/Capacite-de-Droit.txt:23:     1) Première voie : Admission sur titre
+textes/Capacite-de-Droit.txt:64:        Tous les candidats (àl'admission sur titre ou àl'examen de présélection) doivent présenter
+textes/Concours-EPL.txt:14:   concours d'entrée à l'Ecole Polytechnique de Lomé(EPL) est organisépar l'Université de Lomépour le
+textes/Concours-EPL.txt:31:   Conditions de candidature àla date du concours :
+textes/Concours-EPL.txt:41:           clairement le parcours Licence choisi et la filière dans lequel le candidat souhaiterait se
+textes/Concours-EPL.txt:61: Leconcours se déroulera en 2 étapes :
+textes/Concours-EPL.txt:63:    2- Une sélection définitive parmi les candidats présélectionnés, basée sur le résultat d'un examen
+textes/inseed_annuaire_national_2024.txt:71:   Chapitre 14.           Statistiques de l’enseignement Supérieur ...................................................... 287
+textes/inseed_annuaire_national_2024.txt:243:DGAENF      Direction générale de l’alphabétisation et de l’éducation non formelle
+textes/inseed_annuaire_national_2024.txt:425:   • les résultats d’enquêtes menées par les structures du SSN.
+textes/inseed_annuaire_national_2024.txt:426:Pour compléter ces indicateurs, les données démographiques ont été enrichies par les résultats
+textes/inseed_annuaire_national_2024.txt:428:démographiques issues de ce recensement. Les résultats de l’enquête EHCVM 2021–2022, ont
+textes/inseed_annuaire_national_2024.txt:489:indicateurs retenus, de valider collectivement le document et de recueillir des
+textes/inseed_annuaire_national_2024.txt:551:Selon les résultats du RGPH-5, le Togo compte au total 8 095 498 habitants en 2022 contre
+textes/inseed_annuaire_national_2024.txt:588:Selon les résultats des Enquêtes harmonisées des conditions de vie des ménage (EHCVM),
+textes/inseed_annuaire_national_2024.txt:598:à 28,9% soit une baisse de 8,2 points de pourcentage entre ces deux périodes. Ce résultat
+textes/inseed_annuaire_national_2024.txt:600:pauvres en considérant les dimensions santé, éducation, et conditions de vie des ménages. En
+textes/inseed_annuaire_national_2024.txt:609:Sur le plan de l’éducation, le taux net de scolarisation au primaire est passé de 94,3% en 2020
+textes/inseed_annuaire_national_2024.txt:903:Tableau 3.8 : Effectif de la population du Togo par groupe d’âges et par sexe selon le milieu de résidence en 2022 ...................... 22
+textes/inseed_annuaire_national_2024.txt:904:Tableau 3.9 : Effectif de la population du Togo par groupe d’âges et par sexe selon le milieu de résidence en 2023 ...................... 23
+textes/inseed_annuaire_national_2024.txt:908:Tableau 3.13 : Effectif de la population résidente du Grand Lomé par commune et par sexe en 2022 ................................................. 27
+textes/inseed_annuaire_national_2024.txt:909:Tableau 3.14 : Effectif de la population résidente de Maritime (sans Grand-Lomé) par commune et par sexe en 2022 ................... 28
+textes/inseed_annuaire_national_2024.txt:910:Tableau 3.15 : Effectif de la population résidente des Plateaux par commune et par sexe en 2022 ...................................................... 29
+textes/inseed_annuaire_national_2024.txt:911:Tableau 3.16 : Effectif de la population résidente de la région Centrale par commune et par sexe en 2022 ....................................... 30
+textes/inseed_annuaire_national_2024.txt:912:Tableau 3.17 : Effectif de la population résidente de la Kara par commune et par sexe en 2022 ............................................................31
+textes/inseed_annuaire_national_2024.txt:913:Tableau 3.18 : Effectif de la population résidente des Savanes par commune et par sexe en 2022 ....................................................... 32
+textes/inseed_annuaire_national_2024.txt:1156:Tableau 3.8 : Effectif de la population du Togo par groupe d’âges et par sexe selon le milieu de résidence en 2022
+textes/inseed_annuaire_national_2024.txt:1188:Tableau 3.9 : Effectif de la population du Togo par groupe d’âges et par sexe selon le milieu de résidence en 2023
+textes/inseed_annuaire_national_2024.txt:1381:Tableau 3.13 : Effectif de la population résidente du Grand Lomé par commune et par
+textes/inseed_annuaire_national_2024.txt:1409:Tableau 3.14 : Effectif de la population résidente de Maritime (sans Grand -Lomé) par
+textes/inseed_annuaire_national_2024.txt:1473:Tableau 3.15 : Effectif de la population résidente des Plateaux par commune et par sexe en
+textes/inseed_annuaire_national_2024.txt:1530:Tableau 3.16 : Effectif de la population résidente de la région Centrale par commune et par
+textes/inseed_annuaire_national_2024.txt:1561:Tableau 3.17 : Effectif de la population résidente de la Kara par commune et par sexe en 2022
+textes/inseed_annuaire_national_2024.txt:1632:T ABLEAU 3.18 : Effectif de la population résidente des Savanes PAR COMMUNE ET PAR SEXE en 2022
+textes/inseed_annuaire_national_2024.txt:1785:                                                     Type de logement                                 Effectif de
+textes/inseed_annuaire_national_2024.txt:1814:Éducation                       3 008                   1 660           3 769      1 495    2 479     1 552   13 963
+textes/inseed_annuaire_national_2024.txt:1837:Éducation                                 16,1            13,4           39,4         14,3     20,8         13,3     18,7
+textes/inseed_annuaire_national_2024.txt:1977: Nombre d’année d’éducation                                   36,2    41,9      43,1      47,1    40,2   44,8
+textes/inseed_annuaire_national_2024.txt:2003:Source : INSEED, Note synthétique sur les résultats de pauvreté (EHCVM 2018-2019), 2020
+textes/inseed_annuaire_national_2024.txt:2018:Source : INSEED, Note synthétique sur les résultats de pauvreté (EHCVM 2018-2019), 2020
+textes/inseed_annuaire_national_2024.txt:2206:Effectif de ménages/population                                    1 951     2 351         4 302
+textes/inseed_annuaire_national_2024.txt:2253:Tableau 5.13 : Effectifs des agents de l’Etat par catégories et par sexe au 31 décembre ..... 57
+textes/inseed_annuaire_national_2024.txt:2254:Tableau 5.14 : Effectifs des agents de l’Etat par ministère/institution et par sexe au 31
+textes/inseed_annuaire_national_2024.txt:2256:Tableau 5.15 : Effectifs des agents de l’Etat par ministère/institution et par sexe au 31
+textes/inseed_annuaire_national_2024.txt:2628:         Tableau 5.13 : Effectifs des agents de l’Etat par catégories et par sexe au 31 décembre
+textes/inseed_annuaire_national_2024.txt:2652:         Source : DGIPE, Tableau de bord sur les effectifs des agents de l’Etat
+textes/inseed_annuaire_national_2024.txt:2661:Tableau 5.14 : Effectifs des agents de l’Etat par ministère/institution et par sexe au 31 décembre, 2020 à 2023
+textes/inseed_annuaire_national_2024.txt:2724:Source : DGIPE, Tableau de bord sur les effectifs des agents de l’Etat
+textes/inseed_annuaire_national_2024.txt:2734:Tableau 5.15 : Effectifs des agents de l’Etat par ministère/institution et par sexe au 31 décembre,
+textes/inseed_annuaire_national_2024.txt:2763:Enseignement supérieur                                                173           45          218
+textes/inseed_annuaire_national_2024.txt:2798:Source : DGIPE, Tableau de bord sur les effectifs des agents de l’Etat
+textes/inseed_annuaire_national_2024.txt:2974:Tableau 6.2 : Effectif des employeurs actifs et des salaries .......................................... 68
+textes/inseed_annuaire_national_2024.txt:3041:Tableau 6.2 : Effectif des employeurs actifs et des salaries
+textes/inseed_annuaire_national_2024.txt:3066: Effectif                                    1 609               1 725                2 011            2 040        2 325
+textes/inseed_annuaire_national_2024.txt:5164:Tableau 8.4 : Nombre d’apprenants admis à l'évaluation finale en alphabétisation de
+textes/inseed_annuaire_national_2024.txt:5192:Source : Direction générale de l’alphabétisation et de l’éducation non formelle/MASSPF
+textes/inseed_annuaire_national_2024.txt:5205:Source : Direction générale de l’alphabétisation et de l’éducation non formelle/MASSPF
+textes/inseed_annuaire_national_2024.txt:5225:Source : Direction générale de l’alphabétisation et de l’éducation non formelle/MASSPF
+textes/inseed_annuaire_national_2024.txt:5227:Tableau 8.4 : Nombre d’apprenants admis à l'évaluation finale en alphabétisation de base par région
+textes/inseed_annuaire_national_2024.txt:5238:Source : Direction générale de l’alphabétisation et de l’éducation non formelle/MASPF
+textes/inseed_annuaire_national_2024.txt:5248:                                             Nb de       Nb de formateurs          Inscrits              Evalués              Admis
+textes/inseed_annuaire_national_2024.txt:5282:                                    Nb de       Nb de formateurs         Inscrits                 Evalués               Admis
+textes/inseed_annuaire_national_2024.txt:5318:                                    Nb de       Nb de formateurs         Inscrits                 Evalués                 Admis
+textes/inseed_annuaire_national_2024.txt:5354:                                     Nb de       Nb de formateurs           Inscrits                 Evalués                 Admis
+textes/inseed_annuaire_national_2024.txt:5375:                                          Nb classe /   Nb de formateurs           Inscrits                 Evalués                 Admis
+textes/inseed_annuaire_national_2024.txt:5411:                                       Nb classe /   Nb de formateurs         Inscrits               Evalués              Admis
+textes/inseed_annuaire_national_2024.txt:5446:                                         Nb classe /   Nb de formateurs         Inscrits                 Evalués                 Admis
+textes/inseed_annuaire_national_2024.txt:5482:                                        Nb de         Nb de formateurs            Inscrits              Evalués              Admis
+textes/inseed_annuaire_national_2024.txt:5519:                                     Nb de         Nb de formateurs         Inscrits                 Evalués               Admis
+textes/inseed_annuaire_national_2024.txt:5556:                                      Nb de         Nb de formateurs           Inscrits                 Evalués               Admis
+textes/inseed_annuaire_national_2024.txt:5594:                                         Nb de         Nb de formateurs           Inscrits                 Evalués               Admis
+textes/inseed_annuaire_national_2024.txt:5630:                                    Nb de         Nb de formateurs         Inscrits                 Evalués               Admis
+textes/inseed_annuaire_national_2024.txt:5665:                                     Nb de         Nb de formateurs         Inscrits                 Evalués                 Admis
+textes/inseed_annuaire_national_2024.txt:5699:                                      Nb de         Nb de formateurs         Inscrits                   Evalués               Admis
+textes/inseed_annuaire_national_2024.txt:5821:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:5841:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:5854:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:5872:       Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:5897:       Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:5919:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6022:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6126:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6219:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6313:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6404:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6498:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6543:Tableau 10.30 : Répartition des nouveaux entrants au CP1 par région d'éducation et
+textes/inseed_annuaire_national_2024.txt:6545:Tableau 10.31 : Répartition des nouveaux entrants au CP1 par région d'éducation et
+textes/inseed_annuaire_national_2024.txt:6547:Tableau 10.32 : Répartition des nouveaux entrants au CP1 par région d'éducation et
+textes/inseed_annuaire_national_2024.txt:6549:Tableau 10.33 : Répartition des nouveaux entrants au CP1 par région d'éducation et
+textes/inseed_annuaire_national_2024.txt:6557:Tableau 10.34 : Répartition des nouveaux entrants au CP1 par région d'éducation et
+textes/inseed_annuaire_national_2024.txt:6580:Tableau 10.46 : Résultats à l'examen du CEPD par inspection selon le sexe ...........203
+textes/inseed_annuaire_national_2024.txt:6605:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6620:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6639:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6654:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6675:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6692:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6712:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6727:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6747:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6762:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6784:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6803:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6816:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6831:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6851:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6864:Source MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6877:Source MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6897:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:6910:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:7010:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:7112:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:7212:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:7314:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:7332:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:7351:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:7380:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:7411:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation
+textes/inseed_annuaire_national_2024.txt:7442:Source : MEPSTA/DPSSE/Annuaire statistique de l’éducation

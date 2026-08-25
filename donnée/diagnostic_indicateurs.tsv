@@ -1,0 +1,147 @@
+FICHIER	TAUX_REUSSITE	EFFECTIFS	PAR_FILIERE	ADMIS_RECALE	RESULTATS_CONCOURS
+Capacite-de-Droit	NON	NON	NON	OUI	NON	
+Concours-EPL	NON	NON	OUI	NON	NON	
+Concours-ESAAd	NON	NON	NON	NON	NON	
+Concours-ESTBA	NON	NON	NON	NON	NON	
+Concours-ISICA	NON	NON	NON	NON	NON	
+Concours-IUT-G-LMD	NON	NON	NON	NON	NON	
+EAM	NON	NON	NON	NON	NON	
+ESA	NON	NON	NON	NON	NON	
+FSS	NON	NON	NON	NON	NON	
+INJS	NON	NON	NON	NON	NON	
+INSE-SEF	NON	NON	NON	NON	NON	
+INSE-formation-des-enseignants-	NON	NON	NON	NON	NON	
+IUT-G-formation-continue	NON	NON	NON	NON	NON	
+concours-FSHS-Psychologie-Appliquee	NON	NON	NON	NON	NON	
+inseed_annuaire_national_2024	OUI	OUI	OUI	OUI	OUI	
+ministere_annuaire_national_2024_2025	OUI	OUI	NON	OUI	OUI	
+
+--- EXTRAITS TAUX/EFFECTIFS/ADMIS ---
+verification/Capacite-de-Droit.txt:23:     1) Première voie : Admission sur titre
+verification/Capacite-de-Droit.txt:64:        Tous les candidats (àl'admission sur titre ou àl'examen de présélection) doivent présenter
+verification/inseed_annuaire_national_2024.txt:425:   • les résultats d’enquêtes menées par les structures du SSN.
+verification/inseed_annuaire_national_2024.txt:426:Pour compléter ces indicateurs, les données démographiques ont été enrichies par les résultats
+verification/inseed_annuaire_national_2024.txt:428:démographiques issues de ce recensement. Les résultats de l’enquête EHCVM 2021–2022, ont
+verification/inseed_annuaire_national_2024.txt:489:indicateurs retenus, de valider collectivement le document et de recueillir des
+verification/inseed_annuaire_national_2024.txt:551:Selon les résultats du RGPH-5, le Togo compte au total 8 095 498 habitants en 2022 contre
+verification/inseed_annuaire_national_2024.txt:588:Selon les résultats des Enquêtes harmonisées des conditions de vie des ménage (EHCVM),
+verification/inseed_annuaire_national_2024.txt:903:Tableau 3.8 : Effectif de la population du Togo par groupe d’âges et par sexe selon le milieu de résidence en 2022 ...................... 22
+verification/inseed_annuaire_national_2024.txt:904:Tableau 3.9 : Effectif de la population du Togo par groupe d’âges et par sexe selon le milieu de résidence en 2023 ...................... 23
+verification/inseed_annuaire_national_2024.txt:908:Tableau 3.13 : Effectif de la population résidente du Grand Lomé par commune et par sexe en 2022 ................................................. 27
+verification/inseed_annuaire_national_2024.txt:909:Tableau 3.14 : Effectif de la population résidente de Maritime (sans Grand-Lomé) par commune et par sexe en 2022 ................... 28
+verification/inseed_annuaire_national_2024.txt:910:Tableau 3.15 : Effectif de la population résidente des Plateaux par commune et par sexe en 2022 ...................................................... 29
+verification/inseed_annuaire_national_2024.txt:911:Tableau 3.16 : Effectif de la population résidente de la région Centrale par commune et par sexe en 2022 ....................................... 30
+verification/inseed_annuaire_national_2024.txt:912:Tableau 3.17 : Effectif de la population résidente de la Kara par commune et par sexe en 2022 ............................................................31
+verification/inseed_annuaire_national_2024.txt:913:Tableau 3.18 : Effectif de la population résidente des Savanes par commune et par sexe en 2022 ....................................................... 32
+verification/inseed_annuaire_national_2024.txt:1156:Tableau 3.8 : Effectif de la population du Togo par groupe d’âges et par sexe selon le milieu de résidence en 2022
+verification/inseed_annuaire_national_2024.txt:1188:Tableau 3.9 : Effectif de la population du Togo par groupe d’âges et par sexe selon le milieu de résidence en 2023
+verification/inseed_annuaire_national_2024.txt:1381:Tableau 3.13 : Effectif de la population résidente du Grand Lomé par commune et par
+verification/inseed_annuaire_national_2024.txt:1409:Tableau 3.14 : Effectif de la population résidente de Maritime (sans Grand -Lomé) par
+verification/inseed_annuaire_national_2024.txt:1473:Tableau 3.15 : Effectif de la population résidente des Plateaux par commune et par sexe en
+verification/inseed_annuaire_national_2024.txt:1530:Tableau 3.16 : Effectif de la population résidente de la région Centrale par commune et par
+verification/inseed_annuaire_national_2024.txt:1561:Tableau 3.17 : Effectif de la population résidente de la Kara par commune et par sexe en 2022
+verification/inseed_annuaire_national_2024.txt:1632:T ABLEAU 3.18 : Effectif de la population résidente des Savanes PAR COMMUNE ET PAR SEXE en 2022
+verification/inseed_annuaire_national_2024.txt:1785:                                                     Type de logement                                 Effectif de
+verification/inseed_annuaire_national_2024.txt:2003:Source : INSEED, Note synthétique sur les résultats de pauvreté (EHCVM 2018-2019), 2020
+verification/inseed_annuaire_national_2024.txt:2018:Source : INSEED, Note synthétique sur les résultats de pauvreté (EHCVM 2018-2019), 2020
+verification/inseed_annuaire_national_2024.txt:2206:Effectif de ménages/population                                    1 951     2 351         4 302
+verification/inseed_annuaire_national_2024.txt:2253:Tableau 5.13 : Effectifs des agents de l’Etat par catégories et par sexe au 31 décembre ..... 57
+verification/inseed_annuaire_national_2024.txt:2254:Tableau 5.14 : Effectifs des agents de l’Etat par ministère/institution et par sexe au 31
+verification/inseed_annuaire_national_2024.txt:2256:Tableau 5.15 : Effectifs des agents de l’Etat par ministère/institution et par sexe au 31
+verification/inseed_annuaire_national_2024.txt:2628:         Tableau 5.13 : Effectifs des agents de l’Etat par catégories et par sexe au 31 décembre
+verification/inseed_annuaire_national_2024.txt:2652:         Source : DGIPE, Tableau de bord sur les effectifs des agents de l’Etat
+verification/inseed_annuaire_national_2024.txt:2661:Tableau 5.14 : Effectifs des agents de l’Etat par ministère/institution et par sexe au 31 décembre, 2020 à 2023
+verification/inseed_annuaire_national_2024.txt:2724:Source : DGIPE, Tableau de bord sur les effectifs des agents de l’Etat
+verification/inseed_annuaire_national_2024.txt:2734:Tableau 5.15 : Effectifs des agents de l’Etat par ministère/institution et par sexe au 31 décembre,
+verification/inseed_annuaire_national_2024.txt:2798:Source : DGIPE, Tableau de bord sur les effectifs des agents de l’Etat
+verification/inseed_annuaire_national_2024.txt:2974:Tableau 6.2 : Effectif des employeurs actifs et des salaries .......................................... 68
+verification/inseed_annuaire_national_2024.txt:3041:Tableau 6.2 : Effectif des employeurs actifs et des salaries
+verification/inseed_annuaire_national_2024.txt:3066: Effectif                                    1 609               1 725                2 011            2 040        2 325
+verification/inseed_annuaire_national_2024.txt:5164:Tableau 8.4 : Nombre d’apprenants admis à l'évaluation finale en alphabétisation de
+verification/inseed_annuaire_national_2024.txt:5227:Tableau 8.4 : Nombre d’apprenants admis à l'évaluation finale en alphabétisation de base par région
+verification/inseed_annuaire_national_2024.txt:5248:                                             Nb de       Nb de formateurs          Inscrits              Evalués              Admis
+verification/inseed_annuaire_national_2024.txt:5282:                                    Nb de       Nb de formateurs         Inscrits                 Evalués               Admis
+verification/inseed_annuaire_national_2024.txt:5318:                                    Nb de       Nb de formateurs         Inscrits                 Evalués                 Admis
+verification/inseed_annuaire_national_2024.txt:5354:                                     Nb de       Nb de formateurs           Inscrits                 Evalués                 Admis
+verification/inseed_annuaire_national_2024.txt:5375:                                          Nb classe /   Nb de formateurs           Inscrits                 Evalués                 Admis
+verification/inseed_annuaire_national_2024.txt:5411:                                       Nb classe /   Nb de formateurs         Inscrits               Evalués              Admis
+verification/inseed_annuaire_national_2024.txt:5446:                                         Nb classe /   Nb de formateurs         Inscrits                 Evalués                 Admis
+verification/inseed_annuaire_national_2024.txt:5482:                                        Nb de         Nb de formateurs            Inscrits              Evalués              Admis
+verification/inseed_annuaire_national_2024.txt:5519:                                     Nb de         Nb de formateurs         Inscrits                 Evalués               Admis
+verification/inseed_annuaire_national_2024.txt:5556:                                      Nb de         Nb de formateurs           Inscrits                 Evalués               Admis
+verification/inseed_annuaire_national_2024.txt:5594:                                         Nb de         Nb de formateurs           Inscrits                 Evalués               Admis
+verification/inseed_annuaire_national_2024.txt:5630:                                    Nb de         Nb de formateurs         Inscrits                 Evalués               Admis
+verification/inseed_annuaire_national_2024.txt:5665:                                     Nb de         Nb de formateurs         Inscrits                 Evalués                 Admis
+verification/inseed_annuaire_national_2024.txt:5699:                                      Nb de         Nb de formateurs         Inscrits                   Evalués               Admis
+verification/inseed_annuaire_national_2024.txt:6580:Tableau 10.46 : Résultats à l'examen du CEPD par inspection selon le sexe ...........203
+verification/inseed_annuaire_national_2024.txt:8188:Tableau 10.46 : Résultats à l'examen du CEPD par inspection selon le sexe
+verification/inseed_annuaire_national_2024.txt:8393:Tableau 11.30 : Admission au BEPC par région et par sexe (%) .................................. 231
+verification/inseed_annuaire_national_2024.txt:8394:Tableau 11.31 : Admission au BEPC selon le sexe et par préfecture ........................... 231
+verification/inseed_annuaire_national_2024.txt:8395:Tableau 11.32 : Taux de réussite au BEPC par région et par sexe (%) .......................233
+verification/inseed_annuaire_national_2024.txt:8396:Tableau 11.33 : Taux de réussite au BEPC par préfecture et par sexe (%) de 2020-2021
+verification/inseed_annuaire_national_2024.txt:9149:Tableau 11.30 : Admission au BEPC par région et par sexe (%)
+verification/inseed_annuaire_national_2024.txt:9164:Tableau 11.31 : Admission au BEPC selon le sexe et par préfecture
+verification/inseed_annuaire_national_2024.txt:9238:Tableau 11.32 : Taux de réussite au BEPC par région et par sexe (%)
+verification/inseed_annuaire_national_2024.txt:9258:Tableau 11.33 : Taux de réussite au BEPC par préfecture et par sexe (%) de 2020 -2021
+verification/inseed_annuaire_national_2024.txt:9397:Tableau 12.28 : Taux de réussite au BACI par région et par sexe (%) (série A) .......258
+verification/inseed_annuaire_national_2024.txt:9398:Tableau 12.29 : Taux de réussite au BAC I par région et par sexe (%) (série C) ......259
+verification/inseed_annuaire_national_2024.txt:9399:Tableau 12.30 : Taux de réussite au BACI par région et par sexe (%) (série D) .......259
+verification/inseed_annuaire_national_2024.txt:9400:Tableau 12.31 : Taux de réussite au BAC_II par région, par sexe (%) (série A) .........260
+verification/inseed_annuaire_national_2024.txt:9401:Tableau 12.32 : Taux de réussite au BAC_II par région et par sexe (%) (série C) .....260
+verification/inseed_annuaire_national_2024.txt:9402:Tableau 12.33 : Taux de réussite au BAC_II par région et par sexe (%) (série D) .... 261
+verification/inseed_annuaire_national_2024.txt:9403:-Tableau 12.34 : Taux de réussite au BAC_II par préfecture et par sexe (%) (série A)
+verification/inseed_annuaire_national_2024.txt:9405:Tableau 12.35 : Taux de réussite au BAC_II par préfecture et par sexe (%) (Série C)
+verification/inseed_annuaire_national_2024.txt:9407:Tableau 12.36 : Taux de réussite au BAC_II par préfecture et par sexe (%) (Série D)
+verification/inseed_annuaire_national_2024.txt:9468:Tableau 12.28 : Taux de réussite au BACI par région et par sexe (%) (série A) .......258
+verification/inseed_annuaire_national_2024.txt:9469:Tableau 12.29 : Taux de réussite au BAC I par région et par sexe (%) (série C) ......259
+verification/inseed_annuaire_national_2024.txt:9470:Tableau 12.30 : Taux de réussite au BACI par région et par sexe (%) (série D) .......259
+verification/inseed_annuaire_national_2024.txt:9471:Tableau 12.31 : Taux de réussite au BAC_II par région, par sexe (%) (série A) .........260
+verification/inseed_annuaire_national_2024.txt:9472:Tableau 12.32 : Taux de réussite au BAC_II par région et par sexe (%) (série C) .....260
+verification/inseed_annuaire_national_2024.txt:9473:Tableau 12.33 : Taux de réussite au BAC_II par région et par sexe (%) (série D) .... 261
+verification/inseed_annuaire_national_2024.txt:9474:-Tableau 12.34 : Taux de réussite au BAC_II par préfecture et par sexe (%) (série A)
+verification/ministere_annuaire_national_2024_2025.txt:198:Résultats à l’examen du CEPD session de juin 2024 (tous ordres)                                                             79
+verification/ministere_annuaire_national_2024_2025.txt:199:Résultats à l’examen du CEPD session de juin 2024 (public)                                                                  80
+verification/ministere_annuaire_national_2024_2025.txt:200:Résultats à l’examen du CEPD session de juin 2024 (privé)                                                                   81
+verification/ministere_annuaire_national_2024_2025.txt:201:Résultats à l’examen du CEPD session de juin 2024 (EDIL)                                                                    82
+verification/ministere_annuaire_national_2024_2025.txt:333:Résultats à l’examen du baccalauréat 1ère partie session de juin 2024 (tous ordres)                                        155
+verification/ministere_annuaire_national_2024_2025.txt:334:Résultats à l’examen du baccalauréat 1ère partie session de juin 2024 (public)                                             156
+verification/ministere_annuaire_national_2024_2025.txt:335:Résultats à l’examen du baccalauréat 1ère partie session de juin 2024 (privé et communautaire)                             157
+verification/ministere_annuaire_national_2024_2025.txt:336:Résultats à l’examen du baccalauréat 2ème partie session de juin 2024 (tous ordres)                                        158
+verification/ministere_annuaire_national_2024_2025.txt:337:Résultats à l’examen du baccalauréat 2ème partie session de juin 2024 (public)                                             159
+verification/ministere_annuaire_national_2024_2025.txt:338:Résultats à l’examen du baccalauréat 2ème partie session de juin 2024 (privé et communautaire)                             160
+verification/ministere_annuaire_national_2024_2025.txt:366:• Les résultats aux examens scolaires.
+verification/ministere_annuaire_national_2024_2025.txt:441:Un effectif au préscolaire en augmentation          L'effectif des enfants au préscolaire est passé de 207 503 en 2020 à 241 156 en 2025 avec un Taux d'Accroissement Moyen
+verification/ministere_annuaire_national_2024_2025.txt:442:dans toutes les régions éducatives                  Annuel (TAMA) de 3,05%. Entre 2024 et 2025, cet effectif est passé de 230 771 à 241 156 soit une augmentation d'environ 4,5
+verification/ministere_annuaire_national_2024_2025.txt:444:                                                    L'augmentation de ces effectifs est constatée dans toutes les régions. Le tableau 1.1 ci-dessous présente l'évolution des effectifs
+verification/ministere_annuaire_national_2024_2025.txt:447:                                                    Tableau 1.1 : Taux d'accroissement des effectifs au préscolaire entre 2019-2020 et 2024-2025 par sexe et par région
+verification/ministere_annuaire_national_2024_2025.txt:449:                                                                            Effectif 2019-2020                       Effectif 2023-2024                 Effectif 2024-2025
+verification/ministere_annuaire_national_2024_2025.txt:570:Les effectifs ont augmenté .                   Tableau 2.1 : Taux d'accroissement des effectifs du primaire entre
+verification/ministere_annuaire_national_2024_2025.txt:573:                                                                           Effectif 2019-2020                      Effectif 2023-2024                  Effectif 2024-2025
+verification/ministere_annuaire_national_2024_2025.txt:584:Une inscription de plus en plus précoce et/ou Le taux brut d'admission au primaire est de 126,06% en 2024-2025 contre 132,32% en 2023-2024. Au regard de l'objectif de la
+verification/ministere_annuaire_national_2024_2025.txt:675:                                    maintenus comme tel à l'horizon 2030. Même si à ce niveau les résultats montrent une bonne une performance au regard des prévisions,
+verification/ministere_annuaire_national_2024_2025.txt:967:Un effectif des élèves au premier cycle du        697532 élèves dont 334 436 (47,95%) de filles se sont inscrits au secondaire 1 en 2024-2025 contre 666 459 en 2023-2024, soit
+verification/ministere_annuaire_national_2024_2025.txt:969:                                                  d'accroissement moyen annuel de 3%. Sur les six dernières années, les effectifs ont augmenté en moyenne dans toutes les
+verification/ministere_annuaire_national_2024_2025.txt:970:                                                  régions sauf la région des Savanes qui a connu une baisse entre la période 2019-2020 et 2023-2024 ( L'effectif est passé de 72054
+verification/ministere_annuaire_national_2024_2025.txt:972:                                                  Tableau 3.1 : Evolution de l'effectif des élèves dans le premier cycle du secondaire entre 2019-2020 et 2024-2025 par sexe et par
+verification/ministere_annuaire_national_2024_2025.txt:975:                                                                              Effectif 2019-2020                         Effectif 2023-2024                       Effectif 2024-2025
+verification/ministere_annuaire_national_2024_2025.txt:1031:enfants hadicapés                             régions éducatives. Les plus grands effectifs se trouvent dans les régions Grand Lomé (3 114 élèves), Maritime (2 137 élèves)
+verification/ministere_annuaire_national_2024_2025.txt:1086:Effectif au second cycle du secondaire en    Dans le secondaire 2, l'effectif des élèves enregistré en 2024-2025 est de 214 868 dont 101 106 filles ( 47,05%), contre 215 660
+verification/ministere_annuaire_national_2024_2025.txt:1091:                                             Tableau 3.5 : Croissance de l'effectif des élèves au second cycle du secondaire entre 2019-2020 et 2024-2025
+verification/ministere_annuaire_national_2024_2025.txt:1094:                                                                        Effectif 2019-2020                       Effectif 2023-2024                          Effectif 2024-2025
+verification/ministere_annuaire_national_2024_2025.txt:1107:                                             pourcentage. Bien qu'en augmentation depuis quelques années, le TBS est relativement faible dans le secondaire 2. L'effectif
+verification/ministere_annuaire_national_2024_2025.txt:1185:                                             Les taux de réussite au BAC 2 enseignement général session de 2024 est de 42,2% en série D, 70,3% en Série C4 et 48,3% en
+verification/ministere_annuaire_national_2024_2025.txt:1189:                                             Tableau 3.10 : Taux de réussite baccalauréat 2 ème partie
+verification/ministere_annuaire_national_2024_2025.txt:3404:                                      Effectifs
+verification/ministere_annuaire_national_2024_2025.txt:7749:             Nombre                 Présents                                               Admis
+verification/ministere_annuaire_national_2024_2025.txt:7828:Nombre                             Présents                                               Admis
+verification/ministere_annuaire_national_2024_2025.txt:7906:             Nombre                 Présents                                                 Admis
+verification/ministere_annuaire_national_2024_2025.txt:10133:        Nombre                    Présents                                                     Admis
+verification/ministere_annuaire_national_2024_2025.txt:10191:        Nombre                    Présents                                                  Admis
+verification/ministere_annuaire_national_2024_2025.txt:10249:        Nombre                    Présents                                               Admis
+verification/ministere_annuaire_national_2024_2025.txt:10307:        Nombre                 Présents                                                  Admis
+verification/ministere_annuaire_national_2024_2025.txt:12388:                         Présents                 Admis                       Présents                     Admis                      Présents                         Admis
+verification/ministere_annuaire_national_2024_2025.txt:12447:   Nombre                Présents                 Admis                      Présents                      Admis                      Présents                         Admis
+verification/ministere_annuaire_national_2024_2025.txt:12507:   Nombre                 Présents                      Admis                      Présents                      Admis                   Présents                         Admis
+verification/ministere_annuaire_national_2024_2025.txt:12566:   Nombre                Présents                    Admis                      Présents                      Admis                      Présents                         Admis
+verification/ministere_annuaire_national_2024_2025.txt:12626:   Nombre                Présents                    Admis                      Présents                      Admis                      Présents                         Admis
+verification/ministere_annuaire_national_2024_2025.txt:12686:   Nombre                 Présents                         Admis                      Présents                      Admis                   Présents                         Admis

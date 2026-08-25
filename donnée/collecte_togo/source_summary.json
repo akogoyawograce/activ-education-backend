@@ -1,0 +1,219 @@
+[
+  {
+    "file": "sources/onet_career_interest_types.csv",
+    "rows": 8307,
+    "columns": 9,
+    "header": [
+      "O*NET-SOC Code",
+      "Title",
+      "Element ID",
+      "Element Name",
+      "Scale ID",
+      "Scale Name",
+      "Data Value",
+      "Date",
+      "Domain Source"
+    ]
+  },
+  {
+    "file": "sources/onet_occupations.csv",
+    "rows": 1016,
+    "columns": 3,
+    "header": [
+      "O*NET-SOC Code",
+      "Title",
+      "Description"
+    ]
+  },
+  {
+    "file": "sources/onet_specific_interest_areas.csv",
+    "rows": 73062,
+    "columns": 9,
+    "header": [
+      "O*NET-SOC Code",
+      "Title",
+      "Element ID",
+      "Element Name",
+      "Scale ID",
+      "Scale Name",
+      "Data Value",
+      "Date",
+      "Domain Source"
+    ]
+  },
+  {
+    "file": "sources/onet_specific_interest_mapping.csv",
+    "rows": 53,
+    "columns": 4,
+    "header": [
+      "Specific Interest Areas Element ID",
+      "Specific Interest Areas Element Name",
+      "Career Interest Types Element ID",
+      "Career Interest Types Element Name"
+    ]
+  },
+  {
+    "file": "sources/unesco_dem_data_tgo.csv",
+    "rows": 1687,
+    "columns": 6,
+    "header": [
+      "indicator_id",
+      "country_id",
+      "year",
+      "value",
+      "magnitude",
+      "qualifier"
+    ]
+  },
+  {
+    "file": "sources/unesco_dem_indicatorlist_tgo.csv",
+    "rows": 35,
+    "columns": 2,
+    "header": [
+      "indicator_id",
+      "indicator_label_en"
+    ]
+  },
+  {
+    "file": "sources/unesco_opri_data_tgo.csv",
+    "rows": 18579,
+    "columns": 6,
+    "header": [
+      "indicator_id",
+      "country_id",
+      "year",
+      "value",
+      "magnitude",
+      "qualifier"
+    ]
+  },
+  {
+    "file": "sources/unesco_opri_indicatorlist_tgo.csv",
+    "rows": 2042,
+    "columns": 2,
+    "header": [
+      "indicator_id",
+      "indicator_label_en"
+    ]
+  },
+  {
+    "file": "sources/unesco_sdg_data_tgo.csv",
+    "rows": 7024,
+    "columns": 6,
+    "header": [
+      "indicator_id",
+      "country_id",
+      "year",
+      "value",
+      "magnitude",
+      "qualifier"
+    ]
+  },
+  {
+    "file": "sources/unesco_sdg_indicatorlist_tgo.csv",
+    "rows": 2935,
+    "columns": 2,
+    "header": [
+      "indicator_id",
+      "indicator_label_en"
+    ]
+  },
+  {
+    "file": "structured/career_interest_types.csv",
+    "rows": 8307,
+    "columns": 9,
+    "header": [
+      "O*NET-SOC Code",
+      "Title",
+      "Element ID",
+      "Element Name",
+      "Scale ID",
+      "Scale Name",
+      "Data Value",
+      "Date",
+      "Domain Source"
+    ]
+  },
+  {
+    "file": "structured/occupation_data.csv",
+    "rows": 1016,
+    "columns": 3,
+    "header": [
+      "O*NET-SOC Code",
+      "Title",
+      "Description"
+    ]
+  },
+  {
+    "file": "structured/specific_interest_areas.csv",
+    "rows": 73062,
+    "columns": 9,
+    "header": [
+      "O*NET-SOC Code",
+      "Title",
+      "Element ID",
+      "Element Name",
+      "Scale ID",
+      "Scale Name",
+      "Data Value",
+      "Date",
+      "Domain Source"
+    ]
+  },
+  {
+    "file": "structured/specific_interest_areas_to_career_interest_types.csv",
+    "rows": 53,
+    "columns": 4,
+    "header": [
+      "Specific Interest Areas Element ID",
+      "Specific Interest Areas Element Name",
+      "Career Interest Types Element ID",
+      "Career Interest Types Element Name"
+    ]
+  },
+  {
+    "file": "sources/worldbank_education_expenditure_gdp.json",
+    "rows": 66,
+    "columns": 8,
+    "header": [
+      "indicator",
+      "country",
+      "countryiso3code",
+      "date",
+      "value",
+      "unit",
+      "obs_status",
+      "decimal"
+    ]
+  },
+  {
+    "file": "sources/worldbank_tertiary_completion.json",
+    "rows": 101,
+    "columns": 8,
+    "header": [
+      "indicator",
+      "country",
+      "countryiso3code",
+      "date",
+      "value",
+      "unit",
+      "obs_status",
+      "decimal"
+    ]
+  },
+  {
+    "file": "sources/worldbank_tertiary_enrollment.json",
+    "rows": 101,
+    "columns": 8,
+    "header": [
+      "indicator",
+      "country",
+      "countryiso3code",
+      "date",
+      "value",
+      "unit",
+      "obs_status",
+      "decimal"
+    ]
+  }
+]

@@ -70,4 +70,11 @@ public class EleveRequest {
 
     /** Métier souhaité par l'élève. */
     private String metierSouhaite;
+
+    /**
+     * Token d'inscription obtenu après vérification du code OTP
+     * (POST /auth/inscription/otp/verify). Requis à la création du compte
+     * pour garantir que l'email a été vérifié.
+     */
+    private String inscriptionToken;
 }

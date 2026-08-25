@@ -35,6 +35,14 @@ public class OrientationOutcomeResponse {
 
     private String serie;
 
+    private String region;
+
+    private String ordre;
+
+    private String sexe;
+
+    private Integer anneeSession;
+
     /**
      * Snapshot RIASEC sérialisé tel quel (JsonNode → JSON brut) pour ne pas
      * exposer les métadonnées internes Jackson (containerNode, bigDecimal, ...).

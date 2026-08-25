@@ -61,6 +61,8 @@ public class SecurityConfig {
                                                                 "/api/v1/auth/refresh", "/api/v1/auth/forgot-password",
                                                                 "/api/v1/auth/otp/verify",
                                                                 "/api/v1/auth/otp/envoyer",
+                                                                "/api/v1/auth/inscription/otp/envoyer",
+                                                                "/api/v1/auth/inscription/otp/verify",
                                                                 "/api/v1/auth/reset-password",
                                                                 "/api/v1/auth/2fa/validate",
                                                                 "/api/v1/auth/2fa/email/validate",
@@ -79,7 +81,7 @@ public class SecurityConfig {
                                                 .permitAll()
 
                                                 // Error dispatch (évite 401 sur les erreurs de validation)
-                                                .requestMatchers("/error").permitAll()
+                                                .requestMatchers("/error", "/favicon.ico").permitAll()
 
                                                 // WebSocket Chat (auth via token en query param)
                                                 .requestMatchers("/ws/chat").permitAll()

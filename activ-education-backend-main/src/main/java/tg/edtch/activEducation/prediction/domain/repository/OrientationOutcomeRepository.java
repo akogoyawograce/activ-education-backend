@@ -1,5 +1,7 @@
 package tg.edtch.activEducation.prediction.domain.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import tg.edtch.activEducation.prediction.domain.entite.OrientationOutcome;
@@ -18,6 +20,11 @@ public interface OrientationOutcomeRepository extends JpaRepository<OrientationO
     List<OrientationOutcome> findByFiliereId(Long filiereId);
 
     List<OrientationOutcome> findByStatut(OrientationOutcome.StatutOrientation statut);
+
+    /** Pagination avec filtre statut (optionnel) pour le suivi conseiller (backoffice). */
+    Page<OrientationOutcome> findByStatut(OrientationOutcome.StatutOrientation statut, Pageable pageable);
+
+    Page<OrientationOutcome> findAllByOrderByDateChoixDesc(Pageable pageable);
 
     /**
      * Source d'or pour l'entraînement supervisé (Phase 5) : uniquement les

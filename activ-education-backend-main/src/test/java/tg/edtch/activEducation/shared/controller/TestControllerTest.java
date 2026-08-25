@@ -13,6 +13,7 @@ import tg.edtch.activEducation.profil.domain.service.AdministrateurService;
 import tg.edtch.activEducation.profil.domain.service.ConseillerService;
 import tg.edtch.activEducation.profil.domain.service.EleveService;
 import tg.edtch.activEducation.profil.domain.service.ParentService;
+import tg.edtch.activEducation.shared.security.auth.AuthService;
 
 import java.util.UUID;
 
@@ -30,6 +31,7 @@ class TestControllerTest {
     private ParentService parentService;
     private ConseillerService conseillerService;
     private AdministrateurService adminService;
+    private AuthService authService;
 
     @BeforeEach
     void setUp() {
@@ -37,7 +39,9 @@ class TestControllerTest {
         parentService = mock(ParentService.class);
         conseillerService = mock(ConseillerService.class);
         adminService = mock(AdministrateurService.class);
-        TestController controller = new TestController(eleveService, parentService, conseillerService, adminService);
+        authService = mock(AuthService.class);
+        when(authService.genererInscriptionToken(any())).thenReturn("token-test");
+        TestController controller = new TestController(eleveService, parentService, conseillerService, adminService, authService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setMessageConverters(new MappingJackson2HttpMessageConverter(new ObjectMapper()))
                 .build();

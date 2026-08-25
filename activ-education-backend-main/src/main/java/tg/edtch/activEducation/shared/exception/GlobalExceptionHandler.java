@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tg.edtch.activEducation.shared.security.exception.InvalidTokenException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -65,6 +66,18 @@ public class GlobalExceptionHandler {
         body.put("error", "Accès refusé");
         body.put("message", "Vous n'avez pas les droits nécessaires");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    /**
+     * Token invalide, expiré ou consommé (refresh, reset, OTP, inscription).
+     * Avant ce handler : renvoyé en 500 par handleGeneral.
+     */
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidToken(InvalidTokenException ex) {
+        Map<String, String> body = new HashMap<>();
+        body.put("error", "Token invalide");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     @ExceptionHandler(Exception.class)

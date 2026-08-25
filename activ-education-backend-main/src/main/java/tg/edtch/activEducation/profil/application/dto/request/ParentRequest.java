@@ -47,4 +47,11 @@ public class ParentRequest {
      */
     @Builder.Default
     private List<UUID> enfantsTrackingIds = new ArrayList<>();
+
+    /**
+     * Token d'inscription obtenu après vérification du code OTP
+     * (POST /auth/inscription/otp/verify). Requis à la création du compte
+     * pour garantir que l'email a été vérifié.
+     */
+    private String inscriptionToken;
 }

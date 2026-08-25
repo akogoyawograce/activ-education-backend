@@ -64,4 +64,28 @@ public interface AuthService {
      * Termine un login protégé par OTP email (deuxième facteur).
      */
     TokenResponse completeEmail2faLogin(String challengeToken, String code);
+
+    /**
+     * Étape 1 de l'inscription : vérifie que l'email est libre puis envoie un OTP.
+     */
+    void envoyerOtpInscription(String email);
+
+    /**
+     * Étape 2 de l'inscription : valide l'OTP et retourne un token d'inscription
+     * à joindre à POST /api/v1/eleves ou POST /api/v1/parents.
+     */
+    OtpResponse verifyOtpInscription(String email, String code);
+
+    /**
+     * Consomme le token d'inscription (obtenu après vérification OTP) et
+     * lève une exception s'il est invalide, expiré ou ne correspond pas à l'email.
+     */
+    void validerInscriptionToken(String email, String inscriptionToken);
+
+    /**
+     * Émet un token d'inscription SANS envoi d'OTP. Réservé aux flux
+     * administrés (backoffice, endpoints de test) où l'email est déjà validé
+     * par un administrateur. Ne jamais exposer publiquement.
+     */
+    String genererInscriptionToken(String email);
 }

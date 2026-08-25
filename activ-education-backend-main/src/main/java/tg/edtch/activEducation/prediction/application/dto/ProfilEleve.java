@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,4 +47,7 @@ public class ProfilEleve {
 
     /** Confiance 0..1 dans la projection (1.0 si 3 notes, 0.7 si 2, 0.5 si 1). */
     private Double confianceTrajectoire;
+
+    /** 3 dernières moyennes générales (ordre chronologique croissant). */
+    private List<BigDecimal> notesCroissant;
 }

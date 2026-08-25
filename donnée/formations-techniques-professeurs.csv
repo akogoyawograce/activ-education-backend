@@ -1,0 +1,45 @@
+No.,Nom du champ,Question,Description,Type du champ
+1,region_nom_bdd,,xsd:string,string
+2,prefecture_nom_bdd,,xsd:string,string
+3,commune_nom_bdd,,xsd:string,string
+4,canton_nom_bdd,,xsd:string,string
+5,id,,xsd:int,int
+6,canton_id_bdd,ID du canton,xsd:string,string
+7,etab_id_bdd,ID de l'établissement,xsd:int,int
+8,etab_nom,,xsd:string,string
+9,etab_id_collecte,ID textuel de l'établissement,xsd:string,string
+10,prof_genre,,xsd:string,string
+11,prof_nom,,xsd:string,string
+12,prof_presence,,xsd:string,string
+13,prof_secteur,,xsd:string,string
+14,prof_secteur_autre,,xsd:string,string
+15,prof_tel,,xsd:string,string
+16,anciennete_prof,,xsd:string,string
+17,etablissement_anciennete,,xsd:string,string
+18,employe_position,,xsd:string,string
+19,employe_position_autre,,xsd:string,string
+20,contrat_type,,xsd:string,string
+21,contract_type_autre,,xsd:string,string
+22,diplome,,xsd:string,string
+23,diplome_autre,,xsd:string,string
+24,matiere,,xsd:string,string
+25,matiere_autre,,xsd:string,string
+26,prof_titulaire,,xsd:string,string
+27,classes_nbr,,xsd:int,int
+28,prof_fonction_autre,,xsd:string,string
+29,prof_fonction_autre_spec,,xsd:string,string
+30,classes_enseigne_nbr,,xsd:int,int
+31,classe_niveau,Classe niveau,xsd:string,string
+32,classe_niveau_autre,Autre niveau de la classe,xsd:string,string
+33,technologie,,xsd:string,string
+34,technologie_spec,,xsd:string,string
+35,technologie_cours,,xsd:string,string
+36,livre,,xsd:string,string
+37,livre_secu,,xsd:string,string
+38,materiel_autre,,xsd:string,string
+39,materiel_autre_spec,,xsd:string,string
+40,materiel_autre_secu,,xsd:string,string
+41,challenges,,xsd:string,string
+42,date_collecte,Date de la collecte,xsd:date-time,date-time
+43,date_mise_a_jour_collecte,Date de la mise à jour,xsd:date-time,date-time
+44,geometry,Géométrie,gml:Point,Point

@@ -16,6 +16,7 @@ import tg.edtch.activEducation.shared.minio.exception.InvalidFileTypeException;
 import tg.edtch.activEducation.shared.minio.exception.MinioException;
 import tg.edtch.activEducation.shared.minio.service.MinioService;
 import tg.edtch.activEducation.shared.minio.service.PdfProcessingService;
+import tg.edtch.activEducation.shared.minio.service.ImageProcessingService;
 import tg.edtch.activEducation.shared.minio.config.MinioProperties;
 
 import org.apache.tika.Tika;
@@ -23,6 +24,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -43,6 +45,7 @@ public class MinioServiceImpl implements MinioService {
     private final MinioClient minioClient;
     private final MinioProperties minioProperties;
     private final PdfProcessingService pdfProcessingService;
+    private final ImageProcessingService imageProcessingService;
     private final Tika tika = new Tika();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -66,11 +69,16 @@ public class MinioServiceImpl implements MinioService {
 
     @Override
     public FileUploadResponse uploadFile(MultipartFile file, FileType fileType) {
-        return uploadFile(file, fileType, null);
+        return uploadFile(file, fileType, null, null);
     }
 
     @Override
     public FileUploadResponse uploadFile(MultipartFile file, FileType fileType, String customFileName) {
+        return uploadFile(file, fileType, customFileName, null);
+    }
+
+    @Override
+    public FileUploadResponse uploadFile(MultipartFile file, FileType fileType, String customFileName, String purpose) {
         try {
             validateFile(file, fileType);
 
@@ -80,10 +88,22 @@ public class MinioServiceImpl implements MinioService {
             String fileName = generateFileName(file.getOriginalFilename());
             String contentType = detectContentType(file);
 
+            // Optimisation automatique des images (downscale + compression)
+            ImageProcessResult processed = null;
+            if (fileType == FileType.IMAGE) {
+                processed = imageProcessingService.process(file,
+                        ImageProcessingService.ImagePurpose.parse(purpose));
+            }
+
+            byte[] content = (processed != null) ? processed.bytes() : file.getBytes();
+            if (processed != null) {
+                contentType = processed.contentType();
+            }
+
             PutObjectArgs putObjectArgs = PutObjectArgs.builder()
                     .bucket(bucketName)
                     .object(fileName)
-                    .stream(file.getInputStream(), file.getSize(), -1)
+                    .stream(new ByteArrayInputStream(content), content.length, -1)
                     .contentType(contentType)
                     .build();
 
@@ -94,7 +114,7 @@ public class MinioServiceImpl implements MinioService {
                     .originalFileName(file.getOriginalFilename())
                     .fileUrl(getFileUrl(fileName, fileType))
                     .bucketName(bucketName)
-                    .fileSize(file.getSize())
+                    .fileSize((long) content.length)
                     .contentType(contentType)
                     .uploadedAt(LocalDateTime.now())
                     .fileId(response.etag())
