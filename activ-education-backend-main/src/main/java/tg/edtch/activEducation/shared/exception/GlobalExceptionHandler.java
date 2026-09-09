@@ -83,8 +83,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneral(Exception ex) {
         Map<String, String> body = new HashMap<>();
-        body.put("error", "Erreur interne");
-        body.put("message", "Une erreur inattendue s'est produite");
+        body.put("error", "Erreur interne : " + ex.getClass().getSimpleName());
+        body.put("message", ex.getMessage() != null ? ex.getMessage() : "Aucun message d'erreur disponible");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
 }
