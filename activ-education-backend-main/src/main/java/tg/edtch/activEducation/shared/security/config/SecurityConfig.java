@@ -251,6 +251,7 @@ public class SecurityConfig {
                         "https://localhost:*",
                         "http://127.0.0.1:*",
                         "https://*.activeducation.tg",
+                        "https://activ-education-fronted.akogoyawograce31.workers.dev",
                         "capacitor://localhost",
                         "ionic://localhost"
                 ));
